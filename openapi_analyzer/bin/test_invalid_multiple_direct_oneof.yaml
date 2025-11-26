@@ -8,11 +8,6 @@ components:
   schemas:
     InvalidMultipleDirectOneOf:
       allOf:
-        - type: object
-          required: [petType]
-          properties:
-            petType:
-              type: string
         - oneOf:
             - $ref: "#/components/schemas/Cat"
             - $ref: "#/components/schemas/Dog"
@@ -21,10 +16,14 @@ components:
         propertyName: petType
 
     SomeSchema:
+      type: object
+      required: [petType]
+      properties:
+        petType:
+          type: string
       allOf:
         - $ref: "#/components/schemas/SomeSchema2"
-        
-   
+
     SomeSchema2:
       type: object
       # oneOf:
@@ -36,7 +35,7 @@ components:
       required: [meow]
       properties:
         petType:
-          type: string
+          type: integer
         meow:
           type: boolean
 

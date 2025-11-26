@@ -1,0 +1,91 @@
+# Test: Valid - Parent provides discriminator property, variants don't need to redefine it
+openapi: 3.0.0
+info:
+  title: Valid Parent Provides Discriminator Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    # Pattern 1: Direct parent with property
+    DirectParent:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+      oneOf:
+        - $ref: "#/components/schemas/TypeA"
+        - $ref: "#/components/schemas/TypeB"
+      discriminator:
+        propertyName: type
+    
+    # Pattern 2: Parent via allOf provides property
+    AllOfParent:
+      allOf:
+        - type: object
+          required: [kind]
+          properties:
+            kind:
+              type: string
+        - oneOf:
+            - $ref: "#/components/schemas/KindX"
+            - $ref: "#/components/schemas/KindY"
+      discriminator:
+        propertyName: kind
+    
+    # Pattern 3: Property via $ref in allOf
+    RefParent:
+      allOf:
+        - $ref: "#/components/schemas/BaseWithCategory"
+        - oneOf:
+            - $ref: "#/components/schemas/CategoryM"
+            - $ref: "#/components/schemas/CategoryN"
+      discriminator:
+        propertyName: category
+    
+    BaseWithCategory:
+      type: object
+      required: [category]
+      properties:
+        category:
+          type: string
+    
+    # Variants that don't redefine the discriminator property
+    TypeA:
+      type: object
+      properties:
+        valueA:
+          type: string
+    
+    TypeB:
+      type: object
+      properties:
+        valueB:
+          type: integer
+    
+    KindX:
+      type: object
+      properties:
+        dataX:
+          type: boolean
+    
+    KindY:
+      type: object
+      properties:
+        dataY:
+          type: array
+          items:
+            type: string
+    
+    CategoryM:
+      type: object
+      properties:
+        fieldM:
+          type: number
+    
+    CategoryN:
+      type: object
+      properties:
+        fieldN:
+          type: object
+

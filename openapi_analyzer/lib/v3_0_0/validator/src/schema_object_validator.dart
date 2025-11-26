@@ -1151,6 +1151,65 @@ class SchemaObjectValidator {
     }
   }
 
+  /// Checks if a schema (possibly with allOf) defines a property as required
+  /// Searches recursively through allOf chains and follows $refs
+  static bool _schemaDefinesPropertyAsRequired(
+    Map<dynamic, dynamic> schema,
+    String propertyName,
+    Map<dynamic, dynamic> document,
+    Set<String> visitedRefs,
+  ) {
+    // Check if property is defined in this schema's properties
+    bool hasProperty = false;
+    if (schema.containsKey('properties') &&
+        schema['properties'] is Map &&
+        (schema['properties'] as Map).containsKey(propertyName)) {
+      hasProperty = true;
+    }
+
+    // Check if property is marked as required in this schema
+    bool isRequired = false;
+    if (schema.containsKey('required') &&
+        schema['required'] is List &&
+        (schema['required'] as List).contains(propertyName)) {
+      isRequired = true;
+    }
+
+    // If we found it defined and required, return true
+    if (hasProperty && isRequired) {
+      return true;
+    }
+
+    // Recursively check allOf items
+    if (schema.containsKey('allOf') && schema['allOf'] is List) {
+      final allOf = schema['allOf'] as List;
+      for (final item in allOf) {
+        if (item is! Map) continue;
+
+        // Follow $ref if present
+        if (item.containsKey(r'$ref')) {
+          final ref = item[r'$ref'] as String;
+          if (visitedRefs.contains(ref)) continue;
+          visitedRefs.add(ref);
+
+          final resolved = _resolveInternalReference(ref, document);
+          if (resolved != null) {
+            if (_schemaDefinesPropertyAsRequired(resolved, propertyName, document, visitedRefs)) {
+              return true;
+            }
+          }
+        } else {
+          // Check inline schema
+          if (_schemaDefinesPropertyAsRequired(item, propertyName, document, visitedRefs)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
   /// Extracts nested oneOf/anyOf variants from an allOf array
   /// Returns (schemas, keyword) tuple if found, null otherwise
   static (List<dynamic>, String)? _extractNestedVariants(List<dynamic> allOfSchemas, Map<dynamic, dynamic> document) {
@@ -1231,11 +1290,23 @@ class SchemaObjectValidator {
             // For allOf, find the nested oneOf/anyOf and validate discriminator property against those variants only
             final nestedVariants = _extractNestedVariants(compositionSchemas, document);
             if (nestedVariants != null) {
-              _validateDiscriminatorProperty(propertyName, nestedVariants.$1, nestedVariants.$2, path, document);
+              // Check if parent schema already defines the discriminator property as required
+              // (anywhere in the parent structure, including nested allOf and $refs)
+              final parentDefinesProperty = _schemaDefinesPropertyAsRequired(data, propertyName, document, <String>{});
+
+              // Only validate variants if parent doesn't provide the property
+              if (!parentDefinesProperty) {
+                _validateDiscriminatorProperty(propertyName, nestedVariants.$1, nestedVariants.$2, path, document);
+              }
             }
           } else {
-            // For oneOf/anyOf, validate discriminator property directly against the variants
-            _validateDiscriminatorProperty(propertyName, compositionSchemas, compositionKeyword, path, document);
+            // For oneOf/anyOf, check if parent provides the discriminator property
+            final parentDefinesProperty = _schemaDefinesPropertyAsRequired(data, propertyName, document, <String>{});
+
+            // Only validate variants if parent doesn't provide the property
+            if (!parentDefinesProperty) {
+              _validateDiscriminatorProperty(propertyName, compositionSchemas, compositionKeyword, path, document);
+            }
           }
         }
       } else {
