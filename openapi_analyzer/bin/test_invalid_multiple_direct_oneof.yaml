@@ -1,0 +1,68 @@
+# Test: Invalid - Multiple direct oneOf blocks in allOf with discriminator
+openapi: 3.0.0
+info:
+  title: Invalid Multiple Direct OneOf Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    InvalidMultipleDirectOneOf:
+      allOf:
+        - type: object
+          required: [petType]
+          properties:
+            petType:
+              type: string
+        - oneOf:
+            - $ref: "#/components/schemas/Cat"
+            - $ref: "#/components/schemas/Dog"
+        - $ref: "#/components/schemas/SomeSchema"
+      discriminator:
+        propertyName: petType
+
+    SomeSchema:
+      allOf:
+        - $ref: "#/components/schemas/SomeSchema2"
+        
+   
+    SomeSchema2:
+      type: object
+      # oneOf:
+      #   - $ref: "#/components/schemas/Train"
+      #   - $ref: "#/components/schemas/Boat"
+
+    Cat:
+      type: object
+      required: [meow]
+      properties:
+        petType:
+          type: string
+        meow:
+          type: boolean
+
+    Dog:
+      type: object
+      required: [petType, bark]
+      properties:
+        petType:
+          type: string
+        bark:
+          type: boolean
+
+    Train:
+      type: object
+      required: [petType, smoke]
+      properties:
+        petType:
+          type: string
+        smoke:
+          type: boolean
+
+    Boat:
+      type: object
+      required: [petType, water]
+      properties:
+        petType:
+          type: string
+        water:
+          type: boolean

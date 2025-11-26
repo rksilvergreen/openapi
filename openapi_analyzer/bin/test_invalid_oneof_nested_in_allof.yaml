@@ -1,0 +1,61 @@
+# Test: Invalid - oneOf nested in nested allOf with discriminator
+openapi: 3.0.0
+info:
+  title: Invalid OneOf Nested in AllOf Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    InvalidNestedInAllOf:
+      allOf:
+        - type: object
+          required: [petType]
+          properties:
+            petType:
+              type: string
+        - oneOf:
+            - $ref: "#/components/schemas/Train"
+            - $ref: "#/components/schemas/Boat"
+        - allOf:
+            - oneOf:
+                - $ref: "#/components/schemas/Cat"
+                - $ref: "#/components/schemas/Dog"
+      discriminator:
+        propertyName: petType
+    
+    Cat:
+      type: object
+      required: [petType, meow]
+      properties:
+        petType:
+          type: string
+        meow:
+          type: boolean
+          
+    Dog:
+      type: object
+      required: [petType, bark]
+      properties:
+        petType:
+          type: string
+        bark:
+          type: boolean
+          
+    Train:
+      type: object
+      required: [petType, smoke]
+      properties:
+        petType:
+          type: string
+        smoke:
+          type: boolean
+          
+    Boat:
+      type: object
+      required: [petType, water]
+      properties:
+        petType:
+          type: string
+        water:
+          type: boolean
+

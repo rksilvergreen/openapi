@@ -1,0 +1,58 @@
+# Test: Invalid - oneOf via $ref + direct oneOf with discriminator
+openapi: 3.0.0
+info:
+  title: Invalid Ref Plus OneOf Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    InvalidRefPlusOneOf:
+      allOf:
+        - $ref: "#/components/schemas/SchemaWithOneOf"
+        - oneOf:
+            - $ref: "#/components/schemas/Train"
+            - $ref: "#/components/schemas/Boat"
+      discriminator:
+        propertyName: petType
+    
+    SchemaWithOneOf:
+      oneOf:
+        - $ref: "#/components/schemas/Cat"
+        - $ref: "#/components/schemas/Dog"
+    
+    Cat:
+      type: object
+      required: [petType, meow]
+      properties:
+        petType:
+          type: string
+        meow:
+          type: boolean
+          
+    Dog:
+      type: object
+      required: [petType, bark]
+      properties:
+        petType:
+          type: string
+        bark:
+          type: boolean
+          
+    Train:
+      type: object
+      required: [petType, smoke]
+      properties:
+        petType:
+          type: string
+        smoke:
+          type: boolean
+          
+    Boat:
+      type: object
+      required: [petType, water]
+      properties:
+        petType:
+          type: string
+        water:
+          type: boolean
+

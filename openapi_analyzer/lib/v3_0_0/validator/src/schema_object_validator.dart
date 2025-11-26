@@ -650,42 +650,90 @@ class SchemaObjectValidator {
   }
 
   /// Validates that discriminator is not used with allOf containing nested composition keywords
-  /// Checks if allOf contains nested oneOf or anyOf keywords (inline, not via $ref)
-  static bool _hasNestedCompositionInAllOf(Map<dynamic, dynamic> data) {
+  /// Checks if allOf contains nested oneOf or anyOf keywords (including via $ref)
+  /// Requires document context to follow references
+  static bool _hasNestedCompositionInAllOf(Map<dynamic, dynamic> data, Map<dynamic, dynamic> document) {
     if (!data.containsKey('allOf')) return false;
 
     final allOf = data['allOf'];
     if (allOf is! List) return false;
 
-    for (final schema in allOf) {
-      if (schema is Map && !schema.containsKey(r'$ref')) {
-        if (schema.containsKey('oneOf') || schema.containsKey('anyOf')) {
-          return true;
-        }
-      }
-    }
-    return false;
+    // Use the recursive counting logic to check if there are any oneOf/anyOf in the allOf
+    final count = _countOneOfAnyOfInSchemas(allOf, document, <String>{});
+    return count > 0;
   }
 
-  static void _validateDiscriminatorNotNestedInAllOf(List<dynamic> schemas, String path) {
-    // Check if any schema in the allOf contains nested oneOf, anyOf, or allOf
-    for (var i = 0; i < schemas.length; i++) {
-      if (schemas[i] is Map) {
-        final schema = schemas[i] as Map;
+  /// Recursively counts oneOf/anyOf keywords in schemas, including following $ref
+  /// visitedRefs tracks visited references to prevent infinite loops
+  static int _countOneOfAnyOfInSchemas(List<dynamic> schemas, Map<dynamic, dynamic> document, Set<String> visitedRefs) {
+    int count = 0;
 
-        // Check for nested composition keywords (but not $ref, as refs are fine)
-        if (!schema.containsKey(r'$ref')) {
-          if (schema.containsKey('oneOf') || schema.containsKey('anyOf') || schema.containsKey('allOf')) {
-            throw OpenApiValidationException(
-              ValidationUtils.buildPath(path, 'discriminator'),
-              'Discriminator should not be used with allOf that contains nested composition keywords (oneOf, anyOf, allOf). '
-              'This creates ambiguity about which schema variant the discriminator value represents. '
-              'Use discriminator directly with oneOf/anyOf containing all variants, or ensure allOf only contains direct schema definitions or references.',
-              specReference: 'OpenAPI 3.0.0 - Discriminator Object',
-            );
-          }
+    for (final item in schemas) {
+      if (item is! Map) continue;
+
+      // Follow $ref if present
+      if (item.containsKey(r'$ref')) {
+        final ref = item[r'$ref'] as String;
+
+        // Prevent infinite loops
+        if (visitedRefs.contains(ref)) continue;
+        visitedRefs.add(ref);
+
+        final resolved = _resolveInternalReference(ref, document);
+        if (resolved != null) {
+          count += _countOneOfAnyOfInSchema(resolved, document, visitedRefs);
         }
+      } else {
+        count += _countOneOfAnyOfInSchema(item, document, visitedRefs);
       }
+    }
+
+    return count;
+  }
+
+  /// Counts oneOf/anyOf in a single schema, recursing into nested composition
+  static int _countOneOfAnyOfInSchema(
+    Map<dynamic, dynamic> schema,
+    Map<dynamic, dynamic> document,
+    Set<String> visitedRefs,
+  ) {
+    int count = 0;
+
+    // Check for oneOf
+    if (schema.containsKey('oneOf')) {
+      count++;
+      // Don't recurse into oneOf items - we only count the keyword itself
+    }
+
+    // Check for anyOf
+    if (schema.containsKey('anyOf')) {
+      count++;
+      // Don't recurse into anyOf items - we only count the keyword itself
+    }
+
+    // Recurse into allOf to find nested oneOf/anyOf
+    if (schema.containsKey('allOf') && schema['allOf'] is List) {
+      count += _countOneOfAnyOfInSchemas(schema['allOf'] as List, document, visitedRefs);
+    }
+
+    return count;
+  }
+
+  static void _validateDiscriminatorNotNestedInAllOf(
+    List<dynamic> schemas,
+    String path,
+    Map<dynamic, dynamic> document,
+  ) {
+    final count = _countOneOfAnyOfInSchemas(schemas, document, <String>{});
+
+    if (count > 1) {
+      throw OpenApiValidationException(
+        ValidationUtils.buildPath(path, 'discriminator'),
+        'Discriminator should not be used with allOf that contains multiple oneOf/anyOf keywords '
+        '(found $count). This creates ambiguity about which schema variant the discriminator represents. '
+        'A discriminator can only discriminate variants from a single oneOf or anyOf block.',
+        specReference: 'OpenAPI 3.0.0 - Discriminator Object',
+      );
     }
   }
 
@@ -1103,6 +1151,37 @@ class SchemaObjectValidator {
     }
   }
 
+  /// Extracts nested oneOf/anyOf variants from an allOf array
+  /// Returns (schemas, keyword) tuple if found, null otherwise
+  static (List<dynamic>, String)? _extractNestedVariants(List<dynamic> allOfSchemas, Map<dynamic, dynamic> document) {
+    for (final item in allOfSchemas) {
+      if (item is! Map) continue;
+
+      // Check inline schemas for oneOf/anyOf
+      if (item.containsKey('oneOf')) {
+        return (item['oneOf'] as List, 'oneOf');
+      }
+      if (item.containsKey('anyOf')) {
+        return (item['anyOf'] as List, 'anyOf');
+      }
+
+      // Follow $ref and check the resolved schema
+      if (item.containsKey(r'$ref')) {
+        final resolved = _resolveInternalReference(item[r'$ref'] as String, document);
+        if (resolved != null) {
+          if (resolved.containsKey('oneOf')) {
+            return (resolved['oneOf'] as List, 'oneOf');
+          }
+          if (resolved.containsKey('anyOf')) {
+            return (resolved['anyOf'] as List, 'anyOf');
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   static void _validateDiscriminator(Map<dynamic, dynamic> data, String path, {Map<dynamic, dynamic>? document}) {
     if (data.containsKey('discriminator')) {
       final discriminator = data['discriminator'];
@@ -1124,7 +1203,8 @@ class SchemaObjectValidator {
       final propertyName = discriminator['propertyName'] as String;
 
       // Determine discriminator mode: PRIMARY (variants) or SECONDARY (inheritance)
-      final hasVariants = data.containsKey('oneOf') || data.containsKey('anyOf') || _hasNestedCompositionInAllOf(data);
+      final hasVariants =
+          data.containsKey('oneOf') || data.containsKey('anyOf') || _hasNestedCompositionInAllOf(data, document);
 
       if (hasVariants) {
         // PRIMARY MODE: Discriminator for oneOf/anyOf variants
@@ -1146,10 +1226,17 @@ class SchemaObjectValidator {
         if (compositionSchemas != null && compositionKeyword != null) {
           // Check for nested composition keywords with discriminator in allOf
           if (compositionKeyword == 'allOf') {
-            _validateDiscriminatorNotNestedInAllOf(compositionSchemas, path);
-          }
+            _validateDiscriminatorNotNestedInAllOf(compositionSchemas, path, document);
 
-          _validateDiscriminatorProperty(propertyName, compositionSchemas, compositionKeyword, path, document);
+            // For allOf, find the nested oneOf/anyOf and validate discriminator property against those variants only
+            final nestedVariants = _extractNestedVariants(compositionSchemas, document);
+            if (nestedVariants != null) {
+              _validateDiscriminatorProperty(propertyName, nestedVariants.$1, nestedVariants.$2, path, document);
+            }
+          } else {
+            // For oneOf/anyOf, validate discriminator property directly against the variants
+            _validateDiscriminatorProperty(propertyName, compositionSchemas, compositionKeyword, path, document);
+          }
         }
       } else {
         // SECONDARY MODE: Discriminator for inheritance pattern (no variants in this schema)

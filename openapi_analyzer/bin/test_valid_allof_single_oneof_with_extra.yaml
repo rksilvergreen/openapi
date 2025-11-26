@@ -1,0 +1,49 @@
+# Test: Valid - allOf with single oneOf and extra schema without discriminator property
+openapi: 3.0.0
+info:
+  title: Valid AllOf Single OneOf With Extra Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    ValidPattern:
+      allOf:
+        - type: object
+          required: [petType]
+          properties:
+            petType:
+              type: string
+        - oneOf:
+            - $ref: "#/components/schemas/Cat"
+            - $ref: "#/components/schemas/Dog"
+        - $ref: "#/components/schemas/ExtraProperties"
+      discriminator:
+        propertyName: petType
+    
+    ExtraProperties:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+    
+    Cat:
+      type: object
+      required: [petType, meow]
+      properties:
+        petType:
+          type: string
+        meow:
+          type: boolean
+          
+    Dog:
+      type: object
+      required: [petType, bark]
+      properties:
+        petType:
+          type: string
+        bark:
+          type: boolean
+
