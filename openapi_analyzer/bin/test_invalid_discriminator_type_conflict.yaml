@@ -1,0 +1,46 @@
+# Test: Invalid - Variant redefines discriminator property with incompatible type
+openapi: 3.0.0
+info:
+  title: Invalid Discriminator Type Conflict Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    # Parent provides discriminator property as string
+    # but Cat redefines it as integer - this should fail
+    ParentWithTypeConflict:
+      allOf:
+        - oneOf:
+            - $ref: "#/components/schemas/Cat"
+            - $ref: "#/components/schemas/Dog"
+        - $ref: "#/components/schemas/BaseWithStringType"
+      discriminator:
+        propertyName: petType
+    
+    BaseWithStringType:
+      type: object
+      required: [petType]
+      properties:
+        petType:
+          type: string
+    
+    # Cat redefines petType as integer (conflict!)
+    Cat:
+      type: object
+      required: [meow]
+      properties:
+        petType:
+          type: integer
+        meow:
+          type: boolean
+    
+    # Dog correctly uses string or doesn't redefine
+    Dog:
+      type: object
+      required: [petType, bark]
+      properties:
+        petType:
+          type: string
+        bark:
+          type: boolean
+

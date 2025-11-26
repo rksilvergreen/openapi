@@ -1151,6 +1151,112 @@ class SchemaObjectValidator {
     }
   }
 
+  /// Validates that variants don't redefine the discriminator property with incompatible types
+  /// when the parent already provides it
+  static void _validateVariantsDontConflictWithParentProperty(
+    String propertyName,
+    List<dynamic> variantSchemas,
+    String compositionKeyword,
+    Map<dynamic, dynamic> parentSchema,
+    String path,
+    Map<dynamic, dynamic> document,
+  ) {
+    // Get the parent's property type
+    String? parentType;
+    if (parentSchema.containsKey('properties') && parentSchema['properties'] is Map) {
+      final props = parentSchema['properties'] as Map;
+      if (props.containsKey(propertyName) && props[propertyName] is Map) {
+        final propDef = props[propertyName] as Map;
+        if (propDef.containsKey('type')) {
+          parentType = propDef['type'] as String;
+        }
+      }
+    }
+
+    // If we can't determine parent type, recursively check allOf
+    if (parentType == null && parentSchema.containsKey('allOf')) {
+      final allOf = parentSchema['allOf'] as List;
+      for (final item in allOf) {
+        if (item is! Map) continue;
+
+        if (item.containsKey('properties') && item['properties'] is Map) {
+          final props = item['properties'] as Map;
+          if (props.containsKey(propertyName) && props[propertyName] is Map) {
+            final propDef = props[propertyName] as Map;
+            if (propDef.containsKey('type')) {
+              parentType = propDef['type'] as String;
+              break;
+            }
+          }
+        }
+
+        // Follow $ref
+        if (item.containsKey(r'$ref')) {
+          final resolved = _resolveInternalReference(item[r'$ref'] as String, document);
+          if (resolved != null && resolved.containsKey('properties') && resolved['properties'] is Map) {
+            final props = resolved['properties'] as Map;
+            if (props.containsKey(propertyName) && props[propertyName] is Map) {
+              final propDef = props[propertyName] as Map;
+              if (propDef.containsKey('type')) {
+                parentType = propDef['type'] as String;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (parentType == null) {
+      // Can't determine parent type, skip conflict check
+      return;
+    }
+
+    // Check each variant for conflicting type definitions
+    final conflictingSchemas = <String>[];
+
+    for (var i = 0; i < variantSchemas.length; i++) {
+      if (variantSchemas[i] is! Map) continue;
+
+      Map schema = variantSchemas[i] as Map;
+      String schemaName = '$compositionKeyword[$i]';
+
+      // Resolve reference if present
+      if (schema.containsKey(r'$ref')) {
+        final ref = schema[r'$ref'] as String;
+        schemaName = ref;
+        final resolvedSchema = _resolveInternalReference(ref, document);
+        if (resolvedSchema != null) {
+          schema = resolvedSchema;
+        }
+      }
+
+      // Check if this variant redefines the property
+      if (schema.containsKey('properties') && schema['properties'] is Map) {
+        final props = schema['properties'] as Map;
+        if (props.containsKey(propertyName) && props[propertyName] is Map) {
+          final propDef = props[propertyName] as Map;
+          if (propDef.containsKey('type')) {
+            final variantType = propDef['type'] as String;
+            if (variantType != parentType) {
+              conflictingSchemas.add('$schemaName (has type: $variantType, parent has: $parentType)');
+            }
+          }
+        }
+      }
+    }
+
+    if (conflictingSchemas.isNotEmpty) {
+      throw OpenApiValidationException(
+        ValidationUtils.buildPath(path, 'discriminator'),
+        'Discriminator property "$propertyName" is provided by the parent schema with type "$parentType", '
+        'but the following variant schemas redefine it with an incompatible type: ${conflictingSchemas.join(", ")}. '
+        'Variants should either inherit the property from the parent or redefine it with the same type.',
+        specReference: 'OpenAPI 3.0.0 - Discriminator Object',
+      );
+    }
+  }
+
   /// Checks if a schema (possibly with allOf) defines a property as required
   /// Searches recursively through allOf chains and follows $refs
   static bool _schemaDefinesPropertyAsRequired(
@@ -1294,8 +1400,18 @@ class SchemaObjectValidator {
               // (anywhere in the parent structure, including nested allOf and $refs)
               final parentDefinesProperty = _schemaDefinesPropertyAsRequired(data, propertyName, document, <String>{});
 
-              // Only validate variants if parent doesn't provide the property
-              if (!parentDefinesProperty) {
+              if (parentDefinesProperty) {
+                // Parent provides property - check variants don't conflict with it
+                _validateVariantsDontConflictWithParentProperty(
+                  propertyName,
+                  nestedVariants.$1,
+                  nestedVariants.$2,
+                  data,
+                  path,
+                  document,
+                );
+              } else {
+                // Parent doesn't provide property - validate variants have it
                 _validateDiscriminatorProperty(propertyName, nestedVariants.$1, nestedVariants.$2, path, document);
               }
             }
@@ -1303,8 +1419,18 @@ class SchemaObjectValidator {
             // For oneOf/anyOf, check if parent provides the discriminator property
             final parentDefinesProperty = _schemaDefinesPropertyAsRequired(data, propertyName, document, <String>{});
 
-            // Only validate variants if parent doesn't provide the property
-            if (!parentDefinesProperty) {
+            if (parentDefinesProperty) {
+              // Parent provides property - check variants don't conflict with it
+              _validateVariantsDontConflictWithParentProperty(
+                propertyName,
+                compositionSchemas,
+                compositionKeyword,
+                data,
+                path,
+                document,
+              );
+            } else {
+              // Parent doesn't provide property - validate variants have it
               _validateDiscriminatorProperty(propertyName, compositionSchemas, compositionKeyword, path, document);
             }
           }
