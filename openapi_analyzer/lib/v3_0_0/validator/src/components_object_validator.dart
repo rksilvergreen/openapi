@@ -11,11 +11,11 @@ import 'security_scheme_object_validator.dart';
 /// Validator for Components Objects according to OpenAPI 3.0.0 specification.
 class ComponentsObjectValidator {
   /// Validates a Components Object.
-  static void validate(Map<dynamic, dynamic> data, String path) {
+  static void validate(Map<dynamic, dynamic> data, String path, {Map<dynamic, dynamic>? document}) {
     final keyPattern = _getComponentKeyPattern();
 
     // Validate each component type
-    _validateSchemasComponent(data, path, keyPattern);
+    _validateSchemasComponent(data, path, keyPattern, document: document);
     _validateResponsesComponent(data, path, keyPattern);
     _validateParametersComponent(data, path, keyPattern);
     _validateExamplesComponent(data, path, keyPattern);
@@ -43,7 +43,7 @@ class ComponentsObjectValidator {
     }
   }
 
-  static void _validateSchemasComponent(Map<dynamic, dynamic> data, String path, RegExp keyPattern) {
+  static void _validateSchemasComponent(Map<dynamic, dynamic> data, String path, RegExp keyPattern, {Map<dynamic, dynamic>? document}) {
     if (data.containsKey('schemas')) {
       final schemas = ValidationUtils.requireMap(data['schemas'], ValidationUtils.buildPath(path, 'schemas'));
       for (final key in schemas.keys) {
@@ -62,7 +62,7 @@ class ComponentsObjectValidator {
         if (schemaMap.containsKey(r'$ref')) {
           ReferenceObjectValidator.validate(schemaMap, ValidationUtils.buildPath(path, 'schemas.$keyStr'));
         } else {
-          SchemaObjectValidator.validate(schemaMap, ValidationUtils.buildPath(path, 'schemas.$keyStr'));
+          SchemaObjectValidator.validate(schemaMap, ValidationUtils.buildPath(path, 'schemas.$keyStr'), document: document);
         }
       }
     }

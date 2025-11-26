@@ -1,0 +1,28 @@
+# Test: allOf with incompatible types (should fail validation)
+openapi: 3.0.0
+info:
+  title: Invalid AllOf Incompatible Types Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    InvalidAllOfIncompatibleTypes:
+      allOf:
+        - type: object
+          properties:
+            name:
+              type: integer
+        - $ref: "#/components/schemas/Dog"
+    Dog:
+      type: object
+      properties:
+        name:
+          type: string
+        age:
+          type: integer
+        breed:
+          type: string
+        color:
+          type: string
+        owner:
+          type: string

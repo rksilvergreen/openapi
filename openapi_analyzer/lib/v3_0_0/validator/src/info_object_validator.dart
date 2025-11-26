@@ -17,7 +17,10 @@ class InfoObjectValidator {
   }
 
   static void _validateTitleField(Map<dynamic, dynamic> data, String path) {
-    final title = ValidationUtils.requireString(ValidationUtils.requireField(data, 'title', path), ValidationUtils.buildPath(path, 'title'));
+    final title = ValidationUtils.requireString(
+      ValidationUtils.requireField(data, 'title', path),
+      ValidationUtils.buildPath(path, 'title'),
+    );
 
     if (title.isEmpty) {
       throw OpenApiValidationException(
@@ -29,7 +32,10 @@ class InfoObjectValidator {
   }
 
   static void _validateVersionField(Map<dynamic, dynamic> data, String path) {
-    final version = ValidationUtils.requireString(ValidationUtils.requireField(data, 'version', path), ValidationUtils.buildPath(path, 'version'));
+    final version = ValidationUtils.requireString(
+      ValidationUtils.requireField(data, 'version', path),
+      ValidationUtils.buildPath(path, 'version'),
+    );
 
     if (version.isEmpty) {
       throw OpenApiValidationException(
@@ -48,7 +54,10 @@ class InfoObjectValidator {
 
   static void _validateTermsOfServiceField(Map<dynamic, dynamic> data, String path) {
     if (data.containsKey('termsOfService')) {
-      final termsOfService = ValidationUtils.requireString(data['termsOfService'], ValidationUtils.buildPath(path, 'termsOfService'));
+      final termsOfService = ValidationUtils.requireString(
+        data['termsOfService'],
+        ValidationUtils.buildPath(path, 'termsOfService'),
+      );
       if (termsOfService.isEmpty) {
         throw OpenApiValidationException(
           ValidationUtils.buildPath(path, 'termsOfService'),

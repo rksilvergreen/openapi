@@ -58,6 +58,8 @@ abstract interface class OpenapiObject {
         return SchemaObject.fromJson(json);
       case SecurityRequirement:
         return SecurityRequirement.fromJson(json);
+      case SecurityScheme:
+        return SecurityScheme.fromJson(json);
       case Server:
         return Server.fromJson(json);
       case Tag:

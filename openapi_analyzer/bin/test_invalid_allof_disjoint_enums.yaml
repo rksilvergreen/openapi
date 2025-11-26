@@ -1,0 +1,12 @@
+# Test: allOf with disjoint enums (should fail validation)
+openapi: 3.0.0
+info:
+  title: Invalid AllOf Disjoint Enums Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    InvalidAllOfDisjointEnums:
+      allOf:
+        - enum: [1, 2, 3]
+        - enum: [4, 5, 6]

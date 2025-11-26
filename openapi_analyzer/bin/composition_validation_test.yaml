@@ -1,0 +1,144 @@
+# Test file for composition keyword validation
+# This file contains various test cases for allOf, oneOf, anyOf validation
+
+openapi: 3.0.0
+info:
+  title: Composition Validation Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    # Valid: Basic oneOf usage
+    ValidOneOf:
+      oneOf:
+        - type: string
+        - type: number
+    
+    # Valid: Basic anyOf usage
+    ValidAnyOf:
+      anyOf:
+        - type: string
+          minLength: 5
+        - type: number
+          minimum: 0
+    
+    # Valid: Basic allOf usage
+    ValidAllOf:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: integer
+        - type: object
+          properties:
+            name:
+              type: string
+    
+    # Valid: oneOf with discriminator
+    ValidOneOfWithDiscriminator:
+      oneOf:
+        - $ref: '#/components/schemas/Cat'
+        - $ref: '#/components/schemas/Dog'
+      discriminator:
+        propertyName: petType
+    
+    # Valid: anyOf with discriminator
+    ValidAnyOfWithDiscriminator:
+      anyOf:
+        - $ref: '#/components/schemas/Cat'
+        - $ref: '#/components/schemas/Dog'
+      discriminator:
+        propertyName: petType
+    
+    # Valid: allOf with discriminator
+    ValidAllOfWithDiscriminator:
+      allOf:
+        - type: object
+          required: [petType]
+          properties:
+            petType:
+              type: string
+        - oneOf:
+            - $ref: '#/components/schemas/Cat'
+            - $ref: '#/components/schemas/Dog'
+      discriminator:
+        propertyName: petType
+    
+    # Supporting schemas
+    Cat:
+      type: object
+      required: [petType, meow]
+      properties:
+        petType:
+          type: string
+        meow:
+          type: boolean
+    
+    Dog:
+      type: object
+      required: [petType, bark]
+      properties:
+        petType:
+          type: string
+        bark:
+          type: boolean
+    
+    # Invalid: Empty allOf array (should be caught)
+    # InvalidEmptyAllOf:
+    #   allOf: []
+    
+    # Invalid: allOf with non-object items (should be caught)
+    # InvalidAllOfNonObject:
+    #   allOf:
+    #     - "not an object"
+    #     - type: string
+    
+    # Invalid: allOf with incompatible types (should be caught)
+    # InvalidAllOfIncompatibleTypes:
+    #   allOf:
+    #     - type: string
+    #     - type: object
+    
+    # Invalid: allOf with different const values (should be caught)
+    # InvalidAllOfDifferentConst:
+    #   allOf:
+    #     - const: "foo"
+    #     - const: "bar"
+    
+    # Invalid: allOf with disjoint enums (should be caught)
+    # InvalidAllOfDisjointEnums:
+    #   allOf:
+    #     - enum: [1, 2, 3]
+    #     - enum: [4, 5, 6]
+    
+    # Invalid: discriminator without composition keyword (should be caught)
+    # InvalidDiscriminatorAlone:
+    #   type: object
+    #   discriminator:
+    #     propertyName: type
+    
+    # Invalid: Duplicate references in oneOf (should be caught)
+    # InvalidDuplicateRefs:
+    #   oneOf:
+    #     - $ref: '#/components/schemas/Cat'
+    #     - $ref: '#/components/schemas/Cat'
+    
+    # Valid: allOf with references
+    ValidAllOfWithRefs:
+      allOf:
+        - $ref: '#/components/schemas/BaseModel'
+        - type: object
+          properties:
+            extraField:
+              type: string
+    
+    BaseModel:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+

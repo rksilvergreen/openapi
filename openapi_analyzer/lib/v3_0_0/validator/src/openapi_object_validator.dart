@@ -13,7 +13,7 @@ class OpenApiObjectValidator {
     _validateInfoField(data, path);
     _validatePathsField(data, path);
     _validateServersField(data, path);
-    _validateComponentsField(data, path);
+    _validateComponentsField(data, path, document: data);
     _validateSecurityField(data, path);
     _validateTagsField(data, path);
     _validateExternalDocsField(data, path);
@@ -59,10 +59,10 @@ class OpenApiObjectValidator {
     }
   }
 
-  static void _validateComponentsField(Map<dynamic, dynamic> data, String path) {
+  static void _validateComponentsField(Map<dynamic, dynamic> data, String path, {Map<dynamic, dynamic>? document}) {
     if (data.containsKey('components')) {
       final components = ValidationUtils.requireMap(data['components'], ValidationUtils.buildPath(path, 'components'));
-      ComponentsObjectValidator.validate(components, ValidationUtils.buildPath(path, 'components'));
+      ComponentsObjectValidator.validate(components, ValidationUtils.buildPath(path, 'components'), document: document);
     }
   }
 

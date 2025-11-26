@@ -1,0 +1,10 @@
+# Test: Empty allOf array (should fail validation)
+openapi: 3.0.0
+info:
+  title: Invalid Empty AllOf Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    InvalidEmptyAllOf:
+      allOf: []

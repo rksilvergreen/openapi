@@ -61,6 +61,8 @@ oneOf:
                 type: string
                 format: date-time
   - allOf:
+      - type: string
+      - minimum: 1
       - type: object
         required: [alertType, productId, expectedDate]
         properties:
