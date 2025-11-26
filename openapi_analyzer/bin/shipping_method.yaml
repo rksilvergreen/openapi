@@ -1,0 +1,61 @@
+anyOf:
+  - type: object
+    required: [method, carrier, estimatedDays]
+    properties:
+      method:
+        type: string
+        enum: [standard]
+      carrier:
+        type: string
+        enum: [usps, fedex, ups, dhl]
+      estimatedDays:
+        type: integer
+        minimum: 1
+        maximum: 14
+      cost:
+        type: number
+        format: float
+        minimum: 0
+      trackingNumber:
+        type: string
+        nullable: true
+  - type: object
+    required: [method, storeId, pickupDate]
+    properties:
+      method:
+        type: string
+        enum: [pickup]
+      storeId:
+        type: integer
+        format: int64
+      pickupDate:
+        type: string
+        format: date
+      cost:
+        type: number
+        format: float
+        default: 0
+      instructions:
+        type: string
+        maxLength: 500
+        nullable: true
+  - type: object
+    required: [method, deliveryDate, timeSlot]
+    properties:
+      method:
+        type: string
+        enum: [express]
+      deliveryDate:
+        type: string
+        format: date
+      timeSlot:
+        type: string
+        enum: [morning, afternoon, evening]
+      cost:
+        type: number
+        format: float
+        minimum: 0
+      trackingNumber:
+        type: string
+        nullable: true
+

@@ -1,0 +1,55 @@
+type: object
+required: [street, city, state, postalCode, country]
+properties:
+  street:
+    type: string
+    minLength: 1
+    maxLength: 200
+    description: Street address
+  street2:
+    type: string
+    maxLength: 200
+    nullable: true
+    description: Apartment, suite, unit, etc.
+  city:
+    type: string
+    minLength: 1
+    maxLength: 100
+    description: City name
+  state:
+    type: string
+    minLength: 1
+    maxLength: 100
+    description: State or province
+  postalCode:
+    type: string
+    pattern: '^[A-Z0-9\s-]{3,20}$'
+    description: Postal or ZIP code
+  country:
+    type: string
+    pattern: '^[A-Z]{2}$'
+    description: ISO 3166-1 alpha-2 country code
+  addressType:
+    type: string
+    enum: [shipping, billing, both]
+    default: shipping
+  isDefault:
+    type: boolean
+    default: false
+    description: Whether this is the default address
+  coordinates:
+    type: object
+    nullable: true
+    properties:
+      latitude:
+        type: number
+        format: double
+        minimum: -90
+        maximum: 90
+      longitude:
+        type: number
+        format: double
+        minimum: -180
+        maximum: 180
+    description: Geographic coordinates (optional)
+

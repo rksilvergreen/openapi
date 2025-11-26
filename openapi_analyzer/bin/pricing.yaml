@@ -1,0 +1,52 @@
+allOf:
+  - type: object
+    required: [basePrice, currency]
+    properties:
+      basePrice:
+        type: number
+        format: float
+        minimum: 0
+      currency:
+        type: string
+        enum: [USD, EUR, GBP, JPY, CNY]
+  - oneOf:
+      - type: object
+        required: [pricingModel]
+        properties:
+          pricingModel:
+            type: string
+            enum: [fixed]
+          finalPrice:
+            type: number
+            format: float
+            minimum: 0
+      - type: object
+        required: [pricingModel, minPrice, maxPrice]
+        properties:
+          pricingModel:
+            type: string
+            enum: [range]
+          minPrice:
+            type: number
+            format: float
+            minimum: 0
+          maxPrice:
+            type: number
+            format: float
+            minimum: 0
+      - type: object
+        required: [pricingModel, formula]
+        properties:
+          pricingModel:
+            type: string
+            enum: [dynamic]
+          formula:
+            type: string
+            description: Pricing formula expression
+discriminator:
+  propertyName: pricingModel
+  mapping:
+    fixed: '#/components/schemas/FixedPricing'
+    range: '#/components/schemas/RangePricing'
+    dynamic: '#/components/schemas/DynamicPricing'
+

@@ -1,0 +1,46 @@
+type: object
+required: [paymentMethodType]
+properties:
+  paymentMethodType:
+    type: string
+    enum: [credit_card, debit_card, paypal, bank_transfer, apple_pay, google_pay]
+  cardLast4:
+    type: string
+    pattern: '^[0-9]{4}$'
+    nullable: true
+    description: Last 4 digits of credit card (if applicable)
+  cardBrand:
+    type: string
+    enum: [visa, mastercard, amex, discover, jcb, diners]
+    nullable: true
+    description: Credit card brand (if applicable)
+  expiryMonth:
+    type: integer
+    minimum: 1
+    maximum: 12
+    nullable: true
+    description: Card expiry month (if applicable)
+  expiryYear:
+    type: integer
+    minimum: 2024
+    maximum: 2099
+    nullable: true
+    description: Card expiry year (if applicable)
+  paypalEmail:
+    type: string
+    format: email
+    nullable: true
+    description: PayPal email address (if applicable)
+  bankAccountLast4:
+    type: string
+    pattern: '^[0-9]{4}$'
+    nullable: true
+    description: Last 4 digits of bank account (if applicable)
+  billingAddress:
+    $ref: 'address.yaml'
+    nullable: true
+  isDefault:
+    type: boolean
+    default: false
+    description: Whether this is the default payment method
+

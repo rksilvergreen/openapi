@@ -1,0 +1,71 @@
+type: object
+required: [productId, quantity, price]
+properties:
+  productId:
+    type: integer
+    format: int64
+    minimum: 1
+    description: Product identifier
+  variantId:
+    type: integer
+    format: int64
+    nullable: true
+    description: Product variant identifier (if applicable)
+  productName:
+    type: string
+    minLength: 1
+    maxLength: 200
+    description: Product name at time of order (snapshot)
+  sku:
+    type: string
+    pattern: '^[A-Z0-9-]+$'
+    nullable: true
+    description: Product SKU at time of order
+  quantity:
+    type: integer
+    minimum: 1
+    maximum: 1000
+    description: Quantity ordered
+  price:
+    type: number
+    format: float
+    minimum: 0
+    multipleOf: 0.01
+    description: Unit price at time of order
+  currency:
+    type: string
+    enum: [USD, EUR, GBP, JPY, CNY]
+    default: USD
+    description: Currency code
+  discount:
+    type: number
+    format: float
+    minimum: 0
+    maximum: 100
+    default: 0
+    description: Discount percentage
+  subtotal:
+    type: number
+    format: float
+    minimum: 0
+    multipleOf: 0.01
+    description: Line item subtotal (quantity * price * (1 - discount/100))
+  tax:
+    type: number
+    format: float
+    minimum: 0
+    multipleOf: 0.01
+    default: 0
+    description: Tax amount for this line item
+  total:
+    type: number
+    format: float
+    minimum: 0
+    multipleOf: 0.01
+    description: Total amount for this line item (subtotal + tax)
+  attributes:
+    type: object
+    additionalProperties:
+      type: string
+    description: Additional attributes (e.g., size, color) at time of order
+

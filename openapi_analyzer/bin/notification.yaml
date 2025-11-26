@@ -1,0 +1,29 @@
+type: object
+required: [type, recipient]
+properties:
+  type:
+    type: string
+    enum: [email, sms, push, in_app]
+  recipient:
+    anyOf:
+      - type: string
+        format: email
+        description: Email address for email notifications
+      - type: string
+        pattern: '^\+?[1-9]\d{1,14}$'
+        description: Phone number for SMS notifications
+      - type: string
+        format: uuid
+        description: Device token for push notifications
+      - type: integer
+        format: int64
+        description: User ID for in-app notifications
+  priority:
+    type: string
+    enum: [low, normal, high, urgent]
+    default: normal
+  scheduledAt:
+    type: string
+    format: date-time
+    nullable: true
+    description: When to send the notification (null = immediate)

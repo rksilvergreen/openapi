@@ -1,0 +1,2862 @@
+openapi: 3.0.0
+info:
+  title: Complex E-Commerce API
+  version: 2.0.0
+  description: |
+    A comprehensive e-commerce API demonstrating advanced OpenAPI 3.0.0 and JSON Schema features.
+    This API includes:
+    - Complex schema compositions (allOf, anyOf, oneOf)
+    - Polymorphism with discriminators
+    - External file references
+    - Advanced validation constraints
+    - Multiple authentication methods
+    - File uploads and downloads
+    - Webhooks and callbacks
+    - Content negotiation
+  contact:
+    name: API Support
+    email: api-support@example.com
+    url: https://support.example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: https://example.com/terms
+
+servers:
+  - url: https://api.example.com/v2
+    description: Production server
+    variables:
+      environment:
+        default: production
+        enum: [production, staging]
+  - url: https://staging-api.example.com/v2
+    description: Staging server
+  - url: http://localhost:8080/v2
+    description: Local development server
+
+tags:
+  - name: Products
+    description: Product catalog management
+    externalDocs:
+      url: https://docs.example.com/products
+  - name: Orders
+    description: Order processing and management
+  - name: Users
+    description: User account management
+  - name: Authentication
+    description: Authentication and authorization
+  - name: Payments
+    description: Payment processing
+  - name: Inventory
+    description: Inventory management
+  - name: Analytics
+    description: Analytics and reporting
+  - name: Webhooks
+    description: Webhook subscriptions
+  - name: Notifications
+    description: Notification management
+
+security:
+  - ApiKeyAuth: []
+  - OAuth2: [read, write]
+
+paths:
+  /products:
+    get:
+      operationId: listProducts
+      summary: List all products
+      description: Retrieve a paginated list of products with filtering and sorting options
+      tags: [Products]
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SortParam"
+        - name: category
+          in: query
+          description: Filter by category ID
+          schema:
+            type: integer
+            format: int64
+        - name: minPrice
+          in: query
+          description: Minimum price filter
+          schema:
+            type: number
+            format: float
+            minimum: 0
+        - name: maxPrice
+          in: query
+          description: Maximum price filter
+          schema:
+            type: number
+            format: float
+            minimum: 0
+        - name: inStock
+          in: query
+          description: Filter by stock availability
+          schema:
+            type: boolean
+            default: true
+        - name: tags
+          in: query
+          description: Filter by tags (multiple values allowed)
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              minLength: 1
+              maxLength: 50
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      operationId: createProduct
+      summary: Create a new product
+      description: Create a new product with validation
+      tags: [Products]
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CreateProductFormRequest"
+      responses:
+        "201":
+          description: Product created successfully
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: URL of the created product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: Product with this SKU already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConflictError"
+
+  /products/{productId}:
+    parameters:
+      - $ref: "#/components/parameters/ProductIdParam"
+    get:
+      operationId: getProduct
+      summary: Get product by ID
+      tags: [Products]
+      responses:
+        "200":
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      operationId: updateProduct
+      summary: Update product
+      tags: [Products]
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductRequest"
+      responses:
+        "200":
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteProduct
+      summary: Delete product
+      tags: [Products]
+      security:
+        - OAuth2: [write]
+      responses:
+        "204":
+          description: Product deleted successfully
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Cannot delete product with active orders
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConflictError"
+
+  /products/{productId}/variants:
+    parameters:
+      - $ref: "#/components/parameters/ProductIdParam"
+    get:
+      operationId: getProductVariants
+      summary: Get product variants
+      tags: [Products]
+      responses:
+        "200":
+          description: List of product variants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductVariant"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /products/{productId}/reviews:
+    parameters:
+      - $ref: "#/components/parameters/ProductIdParam"
+    get:
+      operationId: getProductReviews
+      summary: Get product reviews
+      tags: [Products]
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - name: rating
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+      responses:
+        "200":
+          description: Product reviews
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewListResponse"
+    post:
+      operationId: createProductReview
+      summary: Create a product review
+      tags: [Products]
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewRequest"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "409":
+          description: User has already reviewed this product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConflictError"
+
+  /orders:
+    get:
+      operationId: listOrders
+      summary: List orders
+      tags: [Orders]
+      security:
+        - OAuth2: [read]
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/OrderStatus"
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderListResponse"
+    post:
+      operationId: createOrder
+      summary: Create a new order
+      tags: [Orders]
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "201":
+          description: Order created
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "422":
+          description: Unprocessable entity (e.g., insufficient inventory)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnprocessableEntityError"
+
+  /orders/{orderId}:
+    parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    get:
+      operationId: getOrder
+      summary: Get order by ID
+      tags: [Orders]
+      security:
+        - OAuth2: [read]
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateOrder
+      summary: Partially update order
+      tags: [Orders]
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderRequest"
+      responses:
+        "200":
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Order cannot be modified in current state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConflictError"
+
+  /users:
+    get:
+      operationId: listUsers
+      summary: List users
+      tags: [Users]
+      security:
+        - OAuth2: [read]
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - name: role
+          in: query
+          schema:
+            $ref: "#/components/schemas/UserRole"
+        - name: active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserListResponse"
+    post:
+      operationId: createUser
+      summary: Create a new user
+      tags: [Users]
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "409":
+          description: User with this email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConflictError"
+
+  /users/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+    get:
+      operationId: getUser
+      summary: Get user by ID
+      tags: [Users]
+      security:
+        - OAuth2: [read]
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /auth/login:
+    post:
+      operationId: login
+      summary: User login
+      description: Authenticate user and receive access token
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      summary: Refresh access token
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+      responses:
+        "200":
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /payments:
+    post:
+      operationId: processPayment
+      summary: Process payment
+      tags: [Payments]
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentRequest"
+      responses:
+        "200":
+          description: Payment processed
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/CreditCardPaymentResponse"
+                  - $ref: "#/components/schemas/PayPalPaymentResponse"
+                  - $ref: "#/components/schemas/BankTransferPaymentResponse"
+                discriminator:
+                  propertyName: paymentMethod
+                  mapping:
+                    credit_card: "#/components/schemas/CreditCardPaymentResponse"
+                    paypal: "#/components/schemas/PayPalPaymentResponse"
+                    bank_transfer: "#/components/schemas/BankTransferPaymentResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "402":
+          description: Payment failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentError"
+
+  /inventory/stock:
+    get:
+      operationId: getStockLevels
+      summary: Get stock levels
+      tags: [Inventory]
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: productIds
+          in: query
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: warehouseId
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Stock levels
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockLevelResponse"
+
+  /analytics/revenue:
+    get:
+      operationId: getRevenueAnalytics
+      summary: Get revenue analytics
+      tags: [Analytics]
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: groupBy
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, year]
+            default: day
+      responses:
+        "200":
+          description: Revenue analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevenueAnalyticsResponse"
+
+  /webhooks:
+    post:
+      operationId: createWebhook
+      summary: Create webhook subscription
+      tags: [Webhooks]
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookSubscription"
+      responses:
+        "201":
+          description: Webhook created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookSubscription"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+    get:
+      operationId: listWebhooks
+      summary: List webhook subscriptions
+      tags: [Webhooks]
+      security:
+        - OAuth2: [read]
+      responses:
+        "200":
+          description: List of webhooks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WebhookSubscription"
+
+  /webhooks/{webhookId}:
+    parameters:
+      - name: webhookId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      operationId: deleteWebhook
+      summary: Delete webhook subscription
+      tags: [Webhooks]
+      security:
+        - OAuth2: [write]
+      responses:
+        "204":
+          description: Webhook deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /files/upload:
+    post:
+      operationId: uploadFile
+      summary: Upload a file
+      tags: [Files]
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                description:
+                  type: string
+                  maxLength: 500
+                category:
+                  type: string
+                  enum: [product_image, document, avatar, other]
+      responses:
+        "200":
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileUploadResponse"
+
+  /products/search:
+    post:
+      operationId: searchProducts
+      summary: Search products with advanced filters
+      tags: [Products]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductFilter"
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+
+  /notifications:
+    post:
+      operationId: sendNotification
+      summary: Send a notification
+      tags: [Notifications]
+      security:
+        - OAuth2: [write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationRequest"
+      responses:
+        "200":
+          description: Notification sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  messageId:
+                    type: string
+                    format: uuid
+
+  /inventory/alerts:
+    get:
+      operationId: getInventoryAlerts
+      summary: Get inventory alerts
+      tags: [Inventory]
+      security:
+        - OAuth2: [read]
+      responses:
+        "200":
+          description: List of inventory alerts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [alerts]
+                properties:
+                  alerts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/InventoryAlert"
+
+  /payments/{paymentId}/result:
+    get:
+      operationId: getPaymentResult
+      summary: Get payment result
+      tags: [Payments]
+      security:
+        - OAuth2: [read]
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Payment result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResult"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.example.com/oauth/authorize
+          tokenUrl: https://auth.example.com/oauth/token
+          scopes:
+            read: Read access
+            write: Write access
+            admin: Admin access
+        clientCredentials:
+          tokenUrl: https://auth.example.com/oauth/token
+          scopes:
+            read: Read access
+            write: Write access
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    BasicAuth:
+      type: http
+      scheme: basic
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Page number (1-based)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    LimitParam:
+      name: limit
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    SortParam:
+      name: sort
+      in: query
+      description: Sort field and direction
+      schema:
+        type: string
+        pattern: "^[a-zA-Z_]+:(asc|desc)$"
+        default: "createdAt:desc"
+    ProductIdParam:
+      name: productId
+      in: path
+      required: true
+      description: Product identifier
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationErrorResponse"
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    # Base schemas
+    TimestampedEntity:
+      type: object
+      required: [createdAt]
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          nullable: true
+
+    IdentifiableEntity:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Unique identifier
+
+    # Product schemas
+    Product:
+      allOf:
+        - $ref: "#/components/schemas/IdentifiableEntity"
+        - $ref: "#/components/schemas/TimestampedEntity"
+        - type: object
+          required: [name, price, status]
+          properties:
+            name:
+              type: string
+              minLength: 1
+              maxLength: 200
+              description: Product name
+            description:
+              type: string
+              maxLength: 5000
+              nullable: true
+            sku:
+              type: string
+              pattern: "^[A-Z0-9-]+$"
+              minLength: 3
+              maxLength: 50
+              description: Stock Keeping Unit
+            price:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1000000
+              exclusiveMaximum: 10000001
+              multipleOf: 0.01
+            currency:
+              type: string
+              enum: [USD, EUR, GBP, JPY, CNY]
+              default: USD
+            category:
+              $ref: "category.yaml"
+            tags:
+              type: array
+              items:
+                type: string
+                minLength: 1
+                maxLength: 50
+              minItems: 0
+              maxItems: 20
+              uniqueItems: true
+            status:
+              $ref: "#/components/schemas/ProductStatus"
+            stock:
+              type: integer
+              minimum: 0
+              default: 0
+            images:
+              type: array
+              items:
+                $ref: "image.yaml"
+              minItems: 0
+              maxItems: 10
+            media:
+              type: array
+              items:
+                $ref: "product_media.yaml"
+              minItems: 0
+              maxItems: 20
+            specifications:
+              $ref: "product_specs.yaml"
+            discount:
+              $ref: "discount.yaml"
+            pricing:
+              $ref: "pricing.yaml"
+            metadata:
+              type: object
+              additionalProperties: true
+              description: Additional metadata
+
+    ProductStatus:
+      type: string
+      enum: [active, inactive, discontinued, out_of_stock, coming_soon]
+      default: active
+
+    CreateProductRequest:
+      allOf:
+        - type: object
+          required: [name, price, categoryId]
+          properties:
+            name:
+              type: string
+              minLength: 1
+              maxLength: 200
+            description:
+              type: string
+              maxLength: 5000
+            sku:
+              type: string
+              pattern: "^[A-Z0-9-]+$"
+              minLength: 3
+              maxLength: 50
+            price:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1000000
+              exclusiveMaximum: 1000001
+              multipleOf: 0.01
+            currency:
+              type: string
+              enum: [USD, EUR, GBP, JPY, CNY]
+              default: USD
+            categoryId:
+              type: integer
+              format: int64
+              minimum: 1
+            tags:
+              type: array
+              items:
+                type: string
+                minLength: 1
+                maxLength: 50
+              minItems: 0
+              maxItems: 20
+              uniqueItems: true
+            initialStock:
+              type: integer
+              minimum: 0
+              default: 0
+            specifications:
+              $ref: "product_specs.yaml"
+
+    CreateProductFormRequest:
+      type: object
+      required: [name, price, categoryId]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        price:
+          type: number
+          format: float
+          minimum: 0
+        categoryId:
+          type: integer
+          format: int64
+        images:
+          type: array
+          items:
+            type: string
+            format: binary
+          maxItems: 10
+
+    UpdateProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 5000
+        price:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1000000
+          exclusiveMaximum: 1000001
+          multipleOf: 0.01
+        status:
+          $ref: "#/components/schemas/ProductStatus"
+        stock:
+          type: integer
+          minimum: 0
+
+    ProductListResponse:
+      type: object
+      required: [products, pagination]
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    ProductVariant:
+      allOf:
+        - $ref: "#/components/schemas/IdentifiableEntity"
+        - type: object
+          required: [productId, name, price]
+          properties:
+            productId:
+              type: integer
+              format: int64
+            name:
+              type: string
+              minLength: 1
+              maxLength: 100
+            price:
+              type: number
+              format: float
+              minimum: 0
+            attributes:
+              type: object
+              additionalProperties:
+                type: string
+              description: Variant attributes (e.g., size, color)
+
+    # Order schemas
+    Order:
+      allOf:
+        - $ref: "#/components/schemas/IdentifiableEntity"
+        - $ref: "#/components/schemas/TimestampedEntity"
+        - type: object
+          required: [userId, items, total, status]
+          properties:
+            orderNumber:
+              type: string
+              pattern: "^ORD-[0-9]{8}$"
+              description: Human-readable order number
+            userId:
+              type: integer
+              format: int64
+            items:
+              type: array
+              items:
+                $ref: "order_item.yaml"
+              minItems: 1
+            subtotal:
+              type: number
+              format: float
+              minimum: 0
+            tax:
+              type: number
+              format: float
+              minimum: 0
+            shipping:
+              type: number
+              format: float
+              minimum: 0
+            total:
+              type: number
+              format: float
+              minimum: 0
+            status:
+              $ref: "#/components/schemas/OrderStatus"
+            shippingAddress:
+              $ref: "address.yaml"
+            billingAddress:
+              $ref: "address.yaml"
+            shippingMethod:
+              $ref: "shipping_method.yaml"
+            paymentMethod:
+              $ref: "payment_method.yaml"
+            statusUpdates:
+              type: array
+              items:
+                $ref: "order_status_update.yaml"
+              minItems: 0
+            notes:
+              type: string
+              maxLength: 1000
+              nullable: true
+
+    OrderStatus:
+      type: string
+      enum:
+        [
+          pending,
+          confirmed,
+          processing,
+          shipped,
+          delivered,
+          cancelled,
+          refunded,
+        ]
+      default: pending
+
+    CreateOrderRequest:
+      type: object
+      required: [items, shippingAddress]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [productId, quantity]
+            properties:
+              productId:
+                type: integer
+                format: int64
+              variantId:
+                type: integer
+                format: int64
+                nullable: true
+              quantity:
+                type: integer
+                minimum: 1
+                maximum: 100
+          minItems: 1
+          maxItems: 50
+        shippingAddress:
+          $ref: "address.yaml"
+        billingAddress:
+          $ref: "address.yaml"
+        paymentMethod:
+          $ref: "payment_method.yaml"
+        notes:
+          type: string
+          maxLength: 1000
+
+    UpdateOrderRequest:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        shippingAddress:
+          $ref: "address.yaml"
+        notes:
+          type: string
+          maxLength: 1000
+
+    OrderListResponse:
+      type: object
+      required: [orders, pagination]
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    # User schemas
+    User:
+      allOf:
+        - $ref: "#/components/schemas/IdentifiableEntity"
+        - $ref: "#/components/schemas/TimestampedEntity"
+        - type: object
+          required: [email, role]
+          properties:
+            email:
+              type: string
+              format: email
+              maxLength: 255
+            username:
+              type: string
+              pattern: "^[a-zA-Z0-9_]{3,20}$"
+              nullable: true
+            firstName:
+              type: string
+              minLength: 1
+              maxLength: 100
+              nullable: true
+            lastName:
+              type: string
+              minLength: 1
+              maxLength: 100
+              nullable: true
+            role:
+              $ref: "#/components/schemas/UserRole"
+            profile:
+              $ref: "user_profile.yaml"
+            contacts:
+              type: array
+              items:
+                $ref: "user_contact.yaml"
+              maxItems: 10
+            addresses:
+              type: array
+              items:
+                $ref: "address.yaml"
+              maxItems: 10
+            preferences:
+              $ref: "user_preferences.yaml"
+            active:
+              type: boolean
+              default: true
+            lastLoginAt:
+              type: string
+              format: date-time
+              nullable: true
+
+    UserRole:
+      type: string
+      enum: [customer, admin, moderator, vendor, support]
+      default: customer
+
+    CreateUserRequest:
+      type: object
+      required: [email, password, role]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 128
+          pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$'
+          description: Password must contain uppercase, lowercase, number, and special character
+        username:
+          type: string
+          pattern: "^[a-zA-Z0-9_]{3,20}$"
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        role:
+          $ref: "#/components/schemas/UserRole"
+        profile:
+          $ref: "user_profile.yaml"
+
+    UserListResponse:
+      type: object
+      required: [users, pagination]
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    # Authentication schemas
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        rememberMe:
+          type: boolean
+          default: false
+
+    LoginResponse:
+      type: object
+      required: [accessToken, tokenType, expiresIn]
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+        refreshToken:
+          type: string
+          description: Refresh token for obtaining new access tokens
+        tokenType:
+          type: string
+          enum: [Bearer]
+          default: Bearer
+        expiresIn:
+          type: integer
+          description: Token expiration time in seconds
+          minimum: 1
+        user:
+          $ref: "#/components/schemas/User"
+
+    RefreshTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh token
+
+    # Payment schemas
+    PaymentRequest:
+      oneOf:
+        - $ref: "#/components/schemas/CreditCardPaymentRequest"
+        - $ref: "#/components/schemas/PayPalPaymentRequest"
+        - $ref: "#/components/schemas/BankTransferPaymentRequest"
+      discriminator:
+        propertyName: paymentMethod
+        mapping:
+          credit_card: "#/components/schemas/CreditCardPaymentRequest"
+          paypal: "#/components/schemas/PayPalPaymentRequest"
+          bank_transfer: "#/components/schemas/BankTransferPaymentRequest"
+
+    CreditCardPaymentRequest:
+      allOf:
+        - type: object
+          required: [paymentMethod, amount, currency, cardDetails]
+          properties:
+            paymentMethod:
+              type: string
+              enum: [credit_card]
+            amount:
+              type: number
+              format: float
+              minimum: 0.01
+            currency:
+              type: string
+              enum: [USD, EUR, GBP]
+            cardDetails:
+              $ref: "#/components/schemas/CreditCardDetails"
+            orderId:
+              type: integer
+              format: int64
+              nullable: true
+
+    PayPalPaymentRequest:
+      allOf:
+        - type: object
+          required: [paymentMethod, amount, currency, paypalEmail]
+          properties:
+            paymentMethod:
+              type: string
+              enum: [paypal]
+            amount:
+              type: number
+              format: float
+              minimum: 0.01
+            currency:
+              type: string
+              enum: [USD, EUR, GBP]
+            paypalEmail:
+              type: string
+              format: email
+            orderId:
+              type: integer
+              format: int64
+              nullable: true
+
+    BankTransferPaymentRequest:
+      allOf:
+        - type: object
+          required: [paymentMethod, amount, currency, bankAccount]
+          properties:
+            paymentMethod:
+              type: string
+              enum: [bank_transfer]
+            amount:
+              type: number
+              format: float
+              minimum: 0.01
+            currency:
+              type: string
+              enum: [USD, EUR, GBP]
+            bankAccount:
+              $ref: "#/components/schemas/BankAccountDetails"
+            orderId:
+              type: integer
+              format: int64
+              nullable: true
+
+    CreditCardDetails:
+      type: object
+      required: [cardNumber, expiryMonth, expiryYear, cvv, cardholderName]
+      properties:
+        cardNumber:
+          type: string
+          pattern: "^[0-9]{13,19}$"
+          description: Credit card number (without spaces)
+        expiryMonth:
+          type: integer
+          minimum: 1
+          maximum: 12
+        expiryYear:
+          type: integer
+          minimum: 2024
+          maximum: 2099
+        cvv:
+          type: string
+          pattern: "^[0-9]{3,4}$"
+        cardholderName:
+          type: string
+          minLength: 1
+          maxLength: 100
+
+    BankAccountDetails:
+      type: object
+      required: [accountNumber, routingNumber, accountHolderName]
+      properties:
+        accountNumber:
+          type: string
+          pattern: "^[0-9]{8,17}$"
+        routingNumber:
+          type: string
+          pattern: "^[0-9]{9}$"
+        accountHolderName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        accountType:
+          type: string
+          enum: [checking, savings]
+          default: checking
+
+    CreditCardPaymentResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaymentResponse"
+        - type: object
+          required: [paymentMethod, transactionId, last4]
+          properties:
+            paymentMethod:
+              type: string
+              enum: [credit_card]
+            transactionId:
+              type: string
+              format: uuid
+            last4:
+              type: string
+              pattern: "^[0-9]{4}$"
+              description: Last 4 digits of the card
+
+    PayPalPaymentResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaymentResponse"
+        - type: object
+          required: [paymentMethod, transactionId, paypalEmail]
+          properties:
+            paymentMethod:
+              type: string
+              enum: [paypal]
+            transactionId:
+              type: string
+              format: uuid
+            paypalEmail:
+              type: string
+              format: email
+
+    BankTransferPaymentResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaymentResponse"
+        - type: object
+          required: [paymentMethod, transactionId, bankAccount]
+          properties:
+            paymentMethod:
+              type: string
+              enum: [bank_transfer]
+            transactionId:
+              type: string
+              format: uuid
+            bankAccount:
+              $ref: "#/components/schemas/BankAccountDetails"
+
+    PaymentResponse:
+      type: object
+      required: [status, amount, currency, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [success, pending, failed]
+        amount:
+          type: number
+          format: float
+        currency:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        orderId:
+          type: integer
+          format: int64
+          nullable: true
+
+    PaymentError:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          required: [errorCode, errorDetails]
+          properties:
+            errorCode:
+              type: string
+              enum:
+                [
+                  insufficient_funds,
+                  card_declined,
+                  invalid_card,
+                  expired_card,
+                  network_error,
+                ]
+            errorDetails:
+              type: object
+              additionalProperties: true
+
+    # Review schemas
+    Review:
+      allOf:
+        - $ref: "#/components/schemas/IdentifiableEntity"
+        - $ref: "#/components/schemas/TimestampedEntity"
+        - type: object
+          required: [productId, userId, rating, comment]
+          properties:
+            productId:
+              type: integer
+              format: int64
+            userId:
+              type: integer
+              format: int64
+            rating:
+              type: integer
+              minimum: 1
+              maximum: 5
+            comment:
+              type: string
+              minLength: 10
+              maxLength: 2000
+            verifiedPurchase:
+              type: boolean
+              default: false
+            helpfulCount:
+              type: integer
+              minimum: 0
+              default: 0
+
+    CreateReviewRequest:
+      type: object
+      required: [rating, comment]
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          minLength: 10
+          maxLength: 2000
+
+    ReviewListResponse:
+      type: object
+      required: [reviews, pagination, averageRating]
+      properties:
+        reviews:
+          type: array
+          items:
+            $ref: "#/components/schemas/Review"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        averageRating:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+          description: Average rating across all reviews
+
+    # Inventory schemas
+    StockLevelResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/StockLevel"
+        timestamp:
+          type: string
+          format: date-time
+
+    StockLevel:
+      type: object
+      required: [productId, quantity, reserved]
+      properties:
+        productId:
+          type: integer
+          format: int64
+        warehouseId:
+          type: integer
+          format: int64
+          nullable: true
+        quantity:
+          type: integer
+          minimum: 0
+        reserved:
+          type: integer
+          minimum: 0
+          description: Quantity reserved for pending orders
+        available:
+          type: integer
+          minimum: 0
+          description: Available quantity (quantity - reserved)
+        lastUpdated:
+          type: string
+          format: date-time
+
+    # Analytics schemas
+    RevenueAnalyticsResponse:
+      type: object
+      required: [period, totalRevenue, dataPoints]
+      properties:
+        period:
+          type: object
+          required: [startDate, endDate]
+          properties:
+            startDate:
+              type: string
+              format: date
+            endDate:
+              type: string
+              format: date
+        totalRevenue:
+          type: number
+          format: float
+          minimum: 0
+        currency:
+          type: string
+          enum: [USD, EUR, GBP]
+          default: USD
+        dataPoints:
+          type: array
+          items:
+            $ref: "#/components/schemas/RevenueDataPoint"
+          minItems: 1
+        summary:
+          $ref: "#/components/schemas/RevenueSummary"
+
+    RevenueDataPoint:
+      type: object
+      required: [date, revenue, orderCount]
+      properties:
+        date:
+          type: string
+          format: date
+        revenue:
+          type: number
+          format: float
+          minimum: 0
+        orderCount:
+          type: integer
+          minimum: 0
+        averageOrderValue:
+          type: number
+          format: float
+          minimum: 0
+
+    RevenueSummary:
+      type: object
+      required: [averageDailyRevenue, growthRate, topProducts]
+      properties:
+        averageDailyRevenue:
+          type: number
+          format: float
+          minimum: 0
+        growthRate:
+          type: number
+          format: float
+          description: Percentage growth rate
+        topProducts:
+          type: array
+          items:
+            type: object
+            required: [productId, revenue]
+            properties:
+              productId:
+                type: integer
+                format: int64
+              productName:
+                type: string
+              revenue:
+                type: number
+                format: float
+              quantity:
+                type: integer
+          maxItems: 10
+
+    # Webhook schemas
+    WebhookSubscription:
+      allOf:
+        - $ref: "#/components/schemas/IdentifiableEntity"
+        - $ref: "#/components/schemas/TimestampedEntity"
+        - type: object
+          required: [url, events, active]
+          properties:
+            url:
+              type: string
+              format: uri
+              pattern: "^https://"
+              description: Webhook URL (must be HTTPS)
+            events:
+              type: array
+              items:
+                type: string
+                enum:
+                  [
+                    order.created,
+                    order.updated,
+                    order.cancelled,
+                    product.created,
+                    product.updated,
+                    payment.processed,
+                    payment.failed,
+                  ]
+              minItems: 1
+              uniqueItems: true
+            secret:
+              type: string
+              description: Secret for webhook signature verification
+            active:
+              type: boolean
+              default: true
+            lastTriggeredAt:
+              type: string
+              format: date-time
+              nullable: true
+            failureCount:
+              type: integer
+              minimum: 0
+              default: 0
+
+    # File schemas
+    FileUploadResponse:
+      type: object
+      required: [fileId, url, size, mimeType]
+      properties:
+        fileId:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        size:
+          type: integer
+          format: int64
+          minimum: 0
+          description: File size in bytes
+        mimeType:
+          type: string
+          description: MIME type of the file
+        uploadedAt:
+          type: string
+          format: date-time
+
+    # Common schemas
+    Pagination:
+      type: object
+      required: [page, limit, total, totalPages]
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+        hasNext:
+          type: boolean
+        hasPrev:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        code:
+          type: integer
+          format: int32
+          description: HTTP status code
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error details
+          nullable: true
+
+    ValidationErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          required: [validationErrors]
+          properties:
+            validationErrors:
+              type: array
+              items:
+                $ref: "#/components/schemas/ValidationError"
+              minItems: 1
+
+    ValidationError:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+          description: Field name with path (e.g., 'user.email')
+        message:
+          type: string
+          description: Validation error message
+        code:
+          type: string
+          enum: [required, type, format, min, max, pattern, unique]
+        rejectedValue:
+          oneOf:
+            - type: string
+            - type: number
+            - type: integer
+            - type: boolean
+            - type: array
+              items: {}
+            - type: object
+              additionalProperties: true
+          nullable: true
+
+    ConflictError:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          required: [conflictType, conflictingResource]
+          properties:
+            conflictType:
+              type: string
+              enum: [duplicate, constraint_violation, state_conflict]
+            conflictingResource:
+              type: object
+              additionalProperties: true
+
+    UnprocessableEntityError:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          required: [reason]
+          properties:
+            reason:
+              type: string
+              enum:
+                [insufficient_inventory, invalid_state, business_rule_violation]
+            details:
+              type: object
+              additionalProperties: true
+
+    # Schemas with anyOf by itself
+    FlexibleIdentifier:
+      anyOf:
+        - type: string
+          format: uuid
+        - type: integer
+          format: int64
+          minimum: 1
+        - type: string
+          pattern: "^[A-Z0-9-]+$"
+          minLength: 3
+          maxLength: 50
+
+    ProductIdentifier:
+      anyOf:
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: integer
+              format: int64
+        - type: object
+          required: [sku]
+          properties:
+            sku:
+              type: string
+              pattern: "^[A-Z0-9-]+$"
+        - type: object
+          required: [slug]
+          properties:
+            slug:
+              type: string
+              pattern: "^[a-z0-9-]+$"
+
+    PriceValue:
+      anyOf:
+        - type: number
+          format: float
+          minimum: 0
+        - type: string
+          enum: [free, contact_us, negotiable]
+
+    DateRange:
+      anyOf:
+        - type: object
+          required: [start, end]
+          properties:
+            start:
+              type: string
+              format: date
+            end:
+              type: string
+              format: date
+        - type: object
+          required: [start]
+          properties:
+            start:
+              type: string
+              format: date
+            duration:
+              type: integer
+              minimum: 1
+              description: Duration in days
+
+    ContactInfo:
+      anyOf:
+        - type: object
+          required: [email]
+          properties:
+            email:
+              type: string
+              format: email
+        - type: object
+          required: [phone]
+          properties:
+            phone:
+              type: string
+              pattern: '^\+?[1-9]\d{1,14}$'
+        - type: object
+          required: [email, phone]
+          properties:
+            email:
+              type: string
+              format: email
+            phone:
+              type: string
+              pattern: '^\+?[1-9]\d{1,14}$'
+
+    # Schemas with oneOf by itself
+    ProductType:
+      oneOf:
+        - type: object
+          required: [type, physical]
+          properties:
+            type:
+              type: string
+              enum: [physical]
+            physical:
+              type: boolean
+              default: true
+            weight:
+              type: number
+              format: float
+              minimum: 0
+            dimensions:
+              type: object
+              required: [length, width, height]
+              properties:
+                length:
+                  type: number
+                  format: float
+                  minimum: 0
+                width:
+                  type: number
+                  format: float
+                  minimum: 0
+                height:
+                  type: number
+                  format: float
+                  minimum: 0
+        - type: object
+          required: [type, digital]
+          properties:
+            type:
+              type: string
+              enum: [digital]
+            digital:
+              type: boolean
+              default: true
+            downloadUrl:
+              type: string
+              format: uri
+            fileSize:
+              type: integer
+              format: int64
+              minimum: 0
+        - type: object
+          required: [type, service]
+          properties:
+            type:
+              type: string
+              enum: [service]
+            service:
+              type: boolean
+              default: true
+            duration:
+              type: integer
+              minimum: 1
+              description: Duration in minutes
+            requiresAppointment:
+              type: boolean
+      discriminator:
+        propertyName: type
+        mapping:
+          physical: "#/components/schemas/PhysicalProduct"
+          digital: "#/components/schemas/DigitalProduct"
+          service: "#/components/schemas/ServiceProduct"
+
+    OrderSource:
+      oneOf:
+        - type: object
+          required: [source]
+          properties:
+            source:
+              type: string
+              enum: [web]
+            browser:
+              type: string
+            userAgent:
+              type: string
+        - type: object
+          required: [source]
+          properties:
+            source:
+              type: string
+              enum: [mobile]
+            appVersion:
+              type: string
+            platform:
+              type: string
+              enum: [ios, android]
+        - type: object
+          required: [source]
+          properties:
+            source:
+              type: string
+              enum: [api]
+            apiKey:
+              type: string
+            clientId:
+              type: string
+      discriminator:
+        propertyName: source
+
+    PaymentStatus:
+      oneOf:
+        - type: object
+          required: [status]
+          properties:
+            status:
+              type: string
+              enum: [pending]
+            expiresAt:
+              type: string
+              format: date-time
+        - type: object
+          required: [status]
+          properties:
+            status:
+              type: string
+              enum: [processing]
+            estimatedCompletion:
+              type: string
+              format: date-time
+        - type: object
+          required: [status]
+          properties:
+            status:
+              type: string
+              enum: [completed, failed]
+            completedAt:
+              type: string
+              format: date-time
+            transactionId:
+              type: string
+              format: uuid
+      discriminator:
+        propertyName: status
+
+    # Schemas with allOf by itself
+    BaseProduct:
+      allOf:
+        - $ref: "#/components/schemas/IdentifiableEntity"
+        - type: object
+          required: [name]
+          properties:
+            name:
+              type: string
+              minLength: 1
+              maxLength: 200
+
+    ExtendedProduct:
+      allOf:
+        - $ref: "#/components/schemas/BaseProduct"
+        - type: object
+          required: [price, currency]
+          properties:
+            price:
+              type: number
+              format: float
+              minimum: 0
+            currency:
+              type: string
+              enum: [USD, EUR, GBP, JPY, CNY]
+
+    FullProduct:
+      allOf:
+        - $ref: "#/components/schemas/ExtendedProduct"
+        - $ref: "#/components/schemas/TimestampedEntity"
+        - type: object
+          properties:
+            description:
+              type: string
+              maxLength: 5000
+            tags:
+              type: array
+              items:
+                type: string
+              minItems: 0
+
+    UserWithProfile:
+      allOf:
+        - $ref: "#/components/schemas/IdentifiableEntity"
+        - type: object
+          required: [email]
+          properties:
+            email:
+              type: string
+              format: email
+        - type: object
+          properties:
+            profile:
+              $ref: "user_profile.yaml"
+
+    UserWithContacts:
+      allOf:
+        - $ref: "#/components/schemas/UserWithProfile"
+        - type: object
+          properties:
+            contacts:
+              type: array
+              items:
+                $ref: "user_contact.yaml"
+              minItems: 0
+
+    # Schemas with combinations: allOf containing anyOf
+    ProductWithFlexiblePricing:
+      allOf:
+        - $ref: "#/components/schemas/BaseProduct"
+        - type: object
+          required: [pricing]
+          properties:
+            pricing:
+              anyOf:
+                - type: object
+                  required: [fixed]
+                  properties:
+                    fixed:
+                      type: number
+                      format: float
+                      minimum: 0
+                - type: object
+                  required: [min, max]
+                  properties:
+                    min:
+                      type: number
+                      format: float
+                      minimum: 0
+                    max:
+                      type: number
+                      format: float
+                      minimum: 0
+                - type: object
+                  required: [formula]
+                  properties:
+                    formula:
+                      type: string
+
+    OrderWithFlexiblePayment:
+      allOf:
+        - $ref: "#/components/schemas/IdentifiableEntity"
+        - type: object
+          required: [total, payment]
+          properties:
+            total:
+              type: number
+              format: float
+              minimum: 0
+            payment:
+              anyOf:
+                - type: object
+                  required: [method, cardDetails]
+                  properties:
+                    method:
+                      type: string
+                      enum: [credit_card]
+                    cardDetails:
+                      $ref: "#/components/schemas/CreditCardDetails"
+                - type: object
+                  required: [method, paypalEmail]
+                  properties:
+                    method:
+                      type: string
+                      enum: [paypal]
+                    paypalEmail:
+                      type: string
+                      format: email
+                - type: object
+                  required: [method, bankAccount]
+                  properties:
+                    method:
+                      type: string
+                      enum: [bank_transfer]
+                    bankAccount:
+                      $ref: "#/components/schemas/BankAccountDetails"
+
+    UserWithFlexibleContact:
+      allOf:
+        - $ref: "#/components/schemas/IdentifiableEntity"
+        - type: object
+          required: [contact]
+          properties:
+            contact:
+              anyOf:
+                - type: object
+                  required: [email]
+                  properties:
+                    email:
+                      type: string
+                      format: email
+                    verified:
+                      type: boolean
+                - type: object
+                  required: [phone]
+                  properties:
+                    phone:
+                      type: string
+                      pattern: '^\+?[1-9]\d{1,14}$'
+                    verified:
+                      type: boolean
+                - type: object
+                  required: [email, phone]
+                  properties:
+                    email:
+                      type: string
+                      format: email
+                    phone:
+                      type: string
+                      pattern: '^\+?[1-9]\d{1,14}$'
+                    verified:
+                      type: boolean
+
+    # Schemas with combinations: allOf containing oneOf
+    ProductWithType:
+      allOf:
+        - $ref: "#/components/schemas/BaseProduct"
+        - type: object
+          required: [productType]
+          properties:
+            productType:
+              oneOf:
+                - type: object
+                  required: [type]
+                  properties:
+                    type:
+                      type: string
+                      enum: [physical]
+                    weight:
+                      type: number
+                      format: float
+                      minimum: 0
+                - type: object
+                  required: [type]
+                  properties:
+                    type:
+                      type: string
+                      enum: [digital]
+                    downloadUrl:
+                      type: string
+                      format: uri
+                - type: object
+                  required: [type]
+                  properties:
+                    type:
+                      type: string
+                      enum: [service]
+                    duration:
+                      type: integer
+                      minimum: 1
+
+    OrderWithSource:
+      allOf:
+        - $ref: "#/components/schemas/IdentifiableEntity"
+        - type: object
+          required: [source]
+          properties:
+            source:
+              oneOf:
+                - type: object
+                  required: [source]
+                  properties:
+                    source:
+                      type: string
+                      enum: [web]
+                    browser:
+                      type: string
+                - type: object
+                  required: [source]
+                  properties:
+                    source:
+                      type: string
+                      enum: [mobile]
+                    platform:
+                      type: string
+                      enum: [ios, android]
+                - type: object
+                  required: [source]
+                  properties:
+                    source:
+                      type: string
+                      enum: [api]
+
+    # Schemas with combinations: anyOf containing allOf
+    FlexibleProduct:
+      anyOf:
+        - allOf:
+            - $ref: "#/components/schemas/BaseProduct"
+            - type: object
+              required: [price]
+              properties:
+                price:
+                  type: number
+                  format: float
+                  minimum: 0
+        - allOf:
+            - $ref: "#/components/schemas/BaseProduct"
+            - type: object
+              required: [priceRange]
+              properties:
+                priceRange:
+                  type: object
+                  required: [min, max]
+                  properties:
+                    min:
+                      type: number
+                      format: float
+                      minimum: 0
+                    max:
+                      type: number
+                      format: float
+                      minimum: 0
+        - allOf:
+            - $ref: "#/components/schemas/BaseProduct"
+            - type: object
+              required: [contactForPricing]
+              properties:
+                contactForPricing:
+                  type: boolean
+                  default: true
+
+    FlexibleOrder:
+      anyOf:
+        - allOf:
+            - $ref: "#/components/schemas/IdentifiableEntity"
+            - type: object
+              required: [items, total]
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: "order_item.yaml"
+                  minItems: 1
+                total:
+                  type: number
+                  format: float
+                  minimum: 0
+        - allOf:
+            - $ref: "#/components/schemas/IdentifiableEntity"
+            - type: object
+              required: [subscriptionId, recurringTotal]
+              properties:
+                subscriptionId:
+                  type: string
+                  format: uuid
+                recurringTotal:
+                  type: number
+                  format: float
+                  minimum: 0
+                frequency:
+                  type: string
+                  enum: [weekly, monthly, yearly]
+
+    # Schemas with combinations: oneOf containing allOf
+    StructuredNotification:
+      oneOf:
+        - allOf:
+            - type: object
+              required: [type, recipient]
+              properties:
+                type:
+                  type: string
+                  enum: [email]
+                recipient:
+                  type: string
+                  format: email
+            - type: object
+              properties:
+                subject:
+                  type: string
+                  maxLength: 200
+                htmlBody:
+                  type: string
+        - allOf:
+            - type: object
+              required: [type, recipient]
+              properties:
+                type:
+                  type: string
+                  enum: [sms]
+                recipient:
+                  type: string
+                  pattern: '^\+?[1-9]\d{1,14}$'
+            - type: object
+              properties:
+                message:
+                  type: string
+                  maxLength: 160
+        - allOf:
+            - type: object
+              required: [type, recipient]
+              properties:
+                type:
+                  type: string
+                  enum: [push]
+                recipient:
+                  type: string
+                  format: uuid
+            - type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 100
+                body:
+                  type: string
+                  maxLength: 500
+      discriminator:
+        propertyName: type
+
+    # Complex nested combinations
+    ComplexProduct:
+      allOf:
+        - $ref: "#/components/schemas/BaseProduct"
+        - type: object
+          required: [pricing, productType]
+          properties:
+            pricing:
+              title: Simpson
+              anyOf:
+                - title: Homer
+                  type: object
+                  required: [type]
+                  properties:
+                    type:
+                      type: string
+                - type: string
+                # - type: object
+                #   required: [relish, choice]
+                #   properties:
+                #     relish:
+                #       type: string
+                #     choice:
+                #       type: number
+            productType:
+              anyOf:
+                - title: Jumangi
+                  allOf:
+                    - title: Quota
+                      type: object
+                      required: [type]
+                      properties:
+                        type:
+                          type: string
+                          enum: [physical]
+                        crocodile:
+                          title: Crocodile
+                          type: object
+                          required: [color, size]
+                          properties:
+                            color: 
+                              type: string
+                            size:
+                              type: number
+                    - type: object
+                      required: [weight]
+                      properties:
+                        weight:
+                          type: number
+                          format: float
+                          minimum: 0
+                - allOf:
+                    - type: object
+                      required: [type]
+                      properties:
+                        type:
+                          type: string
+                          enum: [digital]
+                    - type: object
+                      required: [downloadUrl]
+                      properties:
+                        downloadUrl:
+                          type: boolean
+                          format: uri
+
+    ComplexOrder:
+      allOf:
+        - $ref: "#/components/schemas/IdentifiableEntity"
+        - $ref: "#/components/schemas/TimestampedEntity"
+        - type: object
+          required: [items, payment, shipping]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "order_item.yaml"
+              minItems: 1
+            payment:
+              oneOf:
+                - allOf:
+                    - type: object
+                      required: [method]
+                      properties:
+                        method:
+                          type: string
+                          enum: [credit_card]
+                    - anyOf:
+                        - type: object
+                          required: [cardDetails]
+                          properties:
+                            cardDetails:
+                              $ref: "#/components/schemas/CreditCardDetails"
+                        - type: object
+                          required: [cardToken]
+                          properties:
+                            cardToken:
+                              type: string
+                              format: uuid
+                - allOf:
+                    - type: object
+                      required: [method]
+                      properties:
+                        method:
+                          type: string
+                          enum: [paypal]
+                    - type: object
+                      required: [paypalEmail]
+                      properties:
+                        paypalEmail:
+                          type: string
+                          format: email
+            shipping:
+              anyOf:
+                - allOf:
+                    - type: object
+                      required: [method]
+                      properties:
+                        method:
+                          type: string
+                          enum: [standard]
+                    - type: object
+                      required: [carrier, estimatedDays]
+                      properties:
+                        carrier:
+                          type: string
+                          enum: [usps, fedex, ups, dhl]
+                        estimatedDays:
+                          type: integer
+                          minimum: 1
+                - allOf:
+                    - type: object
+                      required: [method]
+                      properties:
+                        method:
+                          type: string
+                          enum: [express]
+                    - type: object
+                      required: [deliveryDate]
+                      properties:
+                        deliveryDate:
+                          type: string
+                          format: date
+
+    ComplexUser:
+      allOf:
+        - $ref: "#/components/schemas/IdentifiableEntity"
+        - $ref: "#/components/schemas/TimestampedEntity"
+        - type: object
+          required: [email, contactMethod]
+          properties:
+            email:
+              type: string
+              format: email
+            contactMethod:
+              oneOf:
+                - allOf:
+                    - type: object
+                      required: [type]
+                      properties:
+                        type:
+                          type: string
+                          enum: [email_only]
+                    - type: object
+                      required: [emailVerified]
+                      properties:
+                        emailVerified:
+                          type: boolean
+                - allOf:
+                    - type: object
+                      required: [type]
+                      properties:
+                        type:
+                          type: string
+                          enum: [phone_only]
+                    - anyOf:
+                        - type: object
+                          required: [phone]
+                          properties:
+                            phone:
+                              type: string
+                              pattern: '^\+?[1-9]\d{1,14}$'
+                            verified:
+                              type: boolean
+                        - type: object
+                          required: [phone, smsEnabled]
+                          properties:
+                            phone:
+                              type: string
+                              pattern: '^\+?[1-9]\d{1,14}$'
+                            smsEnabled:
+                              type: boolean
+                - allOf:
+                    - type: object
+                      required: [type]
+                      properties:
+                        type:
+                          type: string
+                          enum: [both]
+                    - type: object
+                      required: [email, phone]
+                      properties:
+                        email:
+                          type: string
+                          format: email
+                        phone:
+                          type: string
+                          pattern: '^\+?[1-9]\d{1,14}$'
+                        emailVerified:
+                          type: boolean
+                        phoneVerified:
+                          type: boolean
+
+    # Additional schemas using external references
+    NotificationRequest:
+      $ref: "notification.yaml"
+
+    Discount:
+      $ref: "discount.yaml"
+
+    ShippingMethod:
+      $ref: "shipping_method.yaml"
+
+    ProductMedia:
+      $ref: "product_media.yaml"
+
+    UserContact:
+      $ref: "user_contact.yaml"
+
+    Pricing:
+      $ref: "pricing.yaml"
+
+    OrderStatusUpdate:
+      $ref: "order_status_update.yaml"
+
+    ProductFilter:
+      $ref: "product_filter.yaml"
+
+    PaymentResult:
+      $ref: "payment_result.yaml"
+
+    UserPreferences:
+      $ref: "user_preferences.yaml"
+
+    InventoryAlert:
+      $ref: "inventory_alert.yaml"
+
+  callbacks:
+    OrderStatusChanged:
+      "{$request.body#/callbackUrl}":
+        post:
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  required: [orderId, status, timestamp]
+                  properties:
+                    orderId:
+                      type: integer
+                      format: int64
+                    status:
+                      $ref: "#/components/schemas/OrderStatus"
+                    timestamp:
+                      type: string
+                      format: date-time
+          responses:
+            "200":
+              description: Callback received successfully

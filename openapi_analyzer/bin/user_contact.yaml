@@ -1,0 +1,39 @@
+allOf:
+  - type: object
+    required: [contactType]
+    properties:
+      contactType:
+        type: string
+        enum: [email, phone, address]
+  - anyOf:
+      - type: object
+        required: [email]
+        properties:
+          email:
+            type: string
+            format: email
+          verified:
+            type: boolean
+            default: false
+      - type: object
+        required: [phone]
+        properties:
+          phone:
+            type: string
+            pattern: '^\+?[1-9]\d{1,14}$'
+          countryCode:
+            type: string
+            pattern: '^[A-Z]{2}$'
+          verified:
+            type: boolean
+            default: false
+      - type: object
+        required: [address]
+        properties:
+          address:
+            $ref: 'address.yaml'
+          label:
+            type: string
+            maxLength: 50
+            nullable: true
+

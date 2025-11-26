@@ -1,0 +1,19 @@
+type: object
+additionalProperties:
+  oneOf:
+    - type: string
+    - type: number
+    - type: integer
+    - type: boolean
+    - type: array
+      items:
+        type: string
+description: |
+  Product specifications as a flexible key-value map.
+  Values can be strings, numbers, integers, booleans, or arrays of strings.
+  Examples:
+    - weight: "2.5kg"
+    - dimensions: [10, 20, 30]
+    - warranty: true
+    - color: "red"
+

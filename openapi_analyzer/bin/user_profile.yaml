@@ -1,0 +1,97 @@
+type: object
+properties:
+  firstName:
+    type: string
+    minLength: 1
+    maxLength: 100
+    nullable: true
+  lastName:
+    type: string
+    minLength: 1
+    maxLength: 100
+    nullable: true
+  phone:
+    type: string
+    pattern: '^\+?[1-9]\d{1,14}$'
+    nullable: true
+    description: Phone number in E.164 format
+  dateOfBirth:
+    type: string
+    format: date
+    nullable: true
+    description: Date of birth (YYYY-MM-DD)
+  gender:
+    type: string
+    enum: [male, female, other, prefer_not_to_say]
+    nullable: true
+  avatarUrl:
+    type: string
+    format: uri
+    nullable: true
+    description: URL to user avatar image
+  bio:
+    type: string
+    maxLength: 500
+    nullable: true
+    description: User biography
+  website:
+    type: string
+    format: uri
+    nullable: true
+  location:
+    type: object
+    nullable: true
+    properties:
+      city:
+        type: string
+        maxLength: 100
+      state:
+        type: string
+        maxLength: 100
+      country:
+        type: string
+        pattern: '^[A-Z]{2}$'
+      timezone:
+        type: string
+        pattern: '^[A-Z][a-z]+/[A-Z][a-z_]+$'
+        description: IANA timezone identifier
+  preferences:
+    type: object
+    nullable: true
+    properties:
+      language:
+        type: string
+        pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+        default: en
+        description: Language code (ISO 639-1)
+      currency:
+        type: string
+        enum: [USD, EUR, GBP, JPY, CNY]
+        default: USD
+      emailNotifications:
+        type: boolean
+        default: true
+      smsNotifications:
+        type: boolean
+        default: false
+      marketingEmails:
+        type: boolean
+        default: false
+      theme:
+        type: string
+        enum: [light, dark, auto]
+        default: auto
+    additionalProperties: false
+  socialLinks:
+    type: object
+    nullable: true
+    additionalProperties:
+      type: string
+      format: uri
+    description: Social media profile links
+  metadata:
+    type: object
+    additionalProperties: true
+    nullable: true
+    description: Additional profile metadata
+

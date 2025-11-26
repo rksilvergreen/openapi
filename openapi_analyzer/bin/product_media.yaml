@@ -1,0 +1,68 @@
+oneOf:
+  - type: object
+    required: [type, url]
+    properties:
+      type:
+        type: string
+        enum: [image]
+      url:
+        type: string
+        format: uri
+      alt:
+        type: string
+        maxLength: 200
+      width:
+        type: integer
+        minimum: 1
+      height:
+        type: integer
+        minimum: 1
+  - type: object
+    required: [type, url, duration]
+    properties:
+      type:
+        type: string
+        enum: [video]
+      url:
+        type: string
+        format: uri
+      thumbnailUrl:
+        type: string
+        format: uri
+        nullable: true
+      duration:
+        type: integer
+        minimum: 1
+        description: Duration in seconds
+      width:
+        type: integer
+        minimum: 1
+      height:
+        type: integer
+        minimum: 1
+  - type: object
+    required: [type, url]
+    properties:
+      type:
+        type: string
+        enum: [document]
+      url:
+        type: string
+        format: uri
+      mimeType:
+        type: string
+      size:
+        type: integer
+        format: int64
+        minimum: 0
+      pages:
+        type: integer
+        minimum: 1
+        nullable: true
+discriminator:
+  propertyName: type
+  mapping:
+    image: '#/components/schemas/ImageMedia'
+    video: '#/components/schemas/VideoMedia'
+    document: '#/components/schemas/DocumentMedia'
+

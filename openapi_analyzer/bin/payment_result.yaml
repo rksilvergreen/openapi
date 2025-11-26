@@ -1,0 +1,75 @@
+allOf:
+  - type: object
+    required: [success, transactionId, timestamp]
+    properties:
+      success:
+        type: boolean
+      transactionId:
+        type: string
+        format: uuid
+      timestamp:
+        type: string
+        format: date-time
+  - anyOf:
+      - allOf:
+          - type: object
+            required: [paymentMethod]
+            properties:
+              paymentMethod:
+                type: string
+                enum: [credit_card]
+          - oneOf:
+              - type: object
+                required: [cardLast4, cardBrand]
+                properties:
+                  cardLast4:
+                    type: string
+                    pattern: '^[0-9]{4}$'
+                  cardBrand:
+                    type: string
+                    enum: [visa, mastercard, amex]
+              - type: object
+                required: [cardToken]
+                properties:
+                  cardToken:
+                    type: string
+                    format: uuid
+      - allOf:
+          - type: object
+            required: [paymentMethod]
+            properties:
+              paymentMethod:
+                type: string
+                enum: [paypal]
+          - type: object
+            required: [paypalEmail, paypalTransactionId]
+            properties:
+              paypalEmail:
+                type: string
+                format: email
+              paypalTransactionId:
+                type: string
+      - allOf:
+          - type: object
+            required: [paymentMethod]
+            properties:
+              paymentMethod:
+                type: string
+                enum: [bank_transfer]
+          - anyOf:
+              - type: object
+                required: [accountLast4, routingNumber]
+                properties:
+                  accountLast4:
+                    type: string
+                    pattern: '^[0-9]{4}$'
+                  routingNumber:
+                    type: string
+                    pattern: '^[0-9]{9}$'
+              - type: object
+                required: [iban]
+                properties:
+                  iban:
+                    type: string
+                    pattern: '^[A-Z]{2}[0-9]{2}[A-Z0-9]+$'
+

@@ -1,0 +1,83 @@
+allOf:
+  - type: object
+    required: [userId]
+    properties:
+      userId:
+        type: integer
+        format: int64
+  - anyOf:
+      - allOf:
+          - type: object
+            required: [preferenceType]
+            properties:
+              preferenceType:
+                type: string
+                enum: [display]
+          - oneOf:
+              - type: object
+                required: [theme, language]
+                properties:
+                  theme:
+                    type: string
+                    enum: [light, dark, auto]
+                  language:
+                    type: string
+                    pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+                  fontSize:
+                    type: string
+                    enum: [small, medium, large]
+              - type: object
+                required: [compactMode]
+                properties:
+                  compactMode:
+                    type: boolean
+                  showAvatars:
+                    type: boolean
+      - allOf:
+          - type: object
+            required: [preferenceType]
+            properties:
+              preferenceType:
+                type: string
+                enum: [notifications]
+          - anyOf:
+              - type: object
+                required: [emailEnabled, smsEnabled]
+                properties:
+                  emailEnabled:
+                    type: boolean
+                  smsEnabled:
+                    type: boolean
+                  pushEnabled:
+                    type: boolean
+              - type: object
+                required: [channels]
+                properties:
+                  channels:
+                    type: array
+                    items:
+                      type: string
+                      enum: [email, sms, push, in_app]
+                    minItems: 1
+      - allOf:
+          - type: object
+            required: [preferenceType]
+            properties:
+              preferenceType:
+                type: string
+                enum: [privacy]
+          - oneOf:
+              - type: object
+                required: [profileVisibility]
+                properties:
+                  profileVisibility:
+                    type: string
+                    enum: [public, private, friends_only]
+              - type: object
+                required: [dataSharing]
+                properties:
+                  dataSharing:
+                    type: boolean
+                  analyticsOptOut:
+                    type: boolean
+

@@ -1,0 +1,49 @@
+oneOf:
+  - type: object
+    required: [type, percentage]
+    properties:
+      type:
+        type: string
+        enum: [percentage]
+      percentage:
+        type: number
+        format: float
+        minimum: 0
+        maximum: 100
+      maxDiscount:
+        type: number
+        format: float
+        minimum: 0
+        description: Maximum discount amount
+  - type: object
+    required: [type, amount]
+    properties:
+      type:
+        type: string
+        enum: [fixed]
+      amount:
+        type: number
+        format: float
+        minimum: 0
+      currency:
+        type: string
+        enum: [USD, EUR, GBP, JPY, CNY]
+        default: USD
+  - type: object
+    required: [type, buyQuantity, getQuantity]
+    properties:
+      type:
+        type: string
+        enum: [bogo]
+      buyQuantity:
+        type: integer
+        minimum: 1
+      getQuantity:
+        type: integer
+        minimum: 1
+discriminator:
+  propertyName: type
+  mapping:
+    percentage: "#/components/schemas/PercentageDiscount"
+    fixed: "#/components/schemas/FixedDiscount"
+    bogo: "#/components/schemas/BOGODiscount"

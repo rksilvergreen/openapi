@@ -1,0 +1,72 @@
+allOf:
+  - type: object
+    properties:
+      categoryIds:
+        type: array
+        items:
+          type: integer
+          format: int64
+        minItems: 0
+      tags:
+        type: array
+        items:
+          type: string
+        minItems: 0
+  - anyOf:
+      - type: object
+        required: [priceRange]
+        properties:
+          priceRange:
+            type: object
+            required: [min, max]
+            properties:
+              min:
+                type: number
+                format: float
+                minimum: 0
+              max:
+                type: number
+                format: float
+                minimum: 0
+      - type: object
+        required: [stockStatus]
+        properties:
+          stockStatus:
+            type: string
+            enum: [in_stock, out_of_stock, low_stock, pre_order]
+      - type: object
+        required: [rating]
+        properties:
+          rating:
+            type: object
+            required: [min]
+            properties:
+              min:
+                type: number
+                format: float
+                minimum: 0
+                maximum: 5
+              max:
+                type: number
+                format: float
+                minimum: 0
+                maximum: 5
+  - oneOf:
+      - type: object
+        properties:
+          sortBy:
+            type: string
+            enum: [price_asc, price_desc, name_asc, name_desc, rating, newest]
+          sortOrder:
+            type: string
+            enum: [asc, desc]
+      - type: object
+        properties:
+          randomize:
+            type: boolean
+            default: true
+          seed:
+            type: integer
+            format: int64
+            nullable: true
+

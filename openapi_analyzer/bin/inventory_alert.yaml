@@ -1,0 +1,92 @@
+oneOf:
+  - allOf:
+      - type: object
+        required: [alertType, productId, threshold]
+        properties:
+          alertType:
+            type: string
+            enum: [low_stock]
+          productId:
+            type: integer
+            format: int64
+          threshold:
+            type: integer
+            minimum: 0
+      - anyOf:
+          - type: object
+            required: [warehouseId]
+            properties:
+              warehouseId:
+                type: integer
+                format: int64
+              currentStock:
+                type: integer
+                minimum: 0
+          - type: object
+            required: [global]
+            properties:
+              global:
+                type: boolean
+                default: true
+              totalStock:
+                type: integer
+                minimum: 0
+  - allOf:
+      - type: object
+        required: [alertType, productId]
+        properties:
+          alertType:
+            type: string
+            enum: [out_of_stock]
+          productId:
+            type: integer
+            format: int64
+      - oneOf:
+          - type: object
+            required: [warehouseId, lastStockDate]
+            properties:
+              warehouseId:
+                type: integer
+                format: int64
+              lastStockDate:
+                type: string
+                format: date-time
+          - type: object
+            required: [global, lastStockDate]
+            properties:
+              global:
+                type: boolean
+                default: true
+              lastStockDate:
+                type: string
+                format: date-time
+  - allOf:
+      - type: object
+        required: [alertType, productId, expectedDate]
+        properties:
+          alertType:
+            type: string
+            enum: [restock]
+          productId:
+            type: integer
+            format: int64
+          expectedDate:
+            type: string
+            format: date
+      - anyOf:
+          - type: object
+            required: [quantity]
+            properties:
+              quantity:
+                type: integer
+                minimum: 1
+          - type: object
+            required: [supplier]
+            properties:
+              supplier:
+                type: string
+                maxLength: 100
+              supplierOrderId:
+                type: string
+                nullable: true
+

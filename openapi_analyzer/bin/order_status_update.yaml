@@ -1,0 +1,75 @@
+anyOf:
+  - allOf:
+      - type: object
+        required: [status, timestamp]
+        properties:
+          status:
+            type: string
+            enum: [pending, confirmed]
+          timestamp:
+            type: string
+            format: date-time
+      - type: object
+        properties:
+          estimatedProcessingTime:
+            type: integer
+            minimum: 1
+            description: Estimated minutes until processing
+  - allOf:
+      - type: object
+        required: [status, timestamp]
+        properties:
+          status:
+            type: string
+            enum: [processing, shipped]
+          timestamp:
+            type: string
+            format: date-time
+      - oneOf:
+          - type: object
+            required: [trackingNumber]
+            properties:
+              trackingNumber:
+                type: string
+                minLength: 1
+              carrier:
+                type: string
+                enum: [usps, fedex, ups, dhl]
+          - type: object
+            required: [warehouseId]
+            properties:
+              warehouseId:
+                type: integer
+                format: int64
+              location:
+                type: string
+                maxLength: 100
+  - allOf:
+      - type: object
+        required: [status, timestamp]
+        properties:
+          status:
+            type: string
+            enum: [delivered, cancelled, refunded]
+          timestamp:
+            type: string
+            format: date-time
+      - anyOf:
+          - type: object
+            properties:
+              deliveryConfirmation:
+                type: string
+                format: uuid
+              signature:
+                type: string
+                maxLength: 100
+                nullable: true
+          - type: object
+            properties:
+              cancellationReason:
+                type: string
+                enum: [customer_request, out_of_stock, payment_failed, other]
+              refundAmount:
+                type: number
+                format: float
+                minimum: 0
