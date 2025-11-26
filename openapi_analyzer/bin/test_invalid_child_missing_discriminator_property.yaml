@@ -1,0 +1,26 @@
+# Test: Invalid - child doesn't have discriminator property (should fail)
+openapi: 3.0.0
+info:
+  title: Invalid Child Missing Discriminator Property Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    # Parent with discriminator but property not defined in parent
+    Vehicle:
+      type: object
+      properties:
+        name:
+          type: string
+      discriminator:
+        propertyName: vehicleType
+    
+    # Child that doesn't define the discriminator property
+    Car:
+      allOf:
+        - $ref: "#/components/schemas/Vehicle"
+        - type: object
+          properties:
+            wheels:
+              type: integer
+

@@ -50,22 +50,22 @@ components:
     #   discriminator:
     #     propertyName: petType
 
-    # Valid: allOf with discriminator
-    ValidAllOfWithDiscriminator:
-      allOf:
-        - type: object
-          required: [petType]
-          properties:
-            petType:
-              type: string
-        - oneOf:
-            - $ref: "#/components/schemas/Cat"
-            - $ref: "#/components/schemas/Dog"
-        - oneOf:
-            - $ref: "#/components/schemas/Train"
-            - $ref: "#/components/schemas/Boat"
-      discriminator:
-        propertyName: petType
+    # Invalid: allOf with nested oneOf (intentionally commented - should fail if enabled)
+    # ValidAllOfWithDiscriminator:
+    #   allOf:
+    #     - type: object
+    #       required: [petType]
+    #       properties:
+    #         petType:
+    #           type: string
+    #     - oneOf:
+    #         - $ref: "#/components/schemas/Cat"
+    #         - $ref: "#/components/schemas/Dog"
+    #     - oneOf:
+    #         - $ref: "#/components/schemas/Train"
+    #         - $ref: "#/components/schemas/Boat"
+    #   discriminator:
+    #     propertyName: petType
 
     # Supporting schemas
     Cat:
@@ -109,7 +109,7 @@ components:
           type: string
       discriminator:
         propertyName: vehicles
-    
+
     CarGarage:
       type: object
       allOf:

@@ -1,0 +1,51 @@
+# Test: Valid discriminator inheritance pattern (should pass validation)
+# Per OpenAPI 3.0.0: discriminator may be added to a parent schema,
+# and all schemas comprising the parent schema in an allOf construct may be used as alternate schemas
+openapi: 3.0.0
+info:
+  title: Valid Discriminator Inheritance Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    # Parent schema with discriminator (no oneOf/anyOf)
+    Pet:
+      type: object
+      required: [pet_type]
+      properties:
+        pet_type:
+          type: string
+        name:
+          type: string
+      discriminator:
+        propertyName: pet_type
+        mapping:
+          dog: '#/components/schemas/Dog'
+          cat: '#/components/schemas/Cat'
+          lizard: '#/components/schemas/Lizard'
+
+    # Child schemas that inherit from Pet via allOf
+    Cat:
+      allOf:
+        - $ref: '#/components/schemas/Pet'
+        - type: object
+          properties:
+            meow:
+              type: boolean
+              
+    Dog:
+      allOf:
+        - $ref: '#/components/schemas/Pet'
+        - type: object
+          properties:
+            bark:
+              type: string
+              
+    Lizard:
+      allOf:
+        - $ref: '#/components/schemas/Pet'
+        - type: object
+          properties:
+            lovesRocks:
+              type: boolean
+

@@ -1,0 +1,26 @@
+# Test: Invalid discriminator without variants and no children (should fail validation)
+# Parent schema has discriminator but no oneOf/anyOf and no child schemas reference it
+openapi: 3.0.0
+info:
+  title: Invalid Discriminator No Children Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    # Schema with discriminator but no variants and no children
+    OrphanParent:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+      discriminator:
+        propertyName: type
+    
+    # Another unrelated schema (does not inherit from OrphanParent)
+    SomeOtherSchema:
+      type: object
+      properties:
+        field:
+          type: string
+

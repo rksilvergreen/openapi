@@ -650,6 +650,23 @@ class SchemaObjectValidator {
   }
 
   /// Validates that discriminator is not used with allOf containing nested composition keywords
+  /// Checks if allOf contains nested oneOf or anyOf keywords (inline, not via $ref)
+  static bool _hasNestedCompositionInAllOf(Map<dynamic, dynamic> data) {
+    if (!data.containsKey('allOf')) return false;
+
+    final allOf = data['allOf'];
+    if (allOf is! List) return false;
+
+    for (final schema in allOf) {
+      if (schema is Map && !schema.containsKey(r'$ref')) {
+        if (schema.containsKey('oneOf') || schema.containsKey('anyOf')) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   static void _validateDiscriminatorNotNestedInAllOf(List<dynamic> schemas, String path) {
     // Check if any schema in the allOf contains nested oneOf, anyOf, or allOf
     for (var i = 0; i < schemas.length; i++) {
@@ -670,6 +687,146 @@ class SchemaObjectValidator {
         }
       }
     }
+  }
+
+  /// Validates discriminator in inheritance pattern (parent schema without variants)
+  static void _validateDiscriminatorInheritancePattern(
+    Map<dynamic, dynamic> parentSchema,
+    String propertyName,
+    String path,
+    Map<dynamic, dynamic> document,
+  ) {
+    // Build the reference path to this schema
+    // Path format: "components/schemas.SchemaName" → "#/components/schemas/SchemaName"
+    final schemaRef = _buildSchemaReference(path);
+    if (schemaRef == null) {
+      // Can't determine schema reference - skip inheritance validation
+      return;
+    }
+
+    // Search document for child schemas that inherit from this parent
+    final children = _findChildSchemas(schemaRef, document);
+
+    if (children.isEmpty) {
+      throw OpenApiValidationException(
+        ValidationUtils.buildPath(path, 'discriminator'),
+        'Discriminator is defined without oneOf/anyOf variants. '
+        'Per OpenAPI 3.0.0, discriminator may be added to a parent schema if child schemas inherit via allOf, '
+        'but no schemas were found that reference this schema. '
+        'Either add oneOf/anyOf to this schema, or ensure child schemas reference it via \$ref in their allOf.',
+        specReference: 'OpenAPI 3.0.0 - Discriminator Object',
+      );
+    }
+
+    // Validate that the discriminator property is accessible in the parent and all children
+    _validateParentAndChildrenHaveDiscriminatorProperty(parentSchema, children, propertyName, path);
+  }
+
+  /// Builds a JSON Pointer reference from a validation path
+  /// e.g., "components/schemas.Pet" → "#/components/schemas/Pet"
+  static String? _buildSchemaReference(String path) {
+    if (path.isEmpty) return null;
+
+    // Remove leading slash if present
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+
+    // Replace dots with slashes for JSON Pointer format
+    // "components/schemas.Pet" → "components/schemas/Pet"
+    final jsonPointerPath = cleanPath.replaceAll('.', '/');
+
+    return '#/$jsonPointerPath';
+  }
+
+  /// Finds all child schemas that inherit from the given parent via allOf with $ref
+  static List<Map<dynamic, dynamic>> _findChildSchemas(String parentRef, Map<dynamic, dynamic> document) {
+    final children = <Map<dynamic, dynamic>>[];
+
+    // Search in components/schemas
+    if (document.containsKey('components') && document['components'] is Map) {
+      final components = document['components'] as Map;
+      if (components.containsKey('schemas') && components['schemas'] is Map) {
+        final schemas = components['schemas'] as Map;
+
+        for (final entry in schemas.entries) {
+          final schema = entry.value;
+          if (schema is Map && schema.containsKey('allOf')) {
+            final allOf = schema['allOf'];
+            if (allOf is List) {
+              // Check if this schema references the parent
+              for (final item in allOf) {
+                if (item is Map && item.containsKey(r'$ref')) {
+                  final ref = item[r'$ref'] as String;
+                  if (ref == parentRef) {
+                    children.add(schema);
+                    break; // Found reference, no need to check other items
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return children;
+  }
+
+  /// Validates that parent and all children have access to the discriminator property
+  static void _validateParentAndChildrenHaveDiscriminatorProperty(
+    Map<dynamic, dynamic> parentSchema,
+    List<Map<dynamic, dynamic>> children,
+    String propertyName,
+    String path,
+  ) {
+    // Check if parent defines the discriminator property
+    final parentHasProperty =
+        parentSchema.containsKey('properties') &&
+        parentSchema['properties'] is Map &&
+        (parentSchema['properties'] as Map).containsKey(propertyName);
+
+    // If parent doesn't have the property, all children must define it
+    if (!parentHasProperty) {
+      // Check each child for the property
+      final childrenMissingProperty = <String>[];
+
+      for (var i = 0; i < children.length; i++) {
+        final child = children[i];
+        bool childHasProperty = false;
+
+        // Check if child defines the property in its allOf object schemas
+        if (child.containsKey('allOf') && child['allOf'] is List) {
+          final allOf = child['allOf'] as List;
+          for (final item in allOf) {
+            if (item is Map && !item.containsKey(r'$ref')) {
+              // This is an inline schema in the allOf
+              if (item.containsKey('properties') && item['properties'] is Map) {
+                final props = item['properties'] as Map;
+                if (props.containsKey(propertyName)) {
+                  childHasProperty = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        if (!childHasProperty) {
+          childrenMissingProperty.add('child schema #$i');
+        }
+      }
+
+      if (childrenMissingProperty.isNotEmpty) {
+        throw OpenApiValidationException(
+          ValidationUtils.buildPath(path, 'discriminator'),
+          'Discriminator property "$propertyName" is not defined in the parent schema\'s properties, '
+          'and the following child schemas do not explicitly define it: ${childrenMissingProperty.join(", ")}. '
+          'Either define the property in the parent schema, or have each child schema define it explicitly.',
+          specReference: 'OpenAPI 3.0.0 - Discriminator Object',
+        );
+      }
+    }
+
+    // If parent has the property, children inherit it automatically - validation passes
   }
 
   /// Validates that the discriminator property exists and is properly defined in all variant schemas
@@ -957,23 +1114,20 @@ class SchemaObjectValidator {
         );
       }
 
-      // Per OpenAPI 3.0.0 spec: discriminator is legal only when using oneOf, anyOf, or allOf
-      final hasCompositionKeyword = data.containsKey('oneOf') || data.containsKey('anyOf') || data.containsKey('allOf');
-
-      if (!hasCompositionKeyword) {
-        throw OpenApiValidationException(
-          ValidationUtils.buildPath(path, 'discriminator'),
-          'discriminator is only legal when used with one of the composite keywords: oneOf, anyOf, or allOf',
-          specReference: 'OpenAPI 3.0.0 - Discriminator Object',
-        );
-      }
-
       DiscriminatorObjectValidator.validate(discriminator, ValidationUtils.buildPath(path, 'discriminator'));
 
-      // Validate that the discriminator property exists and is valid in all variant schemas
-      if (discriminator.containsKey('propertyName') && document != null) {
-        final propertyName = discriminator['propertyName'] as String;
+      // Skip property validation if no document context
+      if (!discriminator.containsKey('propertyName') || document == null) {
+        return;
+      }
 
+      final propertyName = discriminator['propertyName'] as String;
+
+      // Determine discriminator mode: PRIMARY (variants) or SECONDARY (inheritance)
+      final hasVariants = data.containsKey('oneOf') || data.containsKey('anyOf') || _hasNestedCompositionInAllOf(data);
+
+      if (hasVariants) {
+        // PRIMARY MODE: Discriminator for oneOf/anyOf variants
         // Get the composition schemas
         List<dynamic>? compositionSchemas;
         String? compositionKeyword;
@@ -997,6 +1151,10 @@ class SchemaObjectValidator {
 
           _validateDiscriminatorProperty(propertyName, compositionSchemas, compositionKeyword, path, document);
         }
+      } else {
+        // SECONDARY MODE: Discriminator for inheritance pattern (no variants in this schema)
+        // Parent schema with discriminator - must have children that inherit from it
+        _validateDiscriminatorInheritancePattern(data, propertyName, path, document);
       }
     }
   }

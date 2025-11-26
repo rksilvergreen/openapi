@@ -1,0 +1,38 @@
+# Test: Valid - child explicitly defines discriminator property (should pass)
+openapi: 3.0.0
+info:
+  title: Valid Child Defines Discriminator Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    # Parent with discriminator but property not defined in parent
+    Vehicle:
+      type: object
+      properties:
+        name:
+          type: string
+      discriminator:
+        propertyName: vehicleType
+    
+    # Child that explicitly defines the discriminator property
+    Car:
+      allOf:
+        - $ref: "#/components/schemas/Vehicle"
+        - type: object
+          properties:
+            vehicleType:
+              type: string
+            wheels:
+              type: integer
+              
+    Bike:
+      allOf:
+        - $ref: "#/components/schemas/Vehicle"
+        - type: object
+          properties:
+            vehicleType:
+              type: string
+            pedals:
+              type: boolean
+
