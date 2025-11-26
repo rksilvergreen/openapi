@@ -1,0 +1,19 @@
+# Test: Property with disjoint enum values (should fail validation)
+openapi: 3.0.0
+info:
+  title: Invalid Property Enum Conflict Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    InvalidDisjointEnumValues:
+      allOf:
+        - type: object
+          properties:
+            role:
+              enum: ["admin", "user"]
+        - type: object
+          properties:
+            role:
+              enum: ["guest", "moderator"]
+

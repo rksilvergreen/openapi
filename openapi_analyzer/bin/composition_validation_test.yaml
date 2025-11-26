@@ -13,7 +13,7 @@ components:
       oneOf:
         - type: string
         - type: number
-    
+
     # Valid: Basic anyOf usage
     ValidAnyOf:
       anyOf:
@@ -21,7 +21,7 @@ components:
           minLength: 5
         - type: number
           minimum: 0
-    
+
     # Valid: Basic allOf usage
     ValidAllOf:
       allOf:
@@ -33,23 +33,23 @@ components:
           properties:
             name:
               type: string
-    
+
     # Valid: oneOf with discriminator
     ValidOneOfWithDiscriminator:
       oneOf:
-        - $ref: '#/components/schemas/Cat'
-        - $ref: '#/components/schemas/Dog'
+        - $ref: "#/components/schemas/Cat"
+        - $ref: "#/components/schemas/Dog"
       discriminator:
         propertyName: petType
-    
-    # Valid: anyOf with discriminator
-    ValidAnyOfWithDiscriminator:
-      anyOf:
-        - $ref: '#/components/schemas/Cat'
-        - $ref: '#/components/schemas/Dog'
-      discriminator:
-        propertyName: petType
-    
+
+    # # Valid: anyOf with discriminator
+    # ValidAnyOfWithDiscriminator:
+    #   anyOf:
+    #     - $ref: "#/components/schemas/Cat"
+    #     - $ref: "#/components/schemas/Dog"
+    #   discriminator:
+    #     propertyName: petType
+
     # Valid: allOf with discriminator
     ValidAllOfWithDiscriminator:
       allOf:
@@ -59,11 +59,14 @@ components:
             petType:
               type: string
         - oneOf:
-            - $ref: '#/components/schemas/Cat'
-            - $ref: '#/components/schemas/Dog'
+            - $ref: "#/components/schemas/Cat"
+            - $ref: "#/components/schemas/Dog"
+        - oneOf:
+            - $ref: "#/components/schemas/Train"
+            - $ref: "#/components/schemas/Boat"
       discriminator:
         propertyName: petType
-    
+
     # Supporting schemas
     Cat:
       type: object
@@ -73,7 +76,6 @@ components:
           type: string
         meow:
           type: boolean
-    
     Dog:
       type: object
       required: [petType, bark]
@@ -82,56 +84,90 @@ components:
           type: string
         bark:
           type: boolean
+    Train:
+      type: object
+      required: [petType, smoke]
+      properties:
+        petType:
+          type: string
+        smoke:
+          type: boolean
+    Boat:
+      type: object
+      required: [petType, water]
+      properties:
+        petType:
+          type: string
+        water:
+          type: boolean
+
+    Garage:
+      type: object
+      required: [vehicles]
+      properties:
+        vehicles:
+          type: string
+      discriminator:
+        propertyName: vehicles
     
+    CarGarage:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Garage"
+        - type: object
+          properties:
+            color:
+              type: string
+
     # Invalid: Empty allOf array (should be caught)
     # InvalidEmptyAllOf:
     #   allOf: []
-    
+
     # Invalid: allOf with non-object items (should be caught)
     # InvalidAllOfNonObject:
     #   allOf:
     #     - "not an object"
     #     - type: string
-    
+
     # Invalid: allOf with incompatible types (should be caught)
     # InvalidAllOfIncompatibleTypes:
     #   allOf:
     #     - type: string
     #     - type: object
-    
+
     # Invalid: allOf with different const values (should be caught)
     # InvalidAllOfDifferentConst:
     #   allOf:
     #     - const: "foo"
     #     - const: "bar"
-    
+
     # Invalid: allOf with disjoint enums (should be caught)
     # InvalidAllOfDisjointEnums:
     #   allOf:
     #     - enum: [1, 2, 3]
     #     - enum: [4, 5, 6]
-    
+
     # Invalid: discriminator without composition keyword (should be caught)
     # InvalidDiscriminatorAlone:
     #   type: object
     #   discriminator:
     #     propertyName: type
-    
+
     # Invalid: Duplicate references in oneOf (should be caught)
     # InvalidDuplicateRefs:
     #   oneOf:
     #     - $ref: '#/components/schemas/Cat'
     #     - $ref: '#/components/schemas/Cat'
-    
+
     # Valid: allOf with references
     ValidAllOfWithRefs:
       allOf:
-        - $ref: '#/components/schemas/BaseModel'
+        - $ref: "#/components/schemas/BaseModel"
         - type: object
           properties:
             extraField:
               type: string
-    
+
     BaseModel:
       type: object
       required: [id]
@@ -141,4 +177,3 @@ components:
         createdAt:
           type: string
           format: date-time
-

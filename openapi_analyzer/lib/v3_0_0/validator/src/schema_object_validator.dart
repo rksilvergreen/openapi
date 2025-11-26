@@ -31,7 +31,7 @@ class SchemaObjectValidator {
     final defaultValue = _validateDefaultValue(data, path);
     _validateDefaultAgainstEnum(defaultValue, enumValues, path);
 
-    _validateDiscriminator(data, path);
+    _validateDiscriminator(data, path, document: document);
     _validateAllowedFields(data, path);
   }
 
@@ -379,11 +379,8 @@ class SchemaObjectValidator {
 
   /// Validates semantic rules specific to allOf
   static void _validateAllOfSemantics(List<dynamic> schemas, String path, {Map<dynamic, dynamic>? document}) {
-    // Check for obvious contradictions (e.g., different const values)
-    final constValues = <dynamic>[];
-    final enumValues = <List<dynamic>>[];
-    final types = <String>[];
-
+    // Resolve all schemas first (including references)
+    final resolvedSchemas = <Map<dynamic, dynamic>>[];
     for (var i = 0; i < schemas.length; i++) {
       if (schemas[i] is Map) {
         Map schema = schemas[i] as Map;
@@ -397,20 +394,35 @@ class SchemaObjectValidator {
           }
         }
 
-        // Collect const values
-        if (schema.containsKey('const')) {
-          constValues.add(schema['const']);
-        }
+        resolvedSchemas.add(schema);
+      }
+    }
 
-        // Collect enum values
-        if (schema.containsKey('enum') && schema['enum'] is List) {
-          enumValues.add(schema['enum'] as List<dynamic>);
-        }
+    // Check for obvious contradictions (e.g., different const values)
+    final constValues = <dynamic>[];
+    final enumValues = <List<dynamic>>[];
+    final types = <String>[];
+    final objectSchemas = <Map<dynamic, dynamic>>[];
 
-        // Collect types
-        if (schema.containsKey('type') && schema['type'] is String) {
-          types.add(schema['type'] as String);
-        }
+    for (final schema in resolvedSchemas) {
+      // Collect const values
+      if (schema.containsKey('const')) {
+        constValues.add(schema['const']);
+      }
+
+      // Collect enum values
+      if (schema.containsKey('enum') && schema['enum'] is List) {
+        enumValues.add(schema['enum'] as List<dynamic>);
+      }
+
+      // Collect types
+      if (schema.containsKey('type') && schema['type'] is String) {
+        types.add(schema['type'] as String);
+      }
+
+      // Collect object schemas for property-level validation
+      if (schema.containsKey('type') && schema['type'] == 'object') {
+        objectSchemas.add(schema);
       }
     }
 
@@ -458,6 +470,109 @@ class SchemaObjectValidator {
         throw OpenApiValidationException(
           ValidationUtils.buildPath(path, 'allOf'),
           'allOf contains schemas with disjoint enum values. There is no common value that satisfies all enum constraints.',
+          specReference: 'JSON Schema Core - Section 10.2.1.1 (allOf)',
+        );
+      }
+    }
+
+    // Check for property-level conflicts in object schemas
+    if (objectSchemas.length > 1) {
+      _validateAllOfPropertyConflicts(objectSchemas, path);
+    }
+  }
+
+  /// Validates that properties in allOf object schemas don't conflict
+  static void _validateAllOfPropertyConflicts(List<Map<dynamic, dynamic>> objectSchemas, String path) {
+    // Collect all property definitions from all object schemas
+    final propertyDefinitions = <String, List<Map<dynamic, dynamic>>>{};
+
+    for (final schema in objectSchemas) {
+      if (schema.containsKey('properties') && schema['properties'] is Map) {
+        final properties = schema['properties'] as Map;
+        for (final propName in properties.keys) {
+          final propNameStr = propName.toString();
+          if (properties[propName] is Map) {
+            propertyDefinitions.putIfAbsent(propNameStr, () => []);
+            propertyDefinitions[propNameStr]!.add(properties[propName] as Map);
+          }
+        }
+      }
+    }
+
+    // Check each property that appears in multiple schemas
+    for (final entry in propertyDefinitions.entries) {
+      final propName = entry.key;
+      final definitions = entry.value;
+
+      if (definitions.length > 1) {
+        // This property is defined in multiple schemas in the allOf
+        _validatePropertyCompatibility(definitions, propName, path);
+      }
+    }
+  }
+
+  /// Validates that multiple definitions of the same property are compatible
+  static void _validatePropertyCompatibility(List<Map<dynamic, dynamic>> definitions, String propName, String path) {
+    // Collect types from all definitions
+    final types = <String>[];
+    final enumValues = <List<dynamic>>[];
+    final constValues = <dynamic>[];
+
+    for (final def in definitions) {
+      if (def.containsKey('type') && def['type'] is String) {
+        types.add(def['type'] as String);
+      }
+      if (def.containsKey('enum') && def['enum'] is List) {
+        enumValues.add(def['enum'] as List<dynamic>);
+      }
+      if (def.containsKey('const')) {
+        constValues.add(def['const']);
+      }
+    }
+
+    // Check for incompatible types
+    if (types.length > 1) {
+      final uniqueTypes = types.toSet();
+      if (uniqueTypes.length > 1) {
+        // Multiple different types for the same property
+        final incompatibleTypes = {'string', 'number', 'integer', 'boolean', 'array', 'object'};
+        final foundIncompatibleTypes = uniqueTypes.intersection(incompatibleTypes);
+
+        if (foundIncompatibleTypes.length > 1) {
+          throw OpenApiValidationException(
+            ValidationUtils.buildPath(path, 'allOf'),
+            'allOf contains conflicting type definitions for property "$propName": ${types.join(", ")}. '
+            'A property cannot have multiple incompatible types across allOf schemas.',
+            specReference: 'JSON Schema Core - Section 10.2.1.1 (allOf)',
+          );
+        }
+      }
+    }
+
+    // Check for incompatible const values
+    if (constValues.length > 1) {
+      final uniqueConsts = constValues.toSet();
+      if (uniqueConsts.length > 1) {
+        throw OpenApiValidationException(
+          ValidationUtils.buildPath(path, 'allOf'),
+          'allOf contains conflicting const values for property "$propName": ${constValues.join(", ")}. '
+          'A property cannot have multiple different const values.',
+          specReference: 'JSON Schema Core - Section 10.2.1.1 (allOf)',
+        );
+      }
+    }
+
+    // Check for disjoint enum values
+    if (enumValues.length > 1) {
+      Set<dynamic> intersection = enumValues[0].toSet();
+      for (var i = 1; i < enumValues.length; i++) {
+        intersection = intersection.intersection(enumValues[i].toSet());
+      }
+      if (intersection.isEmpty) {
+        throw OpenApiValidationException(
+          ValidationUtils.buildPath(path, 'allOf'),
+          'allOf contains conflicting enum values for property "$propName". '
+          'The enum constraints have no common value.',
           specReference: 'JSON Schema Core - Section 10.2.1.1 (allOf)',
         );
       }
@@ -532,6 +647,156 @@ class SchemaObjectValidator {
 
     // Return the resolved object if it's a Map
     return current is Map ? current : null;
+  }
+
+  /// Validates that discriminator is not used with allOf containing nested composition keywords
+  static void _validateDiscriminatorNotNestedInAllOf(List<dynamic> schemas, String path) {
+    // Check if any schema in the allOf contains nested oneOf, anyOf, or allOf
+    for (var i = 0; i < schemas.length; i++) {
+      if (schemas[i] is Map) {
+        final schema = schemas[i] as Map;
+
+        // Check for nested composition keywords (but not $ref, as refs are fine)
+        if (!schema.containsKey(r'$ref')) {
+          if (schema.containsKey('oneOf') || schema.containsKey('anyOf') || schema.containsKey('allOf')) {
+            throw OpenApiValidationException(
+              ValidationUtils.buildPath(path, 'discriminator'),
+              'Discriminator should not be used with allOf that contains nested composition keywords (oneOf, anyOf, allOf). '
+              'This creates ambiguity about which schema variant the discriminator value represents. '
+              'Use discriminator directly with oneOf/anyOf containing all variants, or ensure allOf only contains direct schema definitions or references.',
+              specReference: 'OpenAPI 3.0.0 - Discriminator Object',
+            );
+          }
+        }
+      }
+    }
+  }
+
+  /// Validates that the discriminator property exists and is properly defined in all variant schemas
+  static void _validateDiscriminatorProperty(
+    String propertyName,
+    List<dynamic> compositionSchemas,
+    String compositionKeyword,
+    String path,
+    Map<dynamic, dynamic> document,
+  ) {
+    final resolvedSchemas = <Map<dynamic, dynamic>>[];
+    final schemaNames = <String>[];
+
+    // Resolve all schemas
+    for (var i = 0; i < compositionSchemas.length; i++) {
+      if (compositionSchemas[i] is Map) {
+        Map schema = compositionSchemas[i] as Map;
+        String schemaName = '$compositionKeyword[$i]';
+
+        // Try to resolve reference if present
+        if (schema.containsKey(r'$ref')) {
+          final ref = schema[r'$ref'] as String;
+          schemaName = ref; // Use the reference path as the name
+          final resolvedSchema = _resolveInternalReference(ref, document);
+          if (resolvedSchema != null) {
+            schema = resolvedSchema;
+          }
+        }
+
+        resolvedSchemas.add(schema);
+        schemaNames.add(schemaName);
+      }
+    }
+
+    if (resolvedSchemas.isEmpty) {
+      return;
+    }
+
+    // Check each schema for the discriminator property
+    final propertyTypes = <String>[];
+    final schemasMissingProperty = <String>[];
+    final schemasWithoutRequired = <String>[];
+
+    for (var i = 0; i < resolvedSchemas.length; i++) {
+      final schema = resolvedSchemas[i];
+      final schemaName = schemaNames[i];
+
+      // Check if schema is an object type
+      if (!schema.containsKey('type') || schema['type'] != 'object') {
+        // For discriminator to work, schemas should be objects
+        continue;
+      }
+
+      // Check if the discriminator property exists in the schema
+      bool propertyExists = false;
+      if (schema.containsKey('properties') && schema['properties'] is Map) {
+        final properties = schema['properties'] as Map;
+        if (properties.containsKey(propertyName)) {
+          propertyExists = true;
+
+          // Check the property type
+          final propertyDef = properties[propertyName];
+          if (propertyDef is Map && propertyDef.containsKey('type')) {
+            propertyTypes.add(propertyDef['type'] as String);
+          }
+        }
+      }
+
+      if (!propertyExists) {
+        schemasMissingProperty.add(schemaName);
+      }
+
+      // Check if the property is in the required array
+      bool isRequired = false;
+      if (schema.containsKey('required') && schema['required'] is List) {
+        final required = schema['required'] as List;
+        isRequired = required.contains(propertyName);
+      }
+
+      if (propertyExists && !isRequired) {
+        schemasWithoutRequired.add(schemaName);
+      }
+    }
+
+    // Report errors if discriminator property is missing
+    if (schemasMissingProperty.isNotEmpty) {
+      throw OpenApiValidationException(
+        ValidationUtils.buildPath(path, 'discriminator'),
+        'Discriminator property "$propertyName" does not exist in the following schemas: ${schemasMissingProperty.join(", ")}. '
+        'The discriminator property must be defined in all variant schemas.',
+        specReference: 'OpenAPI 3.0.0 - Discriminator Object',
+      );
+    }
+
+    // Report warning/error if discriminator property is not required
+    if (schemasWithoutRequired.isNotEmpty) {
+      throw OpenApiValidationException(
+        ValidationUtils.buildPath(path, 'discriminator'),
+        'Discriminator property "$propertyName" is not marked as required in the following schemas: ${schemasWithoutRequired.join(", ")}. '
+        'The discriminator property should be required in all variant schemas for proper discrimination.',
+        specReference: 'OpenAPI 3.0.0 - Discriminator Object',
+      );
+    }
+
+    // Check that all property types are compatible (all should be string for proper discrimination)
+    if (propertyTypes.isNotEmpty) {
+      final uniqueTypes = propertyTypes.toSet();
+      if (uniqueTypes.length > 1) {
+        throw OpenApiValidationException(
+          ValidationUtils.buildPath(path, 'discriminator'),
+          'Discriminator property "$propertyName" has inconsistent types across schemas: ${uniqueTypes.join(", ")}. '
+          'The discriminator property should have the same type (typically string) in all variant schemas.',
+          specReference: 'OpenAPI 3.0.0 - Discriminator Object',
+        );
+      }
+
+      // Recommend that discriminator properties be strings
+      if (uniqueTypes.first != 'string') {
+        // This is more of a best practice, but we'll enforce it
+        throw OpenApiValidationException(
+          ValidationUtils.buildPath(path, 'discriminator'),
+          'Discriminator property "$propertyName" has type "${uniqueTypes.first}". '
+          'Discriminator properties should be of type "string" for proper identification of schema variants.',
+          specReference: 'OpenAPI 3.0.0 - Discriminator Object',
+        );
+      }
+    }
   }
 
   static List<dynamic>? _validateEnumField(Map<dynamic, dynamic> data, String path) {
@@ -681,7 +946,7 @@ class SchemaObjectValidator {
     }
   }
 
-  static void _validateDiscriminator(Map<dynamic, dynamic> data, String path) {
+  static void _validateDiscriminator(Map<dynamic, dynamic> data, String path, {Map<dynamic, dynamic>? document}) {
     if (data.containsKey('discriminator')) {
       final discriminator = data['discriminator'];
       if (discriminator is! Map) {
@@ -704,6 +969,35 @@ class SchemaObjectValidator {
       }
 
       DiscriminatorObjectValidator.validate(discriminator, ValidationUtils.buildPath(path, 'discriminator'));
+
+      // Validate that the discriminator property exists and is valid in all variant schemas
+      if (discriminator.containsKey('propertyName') && document != null) {
+        final propertyName = discriminator['propertyName'] as String;
+
+        // Get the composition schemas
+        List<dynamic>? compositionSchemas;
+        String? compositionKeyword;
+
+        if (data.containsKey('oneOf')) {
+          compositionSchemas = data['oneOf'] as List;
+          compositionKeyword = 'oneOf';
+        } else if (data.containsKey('anyOf')) {
+          compositionSchemas = data['anyOf'] as List;
+          compositionKeyword = 'anyOf';
+        } else if (data.containsKey('allOf')) {
+          compositionSchemas = data['allOf'] as List;
+          compositionKeyword = 'allOf';
+        }
+
+        if (compositionSchemas != null && compositionKeyword != null) {
+          // Check for nested composition keywords with discriminator in allOf
+          if (compositionKeyword == 'allOf') {
+            _validateDiscriminatorNotNestedInAllOf(compositionSchemas, path);
+          }
+
+          _validateDiscriminatorProperty(propertyName, compositionSchemas, compositionKeyword, path, document);
+        }
+      }
     }
   }
 

@@ -1,0 +1,37 @@
+# Test: Discriminator property exists but is not required (should fail validation)
+openapi: 3.0.0
+info:
+  title: Invalid Discriminator Not Required Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    Pet:
+      oneOf:
+        - $ref: '#/components/schemas/Cat'
+        - $ref: '#/components/schemas/Dog'
+      discriminator:
+        propertyName: petType
+    
+    Cat:
+      type: object
+      required: [name]  # petType is NOT in required array
+      properties:
+        petType:
+          type: string
+        name:
+          type: string
+        meow:
+          type: boolean
+    
+    Dog:
+      type: object
+      required: [name]  # petType is NOT in required array
+      properties:
+        petType:
+          type: string
+        name:
+          type: string
+        bark:
+          type: boolean
+

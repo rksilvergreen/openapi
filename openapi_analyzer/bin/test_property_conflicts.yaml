@@ -1,0 +1,102 @@
+# Test file for property-level conflict detection in allOf
+openapi: 3.0.0
+info:
+  title: Property Conflict Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    # Valid: Same property with same type in multiple schemas
+    ValidSamePropertyType:
+      allOf:
+        - type: object
+          properties:
+            name:
+              type: string
+        - type: object
+          properties:
+            name:
+              type: string
+              minLength: 1
+
+    # Valid: Different properties in each schema (no overlap)
+    ValidDifferentProperties:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: integer
+        - type: object
+          properties:
+            name:
+              type: string
+
+    # Valid: Compatible integer constraints
+    ValidCompatibleConstraints:
+      allOf:
+        - type: object
+          properties:
+            age:
+              type: integer
+              minimum: 0
+        - type: object
+          properties:
+            age:
+              type: integer
+              maximum: 120
+
+    # Invalid: Property with conflicting types (integer vs string)
+    # InvalidConflictingPropertyTypes:
+    #   allOf:
+    #     - type: object
+    #       properties:
+    #         id:
+    #           type: integer
+    #     - type: object
+    #       properties:
+    #         id:
+    #           type: string
+
+    # Invalid: Property with conflicting const values
+    # InvalidConflictingConstValues:
+    #   allOf:
+    #     - type: object
+    #       properties:
+    #         status:
+    #           const: "active"
+    #     - type: object
+    #       properties:
+    #         status:
+    #           const: "inactive"
+
+    # Invalid: Property with disjoint enum values
+    InvalidDisjointEnumValues:
+      allOf:
+        - type: object
+          properties:
+            role:
+              enum: ["admin", "user", "moderator"]
+        - type: object
+          properties:
+            role:
+              enum: ["guest", "moderator"]
+
+    BaseEntity:
+      type: object
+      properties:
+        id:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    # Valid: Extending base with additional properties
+    ValidExtendedEntity:
+      allOf:
+        - $ref: "#/components/schemas/BaseEntity"
+        - type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string

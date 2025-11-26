@@ -1,0 +1,19 @@
+# Test: Property with conflicting const values (should fail validation)
+openapi: 3.0.0
+info:
+  title: Invalid Property Const Conflict Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    InvalidConflictingConstValues:
+      allOf:
+        - type: object
+          properties:
+            status:
+              const: "active"
+        - type: object
+          properties:
+            status:
+              const: "inactive"
+

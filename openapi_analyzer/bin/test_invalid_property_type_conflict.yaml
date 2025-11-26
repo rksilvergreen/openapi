@@ -1,0 +1,19 @@
+# Test: Property with conflicting types (should fail validation)
+openapi: 3.0.0
+info:
+  title: Invalid Property Type Conflict Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    InvalidConflictingPropertyTypes:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: integer
+        - type: object
+          properties:
+            id:
+              type: string
+

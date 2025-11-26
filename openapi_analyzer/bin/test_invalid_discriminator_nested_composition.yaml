@@ -1,0 +1,61 @@
+# Test: Discriminator with allOf containing nested composition keywords (should fail validation)
+openapi: 3.0.0
+info:
+  title: Invalid Discriminator with Nested Composition Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    # Invalid: Discriminator with allOf containing nested oneOf blocks
+    InvalidAllOfWithDiscriminator:
+      allOf:
+        - type: object
+          required: [petType]
+          properties:
+            petType:
+              type: string
+        - oneOf:
+            - $ref: "#/components/schemas/Cat"
+            - $ref: "#/components/schemas/Dog"
+        - oneOf:
+            - $ref: "#/components/schemas/Train"
+            - $ref: "#/components/schemas/Boat"
+      discriminator:
+        propertyName: petType  # Ambiguous - represents Cat/Dog or Train/Boat?
+    
+    Cat:
+      type: object
+      required: [petType, meow]
+      properties:
+        petType:
+          type: string
+        meow:
+          type: boolean
+    
+    Dog:
+      type: object
+      required: [petType, bark]
+      properties:
+        petType:
+          type: string
+        bark:
+          type: boolean
+    
+    Train:
+      type: object
+      required: [petType, smoke]
+      properties:
+        petType:
+          type: string
+        smoke:
+          type: boolean
+    
+    Boat:
+      type: object
+      required: [petType, water]
+      properties:
+        petType:
+          type: string
+        water:
+          type: boolean
+

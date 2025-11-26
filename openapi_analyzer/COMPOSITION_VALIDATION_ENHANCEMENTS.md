@@ -18,18 +18,25 @@ Enhanced strict validation for `allOf`, `oneOf`, `anyOf`, and `not` keywords in 
 - ✅ Validates that schemas are properly formed
 
 ### 3. Semantic Validation for allOf with Reference Resolution (New & Enhanced)
-#### Incompatible Types Detection
+#### Schema-Level Incompatible Types Detection
 - ✅ Detects when allOf contains schemas with incompatible types (e.g., string + object)
 - ✅ **Now resolves internal references** to check types across referenced schemas
 - Example: A schema cannot be both a string AND an object simultaneously
 - Works with both inline schemas and `$ref` to `#/components/schemas/...`
 
+#### Property-Level Conflict Detection (New)
+- ✅ **Detects when the same property has conflicting types across allOf schemas**
+- ✅ Validates property-level enum conflicts
+- ✅ Resolves references to check property definitions
+- Example: If one schema defines `name: {type: string}` and another defines `name: {type: integer}`, this is caught
+- Works across both inline schemas and referenced schemas
+
 #### Contradictory Const Values (JSON Schema feature)
-- ✅ Detects when allOf contains different const values
+- ✅ Detects when allOf contains different const values (both schema-level and property-level)
 - Note: `const` is not in OpenAPI 3.0.0 but is in later JSON Schema versions
 
 #### Disjoint Enum Values
-- ✅ Detects when allOf contains enum arrays with no common values
+- ✅ Detects when allOf contains enum arrays with no common values (both schema-level and property-level)
 - ✅ **Resolves references** to check enums across referenced schemas
 - Example: `enum: [1,2,3]` combined with `enum: [4,5,6]` is impossible to satisfy
 
@@ -37,8 +44,14 @@ Enhanced strict validation for `allOf`, `oneOf`, `anyOf`, and `not` keywords in 
 - ✅ Detects when the same $ref is used multiple times in composition arrays
 - Example: `oneOf: [{$ref: Cat}, {$ref: Cat}]` is redundant
 
-### 5. Discriminator Validation (Enhanced)
+### 5. Discriminator Validation (Significantly Enhanced)
 - ✅ Validates that discriminator is only used with oneOf, anyOf, or allOf
+- ✅ **NEW: Validates that the discriminator property exists in all variant schemas**
+- ✅ **NEW: Validates that the discriminator property is required in all variant schemas**
+- ✅ **NEW: Validates that the discriminator property has consistent types across schemas**
+- ✅ **NEW: Enforces that discriminator properties should be of type `string`**
+- ✅ **NEW: Prevents discriminator with allOf containing nested composition keywords** (creates ambiguity)
+- ✅ **Resolves references** to validate properties in referenced schemas
 - Per OpenAPI 3.0.0 spec: "The discriminator attribute is legal only when using one of the composite keywords `oneOf`, `anyOf`, `allOf`"
 
 ### 6. Not Keyword Validation (Enhanced)
@@ -60,28 +73,65 @@ Enhanced strict validation for `allOf`, `oneOf`, `anyOf`, and `not` keywords in 
    allOf: []  # ✗ MUST contain at least one schema
    ```
 
-2. **Incompatible Types in allOf**
+2. **Incompatible Types in allOf (Schema-Level)**
    ```yaml
    allOf:
      - type: string
      - type: object  # ✗ Cannot be both string AND object
    ```
 
-3. **Disjoint Enums in allOf**
+3. **Incompatible Types in allOf (Property-Level)**
+   ```yaml
+   allOf:
+     - type: object
+       properties:
+         name:
+           type: integer
+     - type: object
+       properties:
+         name:
+           type: string  # ✗ name cannot be both integer AND string
+   ```
+
+4. **Property Type Conflict via Reference**
+   ```yaml
+   allOf:
+     - type: object
+       properties:
+         name:
+           type: integer
+     - $ref: '#/components/schemas/Dog'  # Dog.name is type: string
+   # ✗ Property conflict detected even through reference
+   ```
+
+5. **Disjoint Enums in allOf (Schema-Level)**
    ```yaml
    allOf:
      - enum: [1, 2, 3]
      - enum: [4, 5, 6]  # ✗ No common value
    ```
 
-4. **Discriminator Without Composition**
+6. **Disjoint Enums in allOf (Property-Level)**
+   ```yaml
+   allOf:
+     - type: object
+       properties:
+         role:
+           enum: ["admin", "user"]
+     - type: object
+       properties:
+         role:
+           enum: ["guest", "moderator"]  # ✗ No common value
+   ```
+
+7. **Discriminator Without Composition**
    ```yaml
    type: object
    discriminator:
      propertyName: type  # ✗ Requires oneOf/anyOf/allOf
    ```
 
-5. **Duplicate References**
+8. **Duplicate References**
    ```yaml
    oneOf:
      - $ref: '#/components/schemas/Cat'
@@ -135,13 +185,28 @@ From the Discriminator Object section:
   - Updated to accept and pass document context to `SchemaObjectValidator`
 
 ## Test Files Created
+
+### Composition Keyword Tests
 - `bin/composition_validation_test.yaml` - Valid composition examples
 - `bin/test_invalid_empty_allof.yaml` - Tests empty array detection
-- `bin/test_invalid_allof_incompatible_types.yaml` - Tests type incompatibility
+- `bin/test_invalid_allof_incompatible_types.yaml` - Tests property-level type conflicts via reference
 - `bin/test_invalid_allof_different_const.yaml` - Tests const conflicts
-- `bin/test_invalid_allof_disjoint_enums.yaml` - Tests disjoint enum detection
-- `bin/test_invalid_discriminator_without_composition.yaml` - Tests discriminator restriction
+- `bin/test_invalid_allof_disjoint_enums.yaml` - Tests schema-level disjoint enum detection
 - `bin/test_invalid_duplicate_refs.yaml` - Tests duplicate reference detection
+
+### Property-Level Conflict Tests
+- `bin/test_property_conflicts.yaml` - Valid property-level combinations in allOf
+- `bin/test_invalid_property_type_conflict.yaml` - Tests property-level type conflicts
+- `bin/test_invalid_property_const_conflict.yaml` - Tests property-level const conflicts (const not in OpenAPI 3.0.0)
+- `bin/test_invalid_property_enum_conflict.yaml` - Tests property-level enum conflicts
+
+### Discriminator Validation Tests
+- `bin/test_invalid_discriminator_without_composition.yaml` - Tests discriminator restriction (must use with oneOf/anyOf/allOf)
+- `bin/test_invalid_discriminator_property_missing.yaml` - Tests that discriminator property exists in schemas
+- `bin/test_invalid_discriminator_not_required.yaml` - Tests that discriminator property is required
+- `bin/test_invalid_discriminator_inconsistent_types.yaml` - Tests that discriminator property types are consistent
+- `bin/test_invalid_discriminator_non_string_type.yaml` - Tests that discriminator property is string type
+- `bin/test_invalid_discriminator_nested_composition.yaml` - Tests that discriminator with nested composition in allOf is rejected
 
 ## Testing
 
@@ -152,6 +217,9 @@ All validations have been tested and confirmed working:
 $ dart run bin/openapi_analyzer.dart validate -f bin/composition_validation_test.yaml
 ✓ Validation successful: OpenAPI 3.0.0 specification is valid
 
+$ dart run bin/openapi_analyzer.dart validate -f bin/test_property_conflicts.yaml
+✓ Validation successful: OpenAPI 3.0.0 specification is valid
+
 # Invalid schemas are caught
 $ dart run bin/openapi_analyzer.dart validate -f bin/test_invalid_empty_allof.yaml
 ✗ Validation failed:
@@ -159,7 +227,15 @@ Validation error at components/schemas.InvalidEmptyAllOf/allOf: allOf array MUST
 
 $ dart run bin/openapi_analyzer.dart validate -f bin/test_invalid_allof_incompatible_types.yaml
 ✗ Validation failed:
-Validation error at components/schemas.InvalidAllOfIncompatibleTypes/allOf: allOf contains schemas with incompatible types...
+Validation error at components/schemas.InvalidAllOfIncompatibleTypes/allOf: allOf contains conflicting type definitions for property "name": integer, string...
+
+$ dart run bin/openapi_analyzer.dart validate -f bin/test_invalid_property_type_conflict.yaml
+✗ Validation failed:
+Validation error at components/schemas.InvalidConflictingPropertyTypes/allOf: allOf contains conflicting type definitions for property "id": integer, string...
+
+$ dart run bin/openapi_analyzer.dart validate -f bin/test_invalid_property_enum_conflict.yaml
+✗ Validation failed:
+Validation error at components/schemas.InvalidDisjointEnumValues/allOf: allOf contains conflicting enum values for property "role"...
 
 $ dart run bin/openapi_analyzer.dart validate -f bin/test_invalid_allof_disjoint_enums.yaml
 ✗ Validation failed:
