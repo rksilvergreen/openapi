@@ -62,6 +62,26 @@ class IntegerStandardSchema extends IntegerSchema {
     this.minimum,
     this.exclusiveMinimum,
   });
+
+  bool isSubSchemeOf(IntegerSchema schema) {
+    if (schema is IntegerStandardSchema) {
+      if ((schema.multipleOf != null && schema.multipleOf == multipleOf) &&
+          (schema.maximum != null && schema.maximum == maximum) &&
+          (schema.exclusiveMaximum != null && schema.exclusiveMaximum == exclusiveMaximum) &&
+          (schema.minimum != null && schema.minimum == minimum) &&
+          (schema.exclusiveMinimum != null && schema.exclusiveMinimum == exclusiveMinimum) &&
+          (schema.enumValues.isEmpty || schema.enumValues.every(enumValues.contains))) {
+        return true;
+      }
+      return false;
+    }
+    if (schema is IntegerVariantSchema) {
+      return schema.variants.any(isSubSchemeOf);
+    }
+    return false;
+  }
+
+  bool isSuperSchemeOf(IntegerSchema schema) => schema.isSubSchemeOf(this);
 }
 
 class IntegerVariantSchema extends IntegerSchema implements SingleTypeVariantSchema<int, IntegerSchema> {
@@ -275,6 +295,13 @@ class ArrayVariantSchema<T> extends ArraySchema<T> implements SingleTypeVariantS
 /// #################### Object Schema ######################
 /// #########################################################
 
+class Discriminator<T, S extends SingleTypeSchema<T, S>> {
+  final String propertyName;
+  final S discriminatorPropertySchema;
+  final Map<T, Schema> mapping;
+  Discriminator({required this.propertyName, required this.discriminatorPropertySchema, required this.mapping});
+}
+
 abstract class ObjectSchema implements SingleTypeSchema<Map<String, dynamic>, ObjectSchema> {
   final String name;
   final SchemaType type = SchemaType.object;
@@ -282,36 +309,65 @@ abstract class ObjectSchema implements SingleTypeSchema<Map<String, dynamic>, Ob
   final List<ObjectSchema> inheritsFrom;
   final List<Schema> isVariantOf;
   final List<Map<String, dynamic>> enumValues;
+  final Discriminator? discriminator;
   ObjectSchema({
     required this.name,
     this.isBaseFor = const [],
     this.inheritsFrom = const [],
     this.isVariantOf = const [],
     this.enumValues = const [],
+    this.discriminator,
   });
 }
 
 class ObjectStandardSchema extends ObjectSchema {
-  final List<Schema> requiredProperties;
-  final List<Schema> properties;
+  final List<String> requiredProperties;
+  final Map<String, Schema> properties;
   final bool? additionalPropertiesAllowed;
-  final List<Schema> additionalProperties;
+  final Map<String, Schema> additionalProperties;
   final int? maxProperties;
   final int? minProperties;
 
   ObjectStandardSchema({
     required super.name,
-    required super.isBaseFor,
-    required super.inheritsFrom,
-    required super.isVariantOf,
-    required super.enumValues,
+    super.isBaseFor,
+    super.inheritsFrom,
+    super.isVariantOf,
+    super.enumValues,
+    super.discriminator,
     this.requiredProperties = const [],
-    this.properties = const [],
+    this.properties = const {},
     this.additionalPropertiesAllowed = true,
-    this.additionalProperties = const [],
+    this.additionalProperties = const {},
     this.maxProperties,
     this.minProperties,
-  });
+  }) : assert(_doBaseSchemasIncludeDiscriminator(discriminator, isBaseFor));
+
+  // static bool isSubSchemeOf(ObjectSchema schema, ObjectSchema other) {
+  //   return true;
+  // }
+
+  static bool _doBaseSchemasIncludeDiscriminator(Discriminator? discriminator, List<ObjectSchema>? isBaseFor) {
+    if (discriminator == null) return true;
+    if (isBaseFor == null || isBaseFor.isEmpty) return false;
+    return isBaseFor.every((schema) {
+      if (schema is ObjectStandardSchema) {
+        bool propertyExists = schema.properties.containsKey(discriminator.propertyName);
+        bool schemaIsValid = isSubSchemeOf(
+          schema.properties[discriminator.propertyName]!,
+          discriminator.discriminatorPropertySchema,
+        );
+        return propertyExists && schemaIsValid;
+      } else if (schema is ObjectVariantSchema) {
+        return schema.variants.every((variant) => _doBaseSchemasIncludeDiscriminator(discriminator, variant.isBaseFor));
+      }
+      return false;
+    });
+  }
+}
+
+bool isSubSchemeOf(Schema schema, Schema other) {
+  return true;
 }
 
 class ObjectVariantSchema extends ObjectSchema implements SingleTypeVariantSchema<Map<String, dynamic>, ObjectSchema> {
@@ -322,6 +378,6 @@ class ObjectVariantSchema extends ObjectSchema implements SingleTypeVariantSchem
     required super.inheritsFrom,
     required super.isVariantOf,
     required super.enumValues,
-    this.variants = const [],
+    required this.variants,
   });
 }
