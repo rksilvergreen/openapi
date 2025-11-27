@@ -23,4 +23,35 @@ components:
           properties:
             wheels:
               type: integer
+    Boat:
+      type: object
+      properties:
+        name:
+          type: string
+        hullType:
+          type: object
+          enum: [wood, steel, fiberglass]
+    
+    DinosaurList:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+          era:
+            type: string
+        required:
+          - name
+          - era
+      enum:
+        - - name: "Trex"
+            era: "Cretaceous"
+          - name: "Stegosaurus"
+            era: "Jurassic"
+
+        - - name: "Velociraptor"
+            era: "Cretaceous"
+          - name: "Triceratops"
+            era: "Cretaceous"
 
