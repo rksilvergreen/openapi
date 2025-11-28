@@ -1,67 +1,150 @@
 enum SchemaType { string, integer, boolean, number, array, object }
 
-abstract interface class Schema {
-  String get name;
+class Xml {
+  final String? name;
+  final String? namespace;
+  final String? prefix;
+  final bool attribute;
+  final bool wrapped;
+  Xml({this.name, this.namespace, this.prefix, this.attribute = false, this.wrapped = false});
 }
 
-abstract interface class SingleTypeSchema<T, S extends SingleTypeSchema<T, S>> implements Schema {
-  SchemaType get type;
-  List<S> get isBaseFor;
-  List<S> get inheritsFrom;
-  List<Schema> get isVariantOf;
-  List<T> get enumValues;
+class ExternalDocs {
+  final String url;
+  final String? description;
+  ExternalDocs({required this.url, this.description});
 }
 
-abstract interface class SingleTypeVariantSchema<T, S extends SingleTypeSchema<T, S>>
-    implements SingleTypeSchema<T, S> {
-  List<S> get variants;
-}
-
-class MultiTypeVariantSchema implements Schema {
+abstract class Schema {
   final String name;
+  final String? description;
+  dynamic defaultValue;
+  bool nullable;
+  final bool readOnly;
+  final bool writeOnly;
+  final Xml? xml;
+  final ExternalDocs? externalDocs;
+  final Map<String, dynamic>? example;
+  final bool deprecated;
+
+  Schema({
+    required this.name,
+    this.description,
+    this.nullable = false,
+    this.readOnly = false,
+    this.writeOnly = false,
+    this.xml,
+    this.externalDocs,
+    this.example,
+    this.deprecated = false,
+  });
+}
+
+abstract class SingleTypeSchema<T, S extends SingleTypeSchema<T, S>> extends Schema {
+  SchemaType get type;
+  final List<S> isBaseFor;
+  final List<S> variants;
+  final List<S> inheritsFrom;
+  final List<Schema> isVariantOf;
+  final List<T> enumValues;
+  final T? defaultValue;
+
+  SingleTypeSchema({
+    required super.name,
+    super.description,
+    super.nullable,
+    super.readOnly,
+    super.writeOnly,
+    super.xml,
+    super.externalDocs,
+    super.example,
+    super.deprecated,
+    this.isBaseFor = const [],
+    this.variants = const [],
+    this.inheritsFrom = const [],
+    this.isVariantOf = const [],
+    this.enumValues = const [],
+    this.defaultValue,
+  });
+
+  bool get hasVariants => variants.isNotEmpty;
+}
+
+class MultiTypeVariantSchema extends Schema {
   final List<Schema> variants;
-  MultiTypeVariantSchema(this.name, this.variants);
+  final List<Schema> isVariantOf;
+  dynamic defaultValue;
+  MultiTypeVariantSchema({
+    required super.name,
+    super.description,
+    super.nullable,
+    super.readOnly,
+    super.writeOnly,
+    super.xml,
+    super.externalDocs,
+    super.example,
+    super.deprecated,
+    required this.variants,
+    required this.isVariantOf,
+    this.defaultValue,
+  });
 }
 
 /// #########################################################
 /// ################## Integer Schema #######################
 /// #########################################################
 
-abstract class IntegerSchema implements SingleTypeSchema<int, IntegerSchema> {
-  final String name;
+class IntegerSchema extends SingleTypeSchema<int, IntegerSchema> {
   final SchemaType type = SchemaType.integer;
-  final List<IntegerSchema> isBaseFor;
-  final List<IntegerSchema> inheritsFrom;
-  final List<Schema> isVariantOf;
-  final List<int> enumValues;
-  IntegerSchema({
-    required this.name,
-    this.isBaseFor = const [],
-    this.inheritsFrom = const [],
-    this.isVariantOf = const [],
-    this.enumValues = const [],
-  });
-}
-
-class IntegerStandardSchema extends IntegerSchema {
   final double? multipleOf;
   final int? maximum;
   final int? exclusiveMaximum;
   final int? minimum;
   final int? exclusiveMinimum;
+  final String? format;
 
-  IntegerStandardSchema({
+  IntegerSchema({
     required super.name,
-    required super.isBaseFor,
-    required super.inheritsFrom,
-    required super.isVariantOf,
-    required super.enumValues,
+    super.description,
+    super.nullable,
+    super.readOnly,
+    super.writeOnly,
+    super.example,
+    super.deprecated,
+    super.xml,
+    super.externalDocs,
+    super.isBaseFor,
+    super.variants,
+    super.inheritsFrom,
+    super.isVariantOf,
+    super.enumValues,
     this.multipleOf,
     this.maximum,
     this.exclusiveMaximum,
     this.minimum,
     this.exclusiveMinimum,
-  });
+    this.format,
+  }) : assert(
+         _ifIsVariantSchemaThenNoTypeFields(variants, multipleOf, maximum, exclusiveMaximum, minimum, exclusiveMinimum),
+       );
+
+  static bool _ifIsVariantSchemaThenNoTypeFields(
+    List<IntegerSchema> variants,
+    double? multipleOf,
+    int? maximum,
+    int? exclusiveMaximum,
+    int? minimum,
+    int? exclusiveMinimum,
+  ) {
+    if (variants.isNotEmpty) {
+      return multipleOf == null &&
+          maximum == null &&
+          exclusiveMaximum == null &&
+          minimum == null &&
+          exclusiveMinimum == null;
+    }
+    return true;
+  }
 
   bool isSubSchemeOf(IntegerSchema schema) {
     if (schema is IntegerStandardSchema) {
@@ -80,72 +163,42 @@ class IntegerStandardSchema extends IntegerSchema {
     }
     return false;
   }
-
-  bool isSuperSchemeOf(IntegerSchema schema) => schema.isSubSchemeOf(this);
-}
-
-class IntegerVariantSchema extends IntegerSchema implements SingleTypeVariantSchema<int, IntegerSchema> {
-  final List<IntegerSchema> variants;
-  IntegerVariantSchema({
-    required super.name,
-    required super.isBaseFor,
-    required super.inheritsFrom,
-    required super.isVariantOf,
-    required super.enumValues,
-    this.variants = const [],
-  });
 }
 
 /// #########################################################
 /// ################### Number Schema #######################
 /// #########################################################
 
-abstract class NumberSchema implements SingleTypeSchema<double, NumberSchema> {
-  final String name;
+class NumberSchema extends SingleTypeSchema<double, NumberSchema> {
   final SchemaType type = SchemaType.number;
-  final List<NumberSchema> isBaseFor;
-  final List<NumberSchema> inheritsFrom;
-  final List<Schema> isVariantOf;
-  final List<double> enumValues;
-  NumberSchema({
-    required this.name,
-    this.isBaseFor = const [],
-    this.inheritsFrom = const [],
-    this.isVariantOf = const [],
-    this.enumValues = const [],
-  });
-}
-
-class NumberStandardSchema extends NumberSchema {
   final double? multipleOf;
   final double? maximum;
   final double? exclusiveMaximum;
   final double? minimum;
   final double? exclusiveMinimum;
+  final String? format;
 
-  NumberStandardSchema({
+  NumberSchema({
     required super.name,
-    required super.isBaseFor,
-    required super.inheritsFrom,
-    required super.isVariantOf,
-    required super.enumValues,
+    super.description,
+    super.nullable,
+    super.readOnly,
+    super.writeOnly,
+    super.example,
+    super.deprecated,
+    super.xml,
+    super.externalDocs,
+    super.isBaseFor,
+    super.variants,
+    super.inheritsFrom,
+    super.isVariantOf,
+    super.enumValues,
     this.multipleOf,
     this.maximum,
     this.exclusiveMaximum,
     this.minimum,
     this.exclusiveMinimum,
-  });
-}
-
-class NumberVariantSchema extends NumberSchema implements SingleTypeVariantSchema<double, NumberSchema> {
-  final List<NumberSchema> variants;
-  NumberVariantSchema({
-    required super.name,
-    required super.isBaseFor,
-    required super.inheritsFrom,
-    required super.isVariantOf,
-    required super.enumValues,
-    this.variants = const [],
+    this.format,
   });
 }
 
@@ -153,48 +206,32 @@ class NumberVariantSchema extends NumberSchema implements SingleTypeVariantSchem
 /// ################### String Schema #######################
 /// #########################################################
 
-abstract class StringSchema implements SingleTypeSchema<String, StringSchema> {
-  final String name;
+class StringSchema extends SingleTypeSchema<String, StringSchema> {
   final SchemaType type = SchemaType.string;
-  final List<StringSchema> isBaseFor;
-  final List<StringSchema> inheritsFrom;
-  final List<Schema> isVariantOf;
-  final List<String> enumValues;
-  StringSchema({
-    required this.name,
-    this.isBaseFor = const [],
-    this.inheritsFrom = const [],
-    this.isVariantOf = const [],
-    this.enumValues = const [],
-  });
-}
-
-class StringStandardSchema extends StringSchema {
   final int? maxLength;
   final int? minLength;
   final String? pattern;
+  final String? format;
 
-  StringStandardSchema({
+  StringSchema({
     required super.name,
-    required super.isBaseFor,
-    required super.inheritsFrom,
-    required super.isVariantOf,
-    required super.enumValues,
+    super.description,
+    super.nullable,
+    super.readOnly,
+    super.writeOnly,
+    super.example,
+    super.deprecated,
+    super.xml,
+    super.externalDocs,
+    super.isBaseFor,
+    super.variants,
+    super.inheritsFrom,
+    super.isVariantOf,
+    super.enumValues,
     this.maxLength,
     this.minLength,
     this.pattern,
-  });
-}
-
-class StringVariantSchema extends StringSchema implements SingleTypeVariantSchema<String, StringSchema> {
-  final List<StringSchema> variants;
-  StringVariantSchema({
-    required super.name,
-    required super.isBaseFor,
-    required super.inheritsFrom,
-    required super.isVariantOf,
-    required super.enumValues,
-    this.variants = const [],
+    this.format,
   });
 }
 
@@ -202,41 +239,24 @@ class StringVariantSchema extends StringSchema implements SingleTypeVariantSchem
 /// ################### Boolean Schema #######################
 /// #########################################################
 
-abstract class BooleanSchema implements SingleTypeSchema<bool, BooleanSchema> {
-  final String name;
+class BooleanSchema extends SingleTypeSchema<bool, BooleanSchema> {
   final SchemaType type = SchemaType.boolean;
-  final List<BooleanSchema> isBaseFor;
-  final List<BooleanSchema> inheritsFrom;
-  final List<Schema> isVariantOf;
-  final List<bool> enumValues;
+
   BooleanSchema({
-    required this.name,
-    this.isBaseFor = const [],
-    this.inheritsFrom = const [],
-    this.isVariantOf = const [],
-    this.enumValues = const [],
-  });
-}
-
-class BooleanStandardSchema extends BooleanSchema {
-  BooleanStandardSchema({
     required super.name,
-    required super.isBaseFor,
-    required super.inheritsFrom,
-    required super.isVariantOf,
-    required super.enumValues,
-  });
-}
-
-class BooleanVariantSchema extends BooleanSchema implements SingleTypeVariantSchema<bool, BooleanSchema> {
-  final List<BooleanSchema> variants;
-  BooleanVariantSchema({
-    required super.name,
-    required super.isBaseFor,
-    required super.inheritsFrom,
-    required super.isVariantOf,
-    required super.enumValues,
-    this.variants = const [],
+    super.description,
+    super.nullable,
+    super.readOnly,
+    super.writeOnly,
+    super.example,
+    super.deprecated,
+    super.xml,
+    super.externalDocs,
+    super.isBaseFor,
+    super.variants,
+    super.inheritsFrom,
+    super.isVariantOf,
+    super.enumValues,
   });
 }
 
@@ -244,50 +264,32 @@ class BooleanVariantSchema extends BooleanSchema implements SingleTypeVariantSch
 /// #################### Array Schema #######################
 /// #########################################################
 
-abstract class ArraySchema<T> implements SingleTypeSchema<List<T>, ArraySchema<T>> {
-  final String name;
+class ArraySchema<T> extends SingleTypeSchema<List<T>, ArraySchema<T>> {
   final SchemaType type = SchemaType.array;
-  final List<ArraySchema<T>> isBaseFor;
-  final List<ArraySchema<T>> inheritsFrom;
-  final List<Schema> isVariantOf;
-  final List<List<T>> enumValues;
-  ArraySchema({
-    required this.name,
-    this.isBaseFor = const [],
-    this.inheritsFrom = const [],
-    this.isVariantOf = const [],
-    this.enumValues = const [],
-  });
-}
-
-class ArrayStandardSchema<T> extends ArraySchema<T> {
   final Schema? items;
   final int? maxItems;
   final int? minItems;
   final bool? uniqueItems;
 
-  ArrayStandardSchema({
+  ArraySchema({
     required super.name,
-    required super.isBaseFor,
-    required super.inheritsFrom,
-    required super.isVariantOf,
-    required super.enumValues,
+    super.description,
+    super.nullable,
+    super.readOnly,
+    super.writeOnly,
+    super.example,
+    super.deprecated,
+    super.xml,
+    super.externalDocs,
+    super.isBaseFor,
+    super.variants,
+    super.inheritsFrom,
+    super.isVariantOf,
+    super.enumValues,
     this.items,
     this.maxItems,
     this.minItems,
     this.uniqueItems,
-  });
-}
-
-class ArrayVariantSchema<T> extends ArraySchema<T> implements SingleTypeVariantSchema<List<T>, ArraySchema<T>> {
-  final List<ArraySchema<T>> variants;
-  ArrayVariantSchema({
-    required super.name,
-    required super.isBaseFor,
-    required super.inheritsFrom,
-    required super.isVariantOf,
-    required super.enumValues,
-    this.variants = const [],
   });
 }
 
@@ -302,25 +304,9 @@ class Discriminator<T, S extends SingleTypeSchema<T, S>> {
   Discriminator({required this.propertyName, required this.discriminatorPropertySchema, required this.mapping});
 }
 
-abstract class ObjectSchema implements SingleTypeSchema<Map<String, dynamic>, ObjectSchema> {
-  final String name;
+class ObjectSchema extends SingleTypeSchema<Map<String, dynamic>, ObjectSchema> {
   final SchemaType type = SchemaType.object;
-  final List<ObjectSchema> isBaseFor;
-  final List<ObjectSchema> inheritsFrom;
-  final List<Schema> isVariantOf;
-  final List<Map<String, dynamic>> enumValues;
   final Discriminator? discriminator;
-  ObjectSchema({
-    required this.name,
-    this.isBaseFor = const [],
-    this.inheritsFrom = const [],
-    this.isVariantOf = const [],
-    this.enumValues = const [],
-    this.discriminator,
-  });
-}
-
-class ObjectStandardSchema extends ObjectSchema {
   final List<String> requiredProperties;
   final Map<String, Schema> properties;
   final bool? additionalPropertiesAllowed;
@@ -328,56 +314,73 @@ class ObjectStandardSchema extends ObjectSchema {
   final int? maxProperties;
   final int? minProperties;
 
-  ObjectStandardSchema({
+  ObjectSchema({
     required super.name,
+    super.description,
+    super.nullable,
+    super.readOnly,
+    super.writeOnly,
+    super.example,
+    super.deprecated,
+    super.xml,
+    super.externalDocs,
     super.isBaseFor,
+    super.variants,
     super.inheritsFrom,
     super.isVariantOf,
     super.enumValues,
-    super.discriminator,
+    this.discriminator,
     this.requiredProperties = const [],
     this.properties = const {},
     this.additionalPropertiesAllowed = true,
     this.additionalProperties = const {},
     this.maxProperties,
     this.minProperties,
-  }) : assert(_doBaseSchemasIncludeDiscriminator(discriminator, isBaseFor));
+  }) : assert(_doVariantsOrBaseSchemasIncludeDiscriminator(discriminator, variants, isBaseFor));
 
-  // static bool isSubSchemeOf(ObjectSchema schema, ObjectSchema other) {
-  //   return true;
-  // }
-
-  static bool _doBaseSchemasIncludeDiscriminator(Discriminator? discriminator, List<ObjectSchema>? isBaseFor) {
+  /// Validates that discriminated schemas have the proper discriminator property.
+  ///
+  /// PRIMARY MODE: If variants exist, validates that all variants have the discriminator property.
+  /// SECONDARY MODE: If no variants, validates that all isBaseFor schemas have the discriminator property.
+  static bool _doVariantsOrBaseSchemasIncludeDiscriminator(
+    Discriminator? discriminator,
+    List<ObjectSchema> variants,
+    List<ObjectSchema> isBaseFor,
+  ) {
     if (discriminator == null) return true;
-    if (isBaseFor == null || isBaseFor.isEmpty) return false;
-    return isBaseFor.every((schema) {
-      if (schema is ObjectStandardSchema) {
-        bool propertyExists = schema.properties.containsKey(discriminator.propertyName);
-        bool schemaIsValid = isSubSchemeOf(
-          schema.properties[discriminator.propertyName]!,
-          discriminator.discriminatorPropertySchema,
-        );
-        return propertyExists && schemaIsValid;
-      } else if (schema is ObjectVariantSchema) {
-        return schema.variants.every((variant) => _doBaseSchemasIncludeDiscriminator(discriminator, variant.isBaseFor));
-      }
-      return false;
-    });
+
+    // PRIMARY MODE: Discriminator discriminates between variants
+    if (variants.isNotEmpty) {
+      return variants.every((variant) => _schemaHasDiscriminatorProperty(discriminator, variant));
+    }
+
+    // SECONDARY MODE: Discriminator discriminates between schemas that inherit from this one
+    if (isBaseFor.isEmpty) return false;
+    return isBaseFor.every((schema) => _schemaHasDiscriminatorProperty(discriminator, schema));
+  }
+
+  /// Checks if a schema has the discriminator property (either directly or inherited).
+  /// Also handles recursive validation for schemas with variants.
+  static bool _schemaHasDiscriminatorProperty(Discriminator discriminator, ObjectSchema schema) {
+    // If schema has variants, recursively check those variants
+    if (schema.hasVariants) {
+      return schema.variants.every((variant) => _schemaHasDiscriminatorProperty(discriminator, variant));
+    }
+
+    // Check if property exists in this schema's properties
+    bool propertyExists = schema.properties.containsKey(discriminator.propertyName);
+
+    if (propertyExists) {
+      // Property exists - check if schema is compatible
+      final propertySchema = schema.properties[discriminator.propertyName]!;
+      return isSubSchemeOf(propertySchema, discriminator.discriminatorPropertySchema);
+    }
+
+    // Property doesn't exist and no inheritance - invalid
+    return false;
   }
 }
 
 bool isSubSchemeOf(Schema schema, Schema other) {
   return true;
-}
-
-class ObjectVariantSchema extends ObjectSchema implements SingleTypeVariantSchema<Map<String, dynamic>, ObjectSchema> {
-  final List<ObjectSchema> variants;
-  ObjectVariantSchema({
-    required super.name,
-    required super.isBaseFor,
-    required super.inheritsFrom,
-    required super.isVariantOf,
-    required super.enumValues,
-    required this.variants,
-  });
 }
