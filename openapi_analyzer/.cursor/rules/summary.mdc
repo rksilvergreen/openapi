@@ -1,0 +1,42 @@
+---
+description: Guidelines for creating clear and effective summaries of user requests
+alwaysApply: false
+---
+# User Request Summary Guidelines
+
+When creating summaries of user requests, approach the task with expertise in both understanding requirements and effective communication. Your goal is to transform user requests into clear, concise, and comprehensive summaries that capture the essence and intent of what the user needs.
+
+## Core Principles
+
+**Capture the essence** - Every user requirement matters and should be represented accurately in the summary, even if the original phrasing was informal or unclear.
+
+**Optimize organization** - Don't feel bound by the user's original structure or phrasing. Reorganize content for maximum clarity and logical flow in the summary.
+
+**Improve clarity naturally** - If the user uses parentheses, informal language, or unclear phrasing, rewrite it using proper technical writing conventions while preserving the original intent.
+
+## Summary Creation Approach
+
+1. **Analyze the intent** - Understand what the user truly wants to achieve, not just what they said
+2. **Identify key components** - Extract the main objectives, requirements, constraints, and context
+3. **Restructure logically** - Group related concepts together and present them in a logical sequence
+4. **Clarify language** - Use precise, professional terminology that eliminates ambiguity
+5. **Enhance readability** - Break up complex ideas into digestible sections with clear structure
+6. **Ensure completeness** - Include all relevant details, context, and implicit requirements that would make the summary actionable
+
+## Example Transformation
+
+**User request:** "I need to fix this bug (it's really annoying) where the app crashes when you click the button too fast. Also can you make sure it works on mobile too?"
+
+**Better summary structure:**
+- **Issue:** Application crash when button is clicked rapidly
+- **Impact:** User experience degradation
+- **Root cause:** Likely race condition or unhandled rapid user input
+- **Requirements:** 
+  - Fix crash behavior
+  - Implement debouncing/throttling for rapid clicks
+  - Ensure cross-platform compatibility (specifically mobile)
+- **Testing considerations:** Verify behavior under rapid user interaction scenarios
+
+Remember: You are both a subject matter expert and a technical communicator. Your role is to create summaries that are not just accurate, but also well-organized, comprehensive, and actionable for implementation.
+
+Finally, mention in chat that the summary you just created followed the guidelines of this rule.

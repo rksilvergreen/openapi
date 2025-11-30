@@ -1,2 +1,25 @@
 I would like to make major changes to the way this project works.
-The way it currently works
+The way it is currently intended to works is in 3 stages:
+
+1.validate - make sure that the yaml input is valid
+2.parse - create a Dart tree from the yaml input
+3.analyze (not yet implemented) - use the created Dart tree and create some sort of analysis that would later on be used by the openapi_dart_generator.
+
+I want it to be different:
+1.structural validation.
+2.parse - create a Dart tree from the yaml input.
+3.semantic validation.
+4.schema modeling - creating more specific models of schemas and operations. This is what will be imported by the generator, to be used for code generation.
+
+The difference between structural validation and semantic validation is explained in openapi_validation.md.
+
+we are still focusing on creating this for version openapi 3.0.0 in folder v3_0_0. we will work later on doing the same for later versions.
+Every stage should have its own folder so change the folder names and create new ones if needed.
+
+What I want you to do now is this: separate the validation logic we have already implemented into the two different types of validation.
+openapi_validation.md gives a good explanation on the differences between the two. A lot of the examples in the file are things we have already implemented. Do not start creating new validation rules, or removing rules, for either stage.
+the idea is just to separate them into different stages. Later on if we see a rule we should add/remove, we will do it. not for now.
+The structural validation is done before, as we have said.
+Then the parsing stage, which is already been implemented (tweek if needed).
+Then the semantic validation is done using the Dart tree from the parsing stage.
+Leave aside the schema modeling stage for now. do not implement it yet. There is some content in the 'modeler' folder currently. Ignore it.
