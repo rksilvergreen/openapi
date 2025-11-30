@@ -640,6 +640,22 @@ class SemanticSchemaValidator {
 
   /// Validates array constraints across all schemas.
   ///
+  /// Coordinates validation of all array-specific constraints:
+  /// 1. Min/max items bounds
+  /// 2. UniqueItems consistency
+  /// 3. Items schema compatibility
+  ///
+  /// [schemas] All schemas to validate.
+  ///
+  /// Throws [_SchemaListValidationError] if constraints conflict.
+  void _validateArrayConstraints(List<SchemaObject> schemas) {
+    _validateArrayMinMaxItems(schemas);
+    _validateArrayUniqueItems(schemas);
+    _validateArrayItems(schemas);
+  }
+
+  /// Validates array min/max items constraints across all schemas.
+  ///
   /// Ensures that array size bounds are coherent across all schemas:
   /// - max(all minItems) ≤ min(all maxItems)
   ///
@@ -648,7 +664,7 @@ class SemanticSchemaValidator {
   /// [schemas] All schemas to validate.
   ///
   /// Throws [_SchemaListValidationError] if constraints conflict.
-  void _validateArrayConstraints(List<SchemaObject> schemas) {
+  void _validateArrayMinMaxItems(List<SchemaObject> schemas) {
     // Collect all array constraints across all schemas
     int? globalMinItems;
     int? globalMaxItems;
@@ -673,6 +689,73 @@ class SemanticSchemaValidator {
         'Schema list constraints are incompatible: effective minItems ($globalMinItems) cannot be greater than effective maxItems ($globalMaxItems) across all schemas',
         specReference: 'JSON Schema Validation',
       );
+    }
+  }
+
+  /// Validates that uniqueItems is consistent across all schemas.
+  ///
+  /// When multiple schemas specify the uniqueItems constraint, they must all agree.
+  /// If one schema sets uniqueItems to true, all other schemas that specify it must
+  /// also set it to true. Mixed values create ambiguous semantics.
+  ///
+  /// Valid:
+  /// - All schemas have uniqueItems: true
+  /// - All schemas have uniqueItems: false
+  /// - Some schemas specify uniqueItems: true, others don't specify it (defaults to false)
+  ///
+  /// Invalid:
+  /// - Some schemas have uniqueItems: true, others have uniqueItems: false
+  ///
+  /// [schemas] All schemas to validate.
+  ///
+  /// Throws [_SchemaListValidationError] if uniqueItems values conflict.
+  void _validateArrayUniqueItems(List<SchemaObject> schemas) {
+    // Collect all uniqueItems values that are explicitly set to true
+    final uniqueItemsValues = schemas.map((s) => s.uniqueItems).toSet();
+
+    // If we have both true and false (explicitly or by default), that's a conflict
+    // Note: uniqueItems defaults to false if not specified
+    if (uniqueItemsValues.contains(true) && uniqueItemsValues.length > 1) {
+      throw _SchemaListValidationError(
+        'Schema list has conflicting uniqueItems constraints: some schemas require unique items while others allow duplicates',
+        specReference: 'JSON Schema Validation',
+      );
+    }
+  }
+
+  /// Validates items schemas across all schemas.
+  ///
+  /// When multiple schemas specify an items constraint, all items schemas must be
+  /// compatible. This method collects all items schemas and validates them together
+  /// using the core schema list validation.
+  ///
+  /// [schemas] All schemas to validate.
+  ///
+  /// Throws [_SchemaListValidationError] if items schemas are incompatible.
+  void _validateArrayItems(List<SchemaObject> schemas) {
+    // Collect all items schemas
+    final itemsSchemas = <SchemaObject>[];
+
+    for (final schema in schemas) {
+      if (schema.items != null) {
+        final itemsSchema = _resolveAndGetSchema(schema.items!, '');
+        if (itemsSchema != null) {
+          itemsSchemas.add(itemsSchema);
+        }
+      }
+    }
+
+    // If we have multiple items schemas, validate them together
+    if (itemsSchemas.length > 1) {
+      try {
+        _validateSchemaList(itemsSchemas);
+      } on _SchemaListValidationError catch (e) {
+        // Re-throw with additional context about items
+        throw _SchemaListValidationError(
+          'Schema list has incompatible items schemas: ${e.message}',
+          specReference: e.specReference,
+        );
+      }
     }
   }
 
