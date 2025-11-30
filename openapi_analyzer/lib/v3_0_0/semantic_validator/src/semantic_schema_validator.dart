@@ -198,41 +198,60 @@ class SemanticSchemaValidator {
     final schemas = branch.schemas;
     final path = branch.path;
 
-    // Step 1: Validate explicit types and ensure all schemas have same type
-    _validateBranchExplicitTypes(schemas, path);
-
-    // Step 2: Determine the branch's schema type
-    final branchType = _determineBranchType(schemas);
-
-    // Step 3: Validate that all type-specific properties match the determined type
-    _validateBranchImplicitTypes(schemas, branchType, path);
-
-    // Step 4: Validate type-specific constraints for the determined type
-    _validateBranchConstraints(schemas, branchType, path);
-
-    // Step 5: Validate const compatibility across branch
-    _validateAllOfConsts(schemas, path);
-
-    // Step 6: Validate enum compatibility across branch
-    _validateAllOfEnums(schemas, path);
+    try {
+      _validateSchemaList(schemas);
+    } on _SchemaListValidationError catch (e) {
+      throw OpenApiValidationException(path, e.message, specReference: e.specReference);
+    }
   }
 
-  /// Validates explicit type requirements and compatibility across a branch.
+  /// Validates all constraints and compatibility rules for a list of schemas.
+  ///
+  /// This is the core validation logic that operates on a list of schemas without
+  /// any branch-specific or path-specific context. It validates:
+  /// 1. Explicit type requirements and compatibility
+  /// 2. Implicit type consistency (type-specific properties match types)
+  /// 3. Type-specific constraints
+  /// 4. Const value compatibility
+  /// 5. Enum value compatibility
+  ///
+  /// [schemas] The list of schemas to validate together.
+  ///
+  /// Throws [_SchemaListValidationError] if any validation fails.
+  void _validateSchemaList(List<SchemaObject> schemas) {
+    // Step 1: Validate explicit types and ensure all schemas have compatible types
+    _validateExplicitTypes(schemas);
+
+    // Step 2: Determine the effective schema type
+    final schemaType = _determineSchemaType(schemas);
+
+    // Step 3: Validate that all type-specific properties match the determined type
+    _validateImplicitTypes(schemas, schemaType);
+
+    // Step 4: Validate type-specific constraints for the determined type
+    _validateConstraints(schemas, schemaType);
+
+    // Step 5: Validate const compatibility
+    _validateConsts(schemas);
+
+    // Step 6: Validate enum compatibility
+    _validateEnums(schemas);
+  }
+
+  /// Validates explicit type requirements and compatibility across schemas.
   ///
   /// This ensures that:
-  /// 1. Every schema in the branch has an explicit `type` property
+  /// 1. Every schema has an explicit `type` property
   /// 2. All explicit types are compatible (same type or compatible subtypes)
   ///
-  /// [schemas] All schemas in the branch.
-  /// [path] JSON Pointer path for error reporting.
+  /// [schemas] All schemas to validate.
   ///
-  /// Throws [OpenApiValidationException] if types are missing or incompatible.
-  void _validateBranchExplicitTypes(List<SchemaObject> schemas, String path) {
+  /// Throws [_SchemaListValidationError] if types are missing or incompatible.
+  void _validateExplicitTypes(List<SchemaObject> schemas) {
     // Step 1: Validate that each schema has an explicit type
     for (final schema in schemas) {
       if (schema.type == null) {
-        throw OpenApiValidationException(
-          path,
+        throw _SchemaListValidationError(
           'Schema must have an explicit "type" property. Types cannot be inferred from other properties.',
           specReference: 'OpenAPI 3.0.0 - Schema Object',
         );
@@ -268,9 +287,8 @@ class SemanticSchemaValidator {
             // Convert enum values to strings for error message
             final typeNames = types.map((t) => t.name).join(', ');
             final pairNames = '${pair[0].name} and ${pair[1].name}';
-            throw OpenApiValidationException(
-              path,
-              'Branch contains incompatible types: $typeNames. A value cannot be both $pairNames simultaneously.',
+            throw _SchemaListValidationError(
+              'Schema list contains incompatible types: $typeNames. A value cannot be both $pairNames simultaneously.',
               specReference: 'JSON Schema Core - allOf semantics',
             );
           }
@@ -279,20 +297,20 @@ class SemanticSchemaValidator {
     }
   }
 
-  /// Determines the actual type of a branch after validating type compatibility.
+  /// Determines the actual type after validating type compatibility.
   ///
   /// After ensuring all schemas have compatible types, this determines what the
-  /// effective type is for the branch. Returns the most specific type.
+  /// effective type is. Returns the most specific type.
   ///
   /// For example:
   /// - All schemas have `string` → returns `string`
   /// - Mix of `integer` and `number` → returns `integer` (most specific)
   /// - All empty parent schemas → returns first non-null type found
   ///
-  /// [schemas] All schemas in the branch.
+  /// [schemas] All schemas to analyze.
   ///
   /// Returns the determined schema type.
-  SchemaType _determineBranchType(List<SchemaObject> schemas) {
+  SchemaType _determineSchemaType(List<SchemaObject> schemas) {
     // Collect all types
     final types = schemas.where((s) => s.type != null).map((s) => s.type!).toList();
 
@@ -316,9 +334,9 @@ class SemanticSchemaValidator {
     return types.first;
   }
 
-  /// Validates that all type-specific properties match the explicit type across a branch.
+  /// Validates that all type-specific properties match the explicit type.
   ///
-  /// After determining the branch's type, this ensures that all type-specific
+  /// After determining the effective type, this ensures that all type-specific
   /// properties (like minLength, required, items, etc.) belong to that type and
   /// no properties from other types are present.
   ///
@@ -328,13 +346,12 @@ class SemanticSchemaValidator {
   /// - Array: minItems, maxItems, uniqueItems, items
   /// - Object: minProperties, maxProperties, required, properties, additionalProperties, patternProperties
   ///
-  /// [schemas] All schemas in the branch.
-  /// [branchType] The determined type for this branch.
-  /// [path] JSON Pointer path for error reporting.
+  /// [schemas] All schemas to validate.
+  /// [schemaType] The determined type for these schemas.
   ///
-  /// Throws [OpenApiValidationException] if properties don't match the branch type.
-  void _validateBranchImplicitTypes(List<SchemaObject> schemas, SchemaType branchType, String path) {
-    // Check that all type-specific properties match the determined branch type
+  /// Throws [_SchemaListValidationError] if properties don't match the schema type.
+  void _validateImplicitTypes(List<SchemaObject> schemas, SchemaType schemaType) {
+    // Check that all type-specific properties match the determined schema type
     for (var i = 0; i < schemas.length; i++) {
       final schema = schemas[i];
 
@@ -362,27 +379,24 @@ class SemanticSchemaValidator {
           schema.additionalProperties != null ||
           schema.patternProperties != null;
 
-      // Validate properties match the branch type
-      switch (branchType) {
+      // Validate properties match the schema type
+      switch (schemaType) {
         case SchemaType.string:
           if (hasNumberProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "string" but contains number/integer properties (minimum/maximum/multipleOf).',
+            throw _SchemaListValidationError(
+              'Schema list has type "string" but contains number/integer properties (minimum/maximum/multipleOf).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasArrayProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "string" but contains array properties (minItems/maxItems/items).',
+            throw _SchemaListValidationError(
+              'Schema list has type "string" but contains array properties (minItems/maxItems/items).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasObjectProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "string" but contains object properties (properties/required/additionalProperties).',
+            throw _SchemaListValidationError(
+              'Schema list has type "string" but contains object properties (properties/required/additionalProperties).',
               specReference: 'JSON Schema Core',
             );
           }
@@ -391,23 +405,20 @@ class SemanticSchemaValidator {
         case SchemaType.number:
         case SchemaType.integer:
           if (hasStringProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "${branchType.name}" but contains string properties (minLength/maxLength/pattern).',
+            throw _SchemaListValidationError(
+              'Schema list has type "${schemaType.name}" but contains string properties (minLength/maxLength/pattern).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasArrayProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "${branchType.name}" but contains array properties (minItems/maxItems/items).',
+            throw _SchemaListValidationError(
+              'Schema list has type "${schemaType.name}" but contains array properties (minItems/maxItems/items).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasObjectProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "${branchType.name}" but contains object properties (properties/required/additionalProperties).',
+            throw _SchemaListValidationError(
+              'Schema list has type "${schemaType.name}" but contains object properties (properties/required/additionalProperties).',
               specReference: 'JSON Schema Core',
             );
           }
@@ -415,23 +426,20 @@ class SemanticSchemaValidator {
 
         case SchemaType.array:
           if (hasStringProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "array" but contains string properties (minLength/maxLength/pattern).',
+            throw _SchemaListValidationError(
+              'Schema list has type "array" but contains string properties (minLength/maxLength/pattern).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasNumberProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "array" but contains number/integer properties (minimum/maximum/multipleOf).',
+            throw _SchemaListValidationError(
+              'Schema list has type "array" but contains number/integer properties (minimum/maximum/multipleOf).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasObjectProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "array" but contains object properties (properties/required/additionalProperties).',
+            throw _SchemaListValidationError(
+              'Schema list has type "array" but contains object properties (properties/required/additionalProperties).',
               specReference: 'JSON Schema Core',
             );
           }
@@ -439,23 +447,20 @@ class SemanticSchemaValidator {
 
         case SchemaType.object:
           if (hasStringProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "object" but contains string properties (minLength/maxLength/pattern).',
+            throw _SchemaListValidationError(
+              'Schema list has type "object" but contains string properties (minLength/maxLength/pattern).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasNumberProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "object" but contains number/integer properties (minimum/maximum/multipleOf).',
+            throw _SchemaListValidationError(
+              'Schema list has type "object" but contains number/integer properties (minimum/maximum/multipleOf).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasArrayProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "object" but contains array properties (minItems/maxItems/items).',
+            throw _SchemaListValidationError(
+              'Schema list has type "object" but contains array properties (minItems/maxItems/items).',
               specReference: 'JSON Schema Core',
             );
           }
@@ -463,30 +468,26 @@ class SemanticSchemaValidator {
 
         case SchemaType.boolean:
           if (hasStringProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "boolean" but contains string properties (minLength/maxLength/pattern).',
+            throw _SchemaListValidationError(
+              'Schema list has type "boolean" but contains string properties (minLength/maxLength/pattern).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasNumberProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "boolean" but contains number/integer properties (minimum/maximum/multipleOf).',
+            throw _SchemaListValidationError(
+              'Schema list has type "boolean" but contains number/integer properties (minimum/maximum/multipleOf).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasArrayProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "boolean" but contains array properties (minItems/maxItems/items).',
+            throw _SchemaListValidationError(
+              'Schema list has type "boolean" but contains array properties (minItems/maxItems/items).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasObjectProps) {
-            throw OpenApiValidationException(
-              path,
-              'Branch has type "boolean" but contains object properties (properties/required/additionalProperties).',
+            throw _SchemaListValidationError(
+              'Schema list has type "boolean" but contains object properties (properties/required/additionalProperties).',
               specReference: 'JSON Schema Core',
             );
           }
@@ -499,37 +500,36 @@ class SemanticSchemaValidator {
     }
   }
 
-  /// Validates type-specific constraints across all schemas in a branch.
+  /// Validates type-specific constraints across all schemas.
   ///
   /// After confirming type consistency, this validates that all constraints
-  /// for the determined type are coherent ACROSS all schemas in the branch.
+  /// for the determined type are coherent ACROSS all schemas.
   ///
-  /// Only validates constraints relevant to the branch's type:
+  /// Only validates constraints relevant to the schema type:
   /// - String type → string constraints
   /// - Number/Integer type → numeric constraints
   /// - Array type → array constraints
   /// - Object type → object constraints
   /// - Boolean type → no specific constraints to validate
   ///
-  /// [schemas] All schemas in the branch.
-  /// [branchType] The determined type for this branch.
-  /// [path] JSON Pointer path for error reporting.
+  /// [schemas] All schemas to validate.
+  /// [schemaType] The determined type for these schemas.
   ///
-  /// Throws [OpenApiValidationException] if constraints are incoherent across schemas.
-  void _validateBranchConstraints(List<SchemaObject> schemas, SchemaType branchType, String path) {
-    switch (branchType) {
+  /// Throws [_SchemaListValidationError] if constraints are incoherent across schemas.
+  void _validateConstraints(List<SchemaObject> schemas, SchemaType schemaType) {
+    switch (schemaType) {
       case SchemaType.string:
-        _validateStringConstraintsAcrossBranch(schemas, path);
+        _validateStringConstraints(schemas);
         break;
       case SchemaType.number:
       case SchemaType.integer:
-        _validateNumericConstraintsAcrossBranch(schemas, path);
+        _validateNumericConstraints(schemas);
         break;
       case SchemaType.array:
-        _validateArrayConstraintsAcrossBranch(schemas, path);
+        _validateArrayConstraints(schemas);
         break;
       case SchemaType.object:
-        _validateObjectConstraintsAcrossBranch(schemas, path);
+        _validateObjectConstraints(schemas);
         break;
       case SchemaType.boolean:
         // Boolean has no specific constraints to validate
@@ -540,19 +540,18 @@ class SemanticSchemaValidator {
     }
   }
 
-  /// Validates numeric constraints across all schemas in a branch.
+  /// Validates numeric constraints across all schemas.
   ///
-  /// Ensures that numeric bounds are coherent across all schemas in the branch:
+  /// Ensures that numeric bounds are coherent across all schemas:
   /// - max(all minimums) ≤ min(all maximums)
   /// - max(all exclusiveMinimums) < min(all exclusiveMaximums)
   ///
   /// This catches both single-schema conflicts and cross-schema conflicts.
   ///
-  /// [schemas] All schemas in the branch.
-  /// [path] JSON Pointer path for error reporting.
+  /// [schemas] All schemas to validate.
   ///
-  /// Throws [OpenApiValidationException] if constraints conflict.
-  void _validateNumericConstraintsAcrossBranch(List<SchemaObject> schemas, String path) {
+  /// Throws [_SchemaListValidationError] if constraints conflict.
+  void _validateNumericConstraints(List<SchemaObject> schemas) {
     // Collect all numeric constraints across all schemas
     num? globalMinimum;
     num? globalMaximum;
@@ -560,7 +559,7 @@ class SemanticSchemaValidator {
     num? globalExclusiveMaximum;
 
     for (final schema in schemas) {
-      // Collect constraints across branch
+      // Collect constraints across schemas
       if (schema.minimum != null) {
         globalMinimum = globalMinimum == null
             ? schema.minimum
@@ -585,9 +584,8 @@ class SemanticSchemaValidator {
 
     // Validate cross-schema numeric constraints
     if (globalMinimum != null && globalMaximum != null && globalMinimum > globalMaximum) {
-      throw OpenApiValidationException(
-        path,
-        'Branch constraints are incompatible: effective minimum ($globalMinimum) cannot be greater than effective maximum ($globalMaximum) across all schemas in branch',
+      throw _SchemaListValidationError(
+        'Schema list constraints are incompatible: effective minimum ($globalMinimum) cannot be greater than effective maximum ($globalMaximum) across all schemas',
         specReference: 'JSON Schema Validation',
       );
     }
@@ -595,32 +593,30 @@ class SemanticSchemaValidator {
     if (globalExclusiveMinimum != null &&
         globalExclusiveMaximum != null &&
         globalExclusiveMinimum >= globalExclusiveMaximum) {
-      throw OpenApiValidationException(
-        path,
-        'Branch constraints are incompatible: effective exclusiveMinimum ($globalExclusiveMinimum) must be less than effective exclusiveMaximum ($globalExclusiveMaximum) across all schemas in branch',
+      throw _SchemaListValidationError(
+        'Schema list constraints are incompatible: effective exclusiveMinimum ($globalExclusiveMinimum) must be less than effective exclusiveMaximum ($globalExclusiveMaximum) across all schemas',
         specReference: 'JSON Schema Validation',
       );
     }
   }
 
-  /// Validates string constraints across all schemas in a branch.
+  /// Validates string constraints across all schemas.
   ///
-  /// Ensures that string length bounds are coherent across all schemas in the branch:
+  /// Ensures that string length bounds are coherent across all schemas:
   /// - max(all minLengths) ≤ min(all maxLengths)
   ///
   /// This catches both single-schema conflicts and cross-schema conflicts.
   ///
-  /// [schemas] All schemas in the branch.
-  /// [path] JSON Pointer path for error reporting.
+  /// [schemas] All schemas to validate.
   ///
-  /// Throws [OpenApiValidationException] if constraints conflict.
-  void _validateStringConstraintsAcrossBranch(List<SchemaObject> schemas, String path) {
+  /// Throws [_SchemaListValidationError] if constraints conflict.
+  void _validateStringConstraints(List<SchemaObject> schemas) {
     // Collect all string constraints across all schemas
     int? globalMinLength;
     int? globalMaxLength;
 
     for (final schema in schemas) {
-      // Collect constraints across branch
+      // Collect constraints across schemas
       if (schema.minLength != null) {
         globalMinLength = globalMinLength == null
             ? schema.minLength
@@ -635,32 +631,30 @@ class SemanticSchemaValidator {
 
     // Validate cross-schema string constraints
     if (globalMinLength != null && globalMaxLength != null && globalMinLength > globalMaxLength) {
-      throw OpenApiValidationException(
-        path,
-        'Branch constraints are incompatible: effective minLength ($globalMinLength) cannot be greater than effective maxLength ($globalMaxLength) across all schemas in branch',
+      throw _SchemaListValidationError(
+        'Schema list constraints are incompatible: effective minLength ($globalMinLength) cannot be greater than effective maxLength ($globalMaxLength) across all schemas',
         specReference: 'JSON Schema Validation',
       );
     }
   }
 
-  /// Validates array constraints across all schemas in a branch.
+  /// Validates array constraints across all schemas.
   ///
-  /// Ensures that array size bounds are coherent across all schemas in the branch:
+  /// Ensures that array size bounds are coherent across all schemas:
   /// - max(all minItems) ≤ min(all maxItems)
   ///
   /// This catches both single-schema conflicts and cross-schema conflicts.
   ///
-  /// [schemas] All schemas in the branch.
-  /// [path] JSON Pointer path for error reporting.
+  /// [schemas] All schemas to validate.
   ///
-  /// Throws [OpenApiValidationException] if constraints conflict.
-  void _validateArrayConstraintsAcrossBranch(List<SchemaObject> schemas, String path) {
+  /// Throws [_SchemaListValidationError] if constraints conflict.
+  void _validateArrayConstraints(List<SchemaObject> schemas) {
     // Collect all array constraints across all schemas
     int? globalMinItems;
     int? globalMaxItems;
 
     for (final schema in schemas) {
-      // Collect constraints across branch
+      // Collect constraints across schemas
       if (schema.minItems != null) {
         globalMinItems = globalMinItems == null
             ? schema.minItems
@@ -675,32 +669,30 @@ class SemanticSchemaValidator {
 
     // Validate cross-schema array constraints
     if (globalMinItems != null && globalMaxItems != null && globalMinItems > globalMaxItems) {
-      throw OpenApiValidationException(
-        path,
-        'Branch constraints are incompatible: effective minItems ($globalMinItems) cannot be greater than effective maxItems ($globalMaxItems) across all schemas in branch',
+      throw _SchemaListValidationError(
+        'Schema list constraints are incompatible: effective minItems ($globalMinItems) cannot be greater than effective maxItems ($globalMaxItems) across all schemas',
         specReference: 'JSON Schema Validation',
       );
     }
   }
 
-  /// Validates object constraints across all schemas in a branch.
+  /// Validates object constraints across all schemas.
   ///
-  /// Ensures that object property count bounds are coherent across all schemas in the branch:
+  /// Ensures that object property count bounds are coherent across all schemas:
   /// - max(all minProperties) ≤ min(all maxProperties)
   ///
   /// This catches both single-schema conflicts and cross-schema conflicts.
   ///
-  /// [schemas] All schemas in the branch.
-  /// [path] JSON Pointer path for error reporting.
+  /// [schemas] All schemas to validate.
   ///
-  /// Throws [OpenApiValidationException] if constraints conflict.
-  void _validateObjectConstraintsAcrossBranch(List<SchemaObject> schemas, String path) {
+  /// Throws [_SchemaListValidationError] if constraints conflict.
+  void _validateObjectConstraints(List<SchemaObject> schemas) {
     // Collect all object constraints across all schemas
     int? globalMinProperties;
     int? globalMaxProperties;
 
     for (final schema in schemas) {
-      // Collect constraints across branch
+      // Collect constraints across schemas
       if (schema.minProperties != null) {
         globalMinProperties = globalMinProperties == null
             ? schema.minProperties
@@ -715,9 +707,8 @@ class SemanticSchemaValidator {
 
     // Validate cross-schema object constraints
     if (globalMinProperties != null && globalMaxProperties != null && globalMinProperties > globalMaxProperties) {
-      throw OpenApiValidationException(
-        path,
-        'Branch constraints are incompatible: effective minProperties ($globalMinProperties) cannot be greater than effective maxProperties ($globalMaxProperties) across all schemas in branch',
+      throw _SchemaListValidationError(
+        'Schema list constraints are incompatible: effective minProperties ($globalMinProperties) cannot be greater than effective maxProperties ($globalMaxProperties) across all schemas',
         specReference: 'JSON Schema Validation',
       );
     }
@@ -756,20 +747,18 @@ class SemanticSchemaValidator {
   ///
   /// This creates a logically impossible schema that will never validate any value.
   ///
-  /// [schemas] The resolved schemas (first is parent, rest are from allOf).
-  /// [path] JSON Pointer path for error reporting.
+  /// [schemas] The resolved schemas.
   ///
-  /// Throws [OpenApiValidationException] if multiple different const values exist.
-  void _validateAllOfConsts(List<SchemaObject> schemas, String path) {
+  /// Throws [_SchemaListValidationError] if multiple different const values exist.
+  void _validateConsts(List<SchemaObject> schemas) {
     // Collect const values from all schemas
     final constValues = schemas.where((s) => s.const_ != null).map((s) => s.const_).toList();
 
     if (constValues.length > 1) {
       final uniqueConsts = constValues.toSet();
       if (uniqueConsts.length > 1) {
-        throw OpenApiValidationException(
-          path,
-          'Schema contains multiple different const values: ${constValues.join(", ")}. This may occur in the parent schema or its allOf composition. This schema can never be satisfied.',
+        throw _SchemaListValidationError(
+          'Schema list contains multiple different const values: ${constValues.join(", ")}. This schema can never be satisfied.',
           specReference: 'JSON Schema Core - allOf semantics',
         );
       }
@@ -794,11 +783,10 @@ class SemanticSchemaValidator {
   /// This creates a logically impossible schema since a value must be in all enums,
   /// but no value satisfies all.
   ///
-  /// [schemas] The resolved schemas (first is parent, rest are from allOf).
-  /// [path] JSON Pointer path for error reporting.
+  /// [schemas] The resolved schemas.
   ///
-  /// Throws [OpenApiValidationException] if enum sets have no intersection.
-  void _validateAllOfEnums(List<SchemaObject> schemas, String path) {
+  /// Throws [_SchemaListValidationError] if enum sets have no intersection.
+  void _validateEnums(List<SchemaObject> schemas) {
     // Collect enum lists from all schemas
     final enumLists = schemas.where((s) => s.enum_ != null).map((s) => s.enum_!).toList();
 
@@ -810,9 +798,8 @@ class SemanticSchemaValidator {
       }
 
       if (intersection.isEmpty) {
-        throw OpenApiValidationException(
-          path,
-          'Schema contains enum constraints with no common values. This may occur in the parent schema or its allOf composition. This schema can never be satisfied.',
+        throw _SchemaListValidationError(
+          'Schema list contains enum constraints with no common values. This schema can never be satisfied.',
           specReference: 'JSON Schema Core - allOf semantics',
         );
       }
@@ -1028,4 +1015,22 @@ class _SchemaBranch {
   final String path;
 
   _SchemaBranch(this.schemas, this.path);
+}
+
+/// Exception thrown by schema list validation methods.
+///
+/// This exception contains validation error details without path information,
+/// allowing it to be caught and wrapped with path context by higher-level
+/// validation methods (e.g., branch validation).
+class _SchemaListValidationError {
+  /// The error message describing what validation failed.
+  final String message;
+
+  /// The OpenAPI/JSON Schema specification reference.
+  final String specReference;
+
+  _SchemaListValidationError(this.message, {required this.specReference});
+
+  @override
+  String toString() => 'SchemaListValidationError: $message (Spec: $specReference)';
 }
