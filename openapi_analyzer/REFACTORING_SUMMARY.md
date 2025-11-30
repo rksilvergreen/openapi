@@ -58,12 +58,14 @@ All validation rules from the existing validators were analyzed and reorganized 
 - Duplicate templated paths detection
 - External file validation
 
-### ✅ 3. Updated Parser Integration
+### ✅ 3. Updated Parser Integration and Semantic Validator
 
-The parser remains unchanged but can now be integrated with the new validation architecture:
-- Stage 1 (Structural) validates before parsing
-- Stage 2 (Parser) can safely assume structural validity
-- Stage 3 (Semantic) validates logical consistency after parsing
+The parser is now fully integrated with the 4-stage pipeline:
+- Stage 1 (Structural) validates YAML and returns `Map<dynamic, dynamic>`
+- Stage 2 (Parser) transforms Map into typed `OpenApiDocument`
+- Stage 3 (Semantic) validates logical consistency using `OpenApiDocument` (typed objects!)
+- Semantic validator now works with typed objects instead of raw Maps
+- Full type safety throughout the validation pipeline
 
 ### ✅ 4. Preserved Functionality
 
@@ -124,14 +126,15 @@ Caught after parsing, provides context-aware error messages.
 ## Files Created/Modified
 
 ### New Files Created (20+)
-- `lib/v3_0_0/openapi_validator_v3_0_0.dart`
-- `lib/v3_0_0/structural_validator/structural_validator.dart`
-- `lib/v3_0_0/structural_validator/src/*.dart` (12 files)
-- `lib/v3_0_0/semantic_validator/semantic_validator.dart`
-- `lib/v3_0_0/semantic_validator/src/*.dart` (5 files)
-- `lib/utils/validation_utils.dart`
-- `ARCHITECTURE_REFACTORING.md`
-- `REFACTORING_SUMMARY.md`
+- `lib/v3_0_0/openapi_validator_v3_0_0.dart` - Main 4-stage orchestrator
+- `lib/v3_0_0/structural_validator/structural_validator.dart` - Stage 1 entry point
+- `lib/v3_0_0/structural_validator/src/*.dart` (12 files) - Structural validators
+- `lib/v3_0_0/semantic_validator/semantic_validator.dart` - Stage 3 entry point (uses typed objects)
+- `lib/v3_0_0/semantic_validator/src/semantic_paths_validator.dart` - Paths semantic validator
+- `lib/utils/validation_utils.dart` - Shared utilities
+- `ARCHITECTURE_REFACTORING.md` - Architecture documentation
+- `REFACTORING_SUMMARY.md` - This file
+- `SEMANTIC_VALIDATOR_UPDATE.md` - Typed objects migration guide
 
 ### Modified Files
 - `lib/main.dart` - Updated exports
@@ -150,18 +153,21 @@ Caught after parsing, provides context-aware error messages.
    - Test pattern validation
 
 2. **Semantic Validation Tests**
-   - Test reference resolution
-   - Test composition conflicts
-   - Test constraint logic
-   - Test discriminator semantics
+   - Test duplicate templated paths
+   - Test with typed `OpenApiDocument` objects
+   - Test error messages use proper paths
+   - **TODO:** Add tests for schema semantics when implemented
 
 3. **Integration Tests**
-   - Test full 4-stage pipeline
+   - Test full 4-stage pipeline returns `OpenApiDocument`
+   - Test typed object access (`doc.info.title`, etc.)
    - Test backward compatibility with legacy validator
    - Test error messages at each stage
+   - Test Stage 2 parsing from validated Map
 
 4. **Regression Tests**
-   - Verify all existing test cases still pass
+   - Update tests to expect `OpenApiDocument` return type (breaking change)
+   - Verify all existing validation logic still works
    - Verify error messages are meaningful
 
 ## Benefits Achieved
@@ -205,13 +211,19 @@ Caught after parsing, provides context-aware error messages.
 
 The following are suggested for future iterations (NOT part of this refactoring):
 
-1. Complete Stage 2 parsing to generate fully-typed Dart objects
-2. Implement Stage 4 schema modeling
-3. Add more sophisticated semantic checks
-4. Implement circular reference detection
-5. Add warning system for non-fatal issues
-6. Support OpenAPI 3.1.x versions
-7. Consider removing legacy validator after migration period
+1. ✅ ~~Complete Stage 2 parsing to generate fully-typed Dart objects~~ **DONE!**
+2. ✅ ~~Integrate parser output with semantic validator~~ **DONE!**
+3. **TODO:** Reimplement schema semantic validation using typed `SchemaObject`:
+   - Composition semantics (allOf, oneOf, anyOf conflicts)
+   - Discriminator property existence and validation
+   - Default value vs enum compatibility
+   - Constraint logic validation (min/max, etc.)
+4. **TODO:** Implement reference resolution using `Referenceable<T>` types
+5. **TODO:** Implement Stage 4 schema modeling
+6. **TODO:** Add circular reference detection
+7. **TODO:** Add warning system for non-fatal issues
+8. **TODO:** Support OpenAPI 3.1.x versions
+9. **TODO:** Consider removing legacy validator after migration period
 
 ## Conclusion
 

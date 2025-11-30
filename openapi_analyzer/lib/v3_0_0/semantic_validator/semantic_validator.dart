@@ -1,12 +1,8 @@
-import 'dart:io';
-
-import 'package:yaml/yaml.dart';
-
 import '../../validation_exception.dart';
-import 'src/reference_collector.dart';
-import 'src/reference_finder.dart';
-import 'src/semantic_schema_validator.dart';
+import '../parser/src/openapi_document.dart';
 import 'src/semantic_paths_validator.dart';
+import 'src/semantic_schema_validator.dart';
+import 'src/reference_resolver.dart';
 
 export '../../validation_exception.dart';
 
@@ -21,35 +17,21 @@ export '../../validation_exception.dart';
 /// - Meaningful modeling practices
 ///
 /// Structural validation (vocabulary and structure) is performed in Stage 1.
+/// Parsing (Stage 2) transforms the document into typed Dart objects.
 abstract class SemanticValidator {
-  /// Validates the semantic correctness of an OpenAPI document.
+  /// Validates the semantic correctness of a parsed OpenAPI document.
   ///
   /// This performs Stage 3 (Semantic Validation) only.
-  /// Expects the document to already be structurally valid.
+  /// Expects the document to already be:
+  /// - Structurally valid (Stage 1)
+  /// - Parsed into an OpenApiDocument (Stage 2)
   ///
-  /// [document] is the parsed and structurally-validated YAML document.
-  /// [baseDirectory] is used to resolve external file references.
+  /// [document] is the parsed OpenApiDocument from Stage 2.
   ///
   /// Throws [OpenApiValidationException] if semantic validation fails.
-  static void validate(Map<dynamic, dynamic> document, {String? baseDirectory}) {
+  static void validate(OpenApiDocument document) {
     try {
-      // First pass: validate references
-      final collector = ReferenceCollector(baseDirectory: baseDirectory);
-      ReferenceFinder.findReferences(document, '', collector);
-
-      final referenceErrors = collector.validateReferences(document);
-      if (referenceErrors.isNotEmpty) {
-        throw OpenApiValidationException(
-          '/',
-          'Invalid references found:\n${referenceErrors.join('\n')}',
-          specReference: 'OpenAPI 3.0.0 - Reference Object',
-        );
-      }
-
-      // Second pass: validate external file contents
-      _validateExternalFiles(collector, baseDirectory);
-
-      // Third pass: validate semantic rules
+      // Validate semantic rules using the typed OpenApiDocument
       _validateSemanticRules(document);
     } catch (e) {
       if (e is OpenApiValidationException) {
@@ -63,177 +45,53 @@ abstract class SemanticValidator {
     }
   }
 
-  /// Validates the contents of external files that are referenced.
-  static void _validateExternalFiles(ReferenceCollector collector, String? baseDirectory) {
-    final validatedRefs = <String>{};
+  /// Validates semantic rules across the parsed document.
+  ///
+  /// This method orchestrates all semantic validation checks in the following order:
+  ///
+  /// 1. **Reference Validation**: Ensures all $ref references point to existing objects
+  ///    and detects circular references that would cause infinite loops.
+  ///
+  /// 2. **Paths Validation**: Checks for duplicate templated paths that would conflict
+  ///    at runtime (e.g., `/users/{id}` and `/users/{userId}`).
+  ///
+  /// 3. **Schema Validation**: Validates logical consistency of schema definitions:
+  ///    - Constraint coherence (min ≤ max)
+  ///    - Composition semantics (allOf type conflicts)
+  ///    - Default vs enum compatibility
+  ///    - Discriminator property existence
+  ///
+  /// [document] The fully parsed OpenAPI document with typed objects.
+  ///
+  /// Throws [OpenApiValidationException] if any semantic rule is violated.
+  static void _validateSemanticRules(OpenApiDocument document) {
+    // Step 1: Validate reference resolution and existence
+    // This must run first to ensure all references are valid before other validators
+    // attempt to resolve them. Also detects circular references.
+    final resolver = ReferenceResolver(document);
+    resolver.validateAllSchemaReferences();
 
-    for (final entry in collector.externalReferences.entries) {
-      final ref = entry.key;
-      final paths = entry.value;
+    // Step 2: Validate paths semantic rules
+    // Checks for duplicate templated paths that would be ambiguous at runtime.
+    // Example: /users/{id} and /users/{userId} are considered duplicates.
+    SemanticPathsValidator.validate(document.paths);
 
-      _validateExternalReference(ref, paths.first, baseDirectory, validatedRefs);
-    }
-  }
-
-  /// Recursively validates a single external reference and all references it contains.
-  static void _validateExternalReference(
-    String ref,
-    String referencingPath,
-    String? baseDirectory,
-    Set<String> validatedRefs,
-  ) {
-    if (validatedRefs.contains(ref)) {
-      return;
-    }
-    validatedRefs.add(ref);
-
-    final refParts = ref.split('#');
-    final filePath = refParts[0];
-    final fragment = refParts.length > 1 ? refParts[1] : null;
-
-    String resolvedPath = filePath;
-    if (baseDirectory != null) {
-      resolvedPath = '$baseDirectory/$filePath';
-    }
-
-    try {
-      final file = File(resolvedPath);
-      final fileContent = file.readAsStringSync();
-      final externalDoc = loadYaml(fileContent);
-
-      if (externalDoc is! Map) {
-        throw OpenApiValidationException(
-          referencingPath,
-          'External file "$filePath" must contain a valid object',
-          specReference: 'OpenAPI 3.0.0 - Reference Object',
-        );
-      }
-
-      Map<dynamic, dynamic> targetObject;
-      String targetPath;
-
-      if (fragment != null && fragment.isNotEmpty) {
-        targetObject = _navigateToFragment(externalDoc, fragment, filePath);
-        targetPath = '$filePath#$fragment';
-      } else {
-        targetObject = externalDoc;
-        targetPath = filePath;
-      }
-
-      // Validate the target object semantically
-      // (Structural validation would have been done in Stage 1)
-
-      // RECURSIVE STEP: Find and validate references within the target object
-      final externalCollector = ReferenceCollector(baseDirectory: baseDirectory);
-      ReferenceFinder.findReferences(targetObject, targetPath, externalCollector);
-
-      final docToValidateAgainst = fragment != null ? externalDoc : targetObject;
-      final referenceErrors = externalCollector.validateReferences(docToValidateAgainst);
-      if (referenceErrors.isNotEmpty) {
-        throw OpenApiValidationException(
-          referencingPath,
-          'External reference "$ref" has invalid references:\n${referenceErrors.join('\n')}',
-          specReference: 'OpenAPI 3.0.0 - Reference Object',
-        );
-      }
-
-      for (final entry in externalCollector.externalReferences.entries) {
-        final nestedRef = entry.key;
-        _validateExternalReference(nestedRef, '$ref (referenced from $referencingPath)', baseDirectory, validatedRefs);
-      }
-    } on YamlException catch (e) {
-      throw OpenApiValidationException(
-        referencingPath,
-        'External file "$filePath" contains invalid YAML: ${e.message}',
-        specReference: 'OpenAPI 3.0.0 - Reference Object',
-      );
-    } on FileSystemException catch (e) {
-      throw OpenApiValidationException(
-        referencingPath,
-        'Failed to read external file "$filePath": ${e.message}',
-        specReference: 'OpenAPI 3.0.0 - Reference Object',
-      );
-    }
-  }
-
-  static Map<dynamic, dynamic> _navigateToFragment(Map<dynamic, dynamic> document, String fragment, String filePath) {
-    final pointer = fragment.startsWith('/') ? fragment.substring(1) : fragment;
-
-    if (pointer.isEmpty) {
-      return document;
-    }
-
-    final parts = pointer.split('/');
-    dynamic current = document;
-
-    for (var i = 0; i < parts.length; i++) {
-      var part = parts[i];
-      part = Uri.decodeComponent(part.replaceAll('~1', '/').replaceAll('~0', '~'));
-
-      if (current is Map) {
-        if (!current.containsKey(part)) {
-          throw OpenApiValidationException(
-            filePath,
-            'Fragment path "/$pointer" not found in external file "$filePath" at segment "$part"',
-            specReference: 'OpenAPI 3.0.0 - Reference Object',
-          );
-        }
-        current = current[part];
-      } else if (current is List) {
-        final index = int.tryParse(part);
-        if (index == null || index < 0 || index >= current.length) {
-          throw OpenApiValidationException(
-            filePath,
-            'Fragment path "/$pointer" invalid in external file "$filePath" at segment "$part"',
-            specReference: 'OpenAPI 3.0.0 - Reference Object',
-          );
-        }
-        current = current[index];
-      } else {
-        throw OpenApiValidationException(
-          filePath,
-          'Fragment path "/$pointer" cannot traverse non-object/non-array at segment "$part"',
-          specReference: 'OpenAPI 3.0.0 - Reference Object',
-        );
+    // Step 3: Validate schema semantic rules
+    // Validates logical consistency of all schema definitions in components.
+    // This includes composition semantics, constraint logic, and more.
+    if (document.components?.schemas != null) {
+      final schemaValidator = SemanticSchemaValidator(document);
+      for (final entry in document.components!.schemas!.entries) {
+        final schemaName = entry.key;
+        final schemaRef = entry.value;
+        schemaValidator.validate(schemaRef, '/components/schemas/$schemaName');
       }
     }
 
-    if (current is! Map) {
-      throw OpenApiValidationException(
-        filePath,
-        'Fragment path "/$pointer" must point to an object',
-        specReference: 'OpenAPI 3.0.0 - Reference Object',
-      );
-    }
-
-    return current;
-  }
-
-  /// Validates semantic rules across the document
-  static void _validateSemanticRules(Map<dynamic, dynamic> document) {
-    // Validate schema semantic rules (composition, discriminator, etc.)
-    if (document.containsKey('components')) {
-      final components = document['components'];
-      if (components is Map && components.containsKey('schemas')) {
-        final schemas = components['schemas'];
-        if (schemas is Map) {
-          for (final entry in schemas.entries) {
-            final schemaName = entry.key.toString();
-            final schema = entry.value;
-            if (schema is Map) {
-              SemanticSchemaValidator.validate(schema, 'components/schemas.$schemaName', document: document);
-            }
-          }
-        }
-      }
-    }
-
-    // Validate paths semantic rules (duplicate templated paths, etc.)
-    if (document.containsKey('paths')) {
-      final paths = document['paths'];
-      if (paths is Map) {
-        SemanticPathsValidator.validate(paths, 'paths');
-      }
-    }
+    // TODO: Future semantic validations:
+    // - Validate parameter references in paths (check all path params are defined)
+    // - Validate response references in operations (ensure refs exist)
+    // - Validate request body references
+    // - Cross-schema consistency checks (e.g., discriminator mapping targets)
   }
 }

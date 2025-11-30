@@ -45,11 +45,13 @@ The OpenAPI Analyzer has been refactored from a 3-stage to a 4-stage processing 
 ### Stage 3: Semantic Validation (Post-parsing)
 **Location:** `lib/v3_0_0/semantic_validator/`
 
-**Purpose:** Verify logical consistency and meaningful relationships
+**Purpose:** Verify logical consistency and meaningful relationships using typed objects
 
-**Checks:**
-- Reference resolution and existence
-- Duplicate references in composition keywords
+**Current Checks:**
+- Duplicate templated paths
+
+**Planned Checks (TODO):**
+- Reference resolution and existence (using Referenceable<T>)
 - Composition semantics (allOf, oneOf, anyOf conflicts)
 - Discriminator property existence and mapping validation
 - Default value vs enum compatibility
@@ -57,16 +59,12 @@ The OpenAPI Analyzer has been refactored from a 3-stage to a 4-stage processing 
 - String constraint logic (minLength <= maxLength)
 - Array constraint logic (minItems <= maxItems)
 - Object constraint logic (minProperties <= maxProperties)
-- Duplicate templated paths
-- External file validation
 
 **Key Files:**
-- `semantic_validator.dart` - Main entry point
-- `src/semantic_schema_validator.dart` - Schema logic validator
-- `src/semantic_paths_validator.dart` - Paths logic validator
-- `src/reference_collector.dart` - Reference collection utility
-- `src/reference_finder.dart` - Reference finding utility
-- `src/json_pointer_resolver.dart` - JSON Pointer resolution
+- `semantic_validator.dart` - Main entry point, works with `OpenApiDocument`
+- `src/semantic_paths_validator.dart` - Paths logic validator (uses typed `Paths`)
+
+**Note:** This validator now works with typed objects from the parser (Stage 2) rather than raw Maps. Schema-level semantic validation needs to be reimplemented to work with typed `SchemaObject`.
 
 ### Stage 4: Schema Modeling (Deferred)
 **Location:** `lib/v3_0_0/modeler/`
@@ -123,12 +121,17 @@ import 'package:openapi_analyzer/main.dart';
 void main() {
   final yamlContent = '...';
   
-  // Full 4-stage validation
+  // Full 4-stage validation - returns typed OpenApiDocument
   final doc = OpenApiValidatorV3_0_0.validate(yamlContent);
+  
+  // Work with typed objects!
+  print('API: ${doc.info.title} v${doc.info.version}');
+  print('Paths: ${doc.paths.paths.length}');
   
   // Or validate stages separately
   final structurallyValid = OpenApiValidatorV3_0_0.validateStructure(yamlContent);
-  OpenApiValidatorV3_0_0.validateSemantics(structurallyValid);
+  final parsed = OpenApiParser.parseFromMap(structurallyValid);
+  OpenApiValidatorV3_0_0.validateSemantics(parsed);
 }
 ```
 

@@ -59,3 +59,64 @@ components:
         water:
           type: boolean
 
+    Test:
+      title: "1"
+      type: string
+      oneOf:
+        - title: "2"
+          type: object
+        - title: "3"
+          type: string
+
+    Test2:
+      allOf:
+        - oneOf:
+          - title: "1"
+            type: object
+          - title: "2"
+            type: string
+        - oneOf:
+          - title: "3"
+            type: object
+          - title: "4"
+            type: string
+
+    Test3:
+      allOf:
+        - title: "1"
+          type: object
+        - title: "2"
+          type: string
+        - oneOf:
+          - allOf:
+            - title: "3"
+              type: object
+            - title: "4"
+              type: string
+          - oneOf:
+            - title: "5"
+              type: object
+            - title: "6"
+              type: string
+
+    Test4:
+      allOf:
+        - oneOf:
+          - title: "1"
+            type: object
+          - allOf: 
+            - title: "2"
+              type: object
+            - title: "3"
+              type: integer
+            - oneOf:
+              - title: "4"
+                type: object
+              - title: "5"
+                type: string
+        - oneOf:
+          - title: "6"
+            type: object
+          - title: "7"
+            type: string
+

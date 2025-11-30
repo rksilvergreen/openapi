@@ -18,6 +18,18 @@ abstract class OpenApiParser {
     // First validate and get parsed YAML document
     final yamlDoc = OpenApiValidator.validate(yamlContent, baseDirectory: baseDirectory);
 
+    // Convert YAML to JSON-compatible Map and parse
+    return _parseFromMap(yamlDoc);
+  }
+
+  /// Parses an OpenApiDocument from an already-validated Map.
+  ///
+  /// This is used internally by the 4-stage pipeline where:
+  /// - Stage 1 has already validated the structure
+  /// - Stage 2 needs to parse the Map into typed objects
+  ///
+  /// [yamlDoc] is the already-validated YAML document as a Map.
+  static OpenApiDocument _parseFromMap(Map<dynamic, dynamic> yamlDoc) {
     // Convert YAML to JSON-compatible Map
     final jsonMap = _yamlToJson(yamlDoc);
 
