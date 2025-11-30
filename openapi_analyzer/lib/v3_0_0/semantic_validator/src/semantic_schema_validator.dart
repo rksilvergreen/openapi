@@ -7,13 +7,14 @@ import 'reference_resolver.dart';
 
 /// Semantic validator for Schema Objects using typed objects.
 ///
-/// This validator checks logical consistency and meaningful relationships
-/// in schema definitions, ensuring they make sense and won't cause runtime
-/// issues or impossible-to-satisfy constraints.
+/// This validator uses a branch-based approach to handle schema composition:
+/// - oneOf/anyOf creates separate validation branches
+/// - allOf accumulates schemas along each branch (including parent schema)
+/// - Each branch is validated independently for type and constraint compatibility
 ///
 /// Validates:
 /// - Constraint logic (min ≤ max, minLength ≤ maxLength, etc.)
-/// - Composition semantics (allOf type conflicts, enum intersections)
+/// - Composition semantics (branch-based type conflicts, enum intersections)
 /// - Discriminator property existence
 /// - Default value compatibility with enum
 /// - Nested schema consistency
@@ -32,69 +33,208 @@ class SemanticSchemaValidator {
 
   /// Validates semantic correctness of a Schema Object or reference.
   ///
-  /// This is the main entry point for schema validation. It handles both
-  /// direct schemas and references, then recursively validates all nested
-  /// schemas.
+  /// This is the main entry point for schema validation using a branch-based approach.
+  /// It handles both direct schemas and references, enumerates all possible branches
+  /// created by oneOf/anyOf compositions, and validates each branch independently.
   ///
-  /// Checks performed:
-  /// - Recursive allOf collection and validation (including parent schemas)
-  ///   - Explicit type requirement across all schemas
-  ///   - Numeric constraint coherence across all schemas
-  ///   - String constraint coherence across all schemas
-  ///   - Array constraint coherence across all schemas
-  ///   - Object constraint coherence across all schemas
-  ///   - Explicit type compatibility in allOf
-  ///   - Implicit type compatibility (type-specific properties) in allOf
-  ///   - Const compatibility
-  ///   - Enum compatibility
-  /// - Composition semantics (oneOf/anyOf validation)
-  /// - Discriminator logic
-  /// - Default vs enum compatibility
-  /// - Recursive validation of nested schemas
+  /// Validation process:
+  /// 1. Enumerate all branches (paths through oneOf/anyOf choices)
+  /// 2. For each branch, validate accumulated schemas:
+  ///    - Explicit type requirement
+  ///    - Numeric/string/array/object constraint coherence
+  ///    - Type compatibility (explicit and implicit)
+  ///    - Const and enum compatibility
+  /// 3. Validate discriminator semantics
+  /// 4. Validate default vs enum compatibility
+  /// 5. Recursively validate nested schemas
   ///
   /// [schemaRef] The schema or reference to validate.
   /// [path] JSON Pointer path to this schema for error reporting.
   ///
   /// Throws [OpenApiValidationException] if semantic rules are violated.
   void validate(Referenceable<SchemaObject> schemaRef, String path) {
-    // If it's a reference, we can't validate it directly yet (need reference resolution)
+    // If it's a reference, resolve it first
+    SchemaObject? schema;
     if (schemaRef.isReference()) {
-      // TODO: Resolve and validate
-      return;
+      schema = resolver.resolveSchemaRef(schemaRef, path);
+      if (schema == null) return;
+    } else {
+      schema = schemaRef.asValue();
+      if (schema == null) return;
     }
 
-    final schema = schemaRef.asValue();
-    if (schema == null) return;
+    // Step 1: Enumerate all branches
+    final branches = _enumerateBranches(schema, path);
 
-    // Step 1: Create parent schema and collect all schemas in the allOf chain recursively
-    final parentSchema = schema.copyWith(allOf: null, oneOf: null, anyOf: null, not: null);
-    final allSchemas = schema.allOf != null
-        ? [Referenceable.value(parentSchema), ...schema.allOf!]
-        : [Referenceable.value(parentSchema)];
-
-    // Step 2: Validate allOf semantics (includes basic constraint validation across all schemas)
-    _validateAllOfSemantics(allSchemas, path);
-
-    // Step 3: Validate other composition semantics (oneOf/anyOf)
-    if (schema.oneOf != null) {
-      _validateOneOfSemantics(schema.oneOf!, path);
-    }
-    if (schema.anyOf != null) {
-      _validateAnyOfSemantics(schema.anyOf!, path);
+    // Step 2: Validate each branch independently
+    for (final branch in branches) {
+      _validateBranch(branch);
     }
 
-    // Step 4: Validate discriminator
+    // Step 3: Validate discriminator
     if (schema.discriminator != null) {
       _validateDiscriminatorSemantics(schema, path);
     }
 
-    // Step 5: Validate default against enum
+    // Step 4: Validate default against enum
     if (schema.default_ != null && schema.enum_ != null) {
       _validateDefaultAgainstEnum(schema.default_!, schema.enum_!, path);
     }
 
-    // Step 6: Recursively validate nested schemas
+    // Step 5: Recursively validate nested schemas
     _validateNestedSchemas(schema, path);
+  }
+
+  /// Enumerates all possible branches in a schema's composition structure.
+  ///
+  /// A branch represents one possible path through the schema tree, determined
+  /// by choices in oneOf/anyOf compositions. Each branch accumulates all schemas
+  /// via allOf (including parent schemas) along its path.
+  ///
+  /// Process:
+  /// 1. Create parent schema (without composition keywords)
+  /// 2. Collect all allOf schemas for the current level
+  /// 3. If oneOf/anyOf exists, recursively enumerate branches for each option
+  /// 4. If no oneOf/anyOf, return single branch with accumulated schemas
+  ///
+  /// Example:
+  /// ```yaml
+  /// type: object
+  /// allOf: [{type: string}]
+  /// oneOf:
+  ///   - type: number
+  ///   - oneOf:
+  ///     - type: integer
+  ///     - type: boolean
+  /// ```
+  /// Creates 3 branches:
+  /// - [{parent}, {type: string}, {type: number}]
+  /// - [{parent}, {type: string}, {}, {type: integer}]
+  /// - [{parent}, {type: string}, {}, {type: boolean}]
+  ///
+  /// [schema] The schema to enumerate branches from.
+  /// [path] JSON Pointer path for error reporting.
+  ///
+  /// Returns a list of branches, each containing accumulated schemas.
+  ///
+  /// Throws [OpenApiValidationException] for duplicate references in oneOf/anyOf.
+  List<_SchemaBranch> _enumerateBranches(SchemaObject schema, String path) {
+    // Step 1: Create parent schema (without composition keywords)
+    final parent = schema.copyWith(allOf: null, oneOf: null, anyOf: null, not: null);
+
+    // Step 2: Collect all allOf schemas at this level
+    final allOfSchemas = <SchemaObject>[parent];
+    if (schema.allOf != null) {
+      for (var i = 0; i < schema.allOf!.length; i++) {
+        final allOfItem = schema.allOf![i];
+        final resolved = _resolveAndGetSchema(allOfItem, '$path/allOf[$i]');
+        if (resolved != null) {
+          allOfSchemas.add(resolved);
+        }
+      }
+    }
+
+    // Step 3: Check for oneOf or anyOf
+    final oneOfOrAnyOf = schema.oneOf ?? schema.anyOf;
+
+    if (oneOfOrAnyOf == null) {
+      // No branching - return single branch with all accumulated schemas
+      return [_SchemaBranch(allOfSchemas, path)];
+    }
+
+    // Step 4: Enumerate branches for each oneOf/anyOf option
+    final compositionType = schema.oneOf != null ? 'oneOf' : 'anyOf';
+    final refs = <String>{};
+    final branches = <_SchemaBranch>[];
+
+    for (var i = 0; i < oneOfOrAnyOf.length; i++) {
+      final item = oneOfOrAnyOf[i];
+
+      // Check for duplicate references
+      if (item.isReference()) {
+        final ref = item.asReference()!;
+        if (refs.contains(ref)) {
+          throw OpenApiValidationException(
+            '$path/$compositionType',
+            'Duplicate reference "$ref" found in $compositionType array',
+            specReference: 'OpenAPI 3.0.0 - Schema Object',
+          );
+        }
+        refs.add(ref);
+      }
+
+      // Resolve the schema
+      final resolved = _resolveAndGetSchema(item, '$path/$compositionType[$i]');
+      if (resolved == null) continue;
+
+      // Recursively enumerate branches from this option
+      final subBranches = _enumerateBranches(resolved, '$path/$compositionType[$i]');
+
+      // Prepend current level's accumulated schemas to each sub-branch
+      for (final subBranch in subBranches) {
+        branches.add(_SchemaBranch([...allOfSchemas, ...subBranch.schemas], subBranch.path));
+      }
+    }
+
+    return branches;
+  }
+
+  /// Validates all constraints and compatibility rules for a single branch.
+  ///
+  /// A branch contains all schemas accumulated through allOf (including parent
+  /// schemas) along a specific path determined by oneOf/anyOf choices.
+  ///
+  /// Validations performed:
+  /// - Explicit type requirement for each schema
+  /// - Basic constraint coherence (numeric, string, array, object)
+  /// - Explicit type compatibility across all schemas
+  /// - Implicit type compatibility (type-specific properties)
+  /// - Const value compatibility
+  /// - Enum intersection compatibility
+  ///
+  /// [branch] The branch to validate.
+  ///
+  /// Throws [OpenApiValidationException] if any validation fails.
+  void _validateBranch(_SchemaBranch branch) {
+    final schemas = branch.schemas;
+    final path = branch.path;
+
+    // Step 1: Validate basic constraints for each schema
+    for (final schema in schemas) {
+      _validateExplicitType(schema, path);
+      _validateNumericConstraints(schema, path);
+      _validateStringConstraints(schema, path);
+      _validateArrayConstraints(schema, path);
+      _validateObjectConstraints(schema, path);
+    }
+
+    // Step 2: Validate explicit type compatibility across branch
+    _validateAllOfExplicitTypes(schemas, path);
+
+    // Step 3: Validate implicit type compatibility across branch
+    _validateAllOfImplicitTypes(schemas, path);
+
+    // Step 4: Validate const compatibility across branch
+    _validateAllOfConsts(schemas, path);
+
+    // Step 5: Validate enum compatibility across branch
+    _validateAllOfEnums(schemas, path);
+  }
+
+  /// Resolves a schema reference and returns the schema object.
+  ///
+  /// If the referenceable is a direct value, returns it.
+  /// If it's a reference, resolves it using the reference resolver.
+  ///
+  /// [schemaRef] The referenceable schema.
+  /// [path] JSON Pointer path for error reporting.
+  ///
+  /// Returns the resolved schema or null if resolution fails.
+  SchemaObject? _resolveAndGetSchema(Referenceable<SchemaObject> schemaRef, String path) {
+    if (schemaRef.isReference()) {
+      return resolver.resolveSchemaRef(schemaRef, path);
+    }
+    return schemaRef.asValue();
   }
 
   /// Validates that a schema has an explicit `type` property.
@@ -250,147 +390,6 @@ class SemanticSchemaValidator {
         );
       }
     }
-  }
-
-  /// Validates semantic correctness of an `allOf` composition.
-  ///
-  /// The `allOf` keyword requires a value to satisfy ALL schemas in the array
-  /// simultaneously, including the parent schema itself. The first schema in the
-  /// list represents the parent schema (with composition keywords removed), followed
-  /// by the schemas from the allOf array.
-  ///
-  /// This validator ensures that the combination is logically possible and doesn't
-  /// create contradictions. It recursively collects ALL schemas in the allOf chain,
-  /// including parent schemas of nested allOf compositions.
-  ///
-  /// Checks:
-  /// 1. **Recursive collection**: Collects all schemas in the allOf chain recursively,
-  ///    including parent schemas (without composition keywords) of nested allOf.
-  ///
-  /// 2. **No duplicate references**: Each $ref should appear only once to avoid
-  ///    redundant validation.
-  ///
-  /// 3. **Basic constraint validation across all schemas**:
-  ///    - Explicit type requirement
-  ///    - Numeric constraint coherence
-  ///    - String constraint coherence
-  ///    - Array constraint coherence
-  ///    - Object constraint coherence
-  ///
-  /// 4. **Explicit type compatibility**: Ensures all schemas' types are compatible.
-  ///
-  /// 5. **Implicit type compatibility**: Ensures type-specific properties don't conflict.
-  ///
-  /// 6. **Const compatibility**: Ensures multiple `const` values don't conflict.
-  ///
-  /// 7. **Enum compatibility**: Ensures enum constraints have common values.
-  ///
-  /// [schemas] The list of schemas to validate, where the first is the parent schema
-  /// (without composition keywords) and the rest are from the allOf array.
-  /// [path] JSON Pointer path for error reporting.
-  ///
-  /// Throws [OpenApiValidationException] if allOf semantics are violated.
-  void _validateAllOfSemantics(List<Referenceable<SchemaObject>> schemas, String path) {
-    // Step 1: Recursively collect all schemas in the allOf chain
-    final allCollectedSchemas = _collectAllOfSchemasRecursively(schemas, path);
-
-    // Step 2: Validate basic constraints across all collected schemas
-    for (final schema in allCollectedSchemas) {
-      // Validate explicit type requirement (must have 'type' property)
-      _validateExplicitType(schema, path);
-
-      // Validate numeric constraints logic
-      _validateNumericConstraints(schema, path);
-
-      // Validate string constraints logic
-      _validateStringConstraints(schema, path);
-
-      // Validate array constraints logic
-      _validateArrayConstraints(schema, path);
-
-      // Validate object constraints logic
-      _validateObjectConstraints(schema, path);
-    }
-
-    // Step 3: Validate explicit type compatibility across all schemas
-    _validateAllOfExplicitTypes(allCollectedSchemas, path);
-
-    // Step 4: Validate implicit type compatibility across all schemas
-    _validateAllOfImplicitTypes(allCollectedSchemas, path);
-
-    // Step 5: Validate const compatibility across all schemas
-    _validateAllOfConsts(allCollectedSchemas, path);
-
-    // Step 6: Validate enum compatibility across all schemas
-    _validateAllOfEnums(allCollectedSchemas, path);
-  }
-
-  /// Recursively collects all schemas in an allOf chain, including parent schemas.
-  ///
-  /// This method traverses the entire allOf hierarchy, collecting:
-  /// 1. The provided schemas (parent + allOf)
-  /// 2. For each resolved schema that has allOf:
-  ///    - Its parent schema (without composition keywords)
-  ///    - All schemas from its allOf array (recursively)
-  ///
-  /// This ensures that ALL schemas in the composition chain are validated together,
-  /// including nested parent schemas.
-  ///
-  /// [schemas] The initial list of schemas to process.
-  /// [path] JSON Pointer path for error reporting.
-  ///
-  /// Returns a list of all collected and resolved schemas.
-  ///
-  /// Throws [OpenApiValidationException] if duplicate references are found.
-  List<SchemaObject> _collectAllOfSchemasRecursively(List<Referenceable<SchemaObject>> schemas, String path) {
-    final refs = <String>{};
-    final resolvedSchemas = <SchemaObject>[];
-
-    void processSchemas(List<Referenceable<SchemaObject>> schemasToProcess) {
-      for (var i = 0; i < schemasToProcess.length; i++) {
-        if (schemasToProcess[i].isReference()) {
-          final ref = schemasToProcess[i].asReference()!;
-          if (refs.contains(ref)) {
-            throw OpenApiValidationException(
-              '$path/allOf',
-              'Duplicate reference "$ref" found in allOf array',
-              specReference: 'OpenAPI 3.0.0 - Schema Object',
-            );
-          }
-          refs.add(ref);
-
-          // Resolve the reference
-          final resolved = resolver.resolveSchemaRef(schemasToProcess[i], '$path/allOf[$i]');
-          if (resolved != null) {
-            resolvedSchemas.add(resolved);
-
-            // If the resolved schema has allOf, recursively collect its schemas
-            if (resolved.allOf != null) {
-              // Create parent schema for the resolved schema
-              final nestedParent = resolved.copyWith(allOf: null, oneOf: null, anyOf: null, not: null);
-              // Recursively process parent + allOf
-              processSchemas([Referenceable.value(nestedParent), ...resolved.allOf!]);
-            }
-          }
-        } else {
-          final schema = schemasToProcess[i].asValue();
-          if (schema != null) {
-            resolvedSchemas.add(schema);
-
-            // If the schema has allOf, recursively collect its schemas
-            if (schema.allOf != null) {
-              // Create parent schema
-              final nestedParent = schema.copyWith(allOf: null, oneOf: null, anyOf: null, not: null);
-              // Recursively process parent + allOf
-              processSchemas([Referenceable.value(nestedParent), ...schema.allOf!]);
-            }
-          }
-        }
-      }
-    }
-
-    processSchemas(schemas);
-    return resolvedSchemas;
   }
 
   /// Validates that explicit `type` properties in all schemas are compatible.
@@ -662,82 +661,6 @@ class SemanticSchemaValidator {
     }
   }
 
-  /// Validates semantic correctness of a `oneOf` composition.
-  ///
-  /// The `oneOf` keyword requires a value to satisfy EXACTLY ONE schema from
-  /// the array (not zero, not multiple). This validator checks for basic issues.
-  ///
-  /// Checks:
-  /// - **No duplicate references**: Each $ref should appear only once. Having
-  ///   duplicates means a value would match the same schema twice, violating
-  ///   the "exactly one" requirement.
-  ///   Example: `oneOf: [{$ref: "#/User"}, {$ref: "#/User"}]` is invalid.
-  ///
-  /// Future enhancements could include:
-  /// - Detecting overlapping schemas that could match the same value
-  /// - Warning about schemas that can never be satisfied
-  ///
-  /// [schemas] The list of schemas in the oneOf array.
-  /// [path] JSON Pointer path for error reporting.
-  ///
-  /// Throws [OpenApiValidationException] if duplicate references are found.
-  void _validateOneOfSemantics(List<Referenceable<SchemaObject>> schemas, String path) {
-    // Check for duplicate references
-    final refs = <String>[];
-    for (var i = 0; i < schemas.length; i++) {
-      if (schemas[i].isReference()) {
-        final ref = schemas[i].asReference()!;
-        if (refs.contains(ref)) {
-          throw OpenApiValidationException(
-            '$path/oneOf',
-            'Duplicate reference "$ref" found in oneOf array',
-            specReference: 'OpenAPI 3.0.0 - Schema Object',
-          );
-        }
-        refs.add(ref);
-      }
-    }
-  }
-
-  /// Validates semantic correctness of an `anyOf` composition.
-  ///
-  /// The `anyOf` keyword requires a value to satisfy AT LEAST ONE schema from
-  /// the array (but can match multiple). This validator checks for basic issues.
-  ///
-  /// Checks:
-  /// - **No duplicate references**: Each $ref should appear only once to avoid
-  ///   redundant validation and maintain clarity.
-  ///   Example: `anyOf: [{$ref: "#/User"}, {$ref: "#/User"}]` is flagged.
-  ///
-  /// Unlike `oneOf`, having overlapping schemas is not an error for `anyOf`
-  /// since matching multiple is allowed and expected in some cases.
-  ///
-  /// Future enhancements could include:
-  /// - Warning about schemas that are subsets of others (redundant)
-  /// - Detecting if all schemas are mutually exclusive (consider using oneOf)
-  ///
-  /// [schemas] The list of schemas in the anyOf array.
-  /// [path] JSON Pointer path for error reporting.
-  ///
-  /// Throws [OpenApiValidationException] if duplicate references are found.
-  void _validateAnyOfSemantics(List<Referenceable<SchemaObject>> schemas, String path) {
-    // Check for duplicate references
-    final refs = <String>[];
-    for (var i = 0; i < schemas.length; i++) {
-      if (schemas[i].isReference()) {
-        final ref = schemas[i].asReference()!;
-        if (refs.contains(ref)) {
-          throw OpenApiValidationException(
-            '$path/anyOf',
-            'Duplicate reference "$ref" found in anyOf array',
-            specReference: 'OpenAPI 3.0.0 - Schema Object',
-          );
-        }
-        refs.add(ref);
-      }
-    }
-  }
-
   /// Validates discriminator property existence and semantics.
   ///
   /// A discriminator is used in polymorphic schemas (typically with oneOf/anyOf)
@@ -920,4 +843,31 @@ class SemanticSchemaValidator {
       validate(schema.not!, '$path/not');
     }
   }
+}
+
+/// Represents a single branch in a schema's composition structure.
+///
+/// A branch is created by following a specific path through oneOf/anyOf choices.
+/// It contains all schemas accumulated via allOf (including parent schemas)
+/// along that path.
+///
+/// For example, given:
+/// ```yaml
+/// type: object
+/// oneOf:
+///   - type: string
+///   - type: number
+/// ```
+///
+/// This creates two branches:
+/// - Branch 1: [parent schema, {type: string}]
+/// - Branch 2: [parent schema, {type: number}]
+class _SchemaBranch {
+  /// All schemas accumulated in this branch (parent + allOf chain).
+  final List<SchemaObject> schemas;
+
+  /// JSON Pointer path to this branch for error reporting.
+  final String path;
+
+  _SchemaBranch(this.schemas, this.path);
 }
