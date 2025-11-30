@@ -761,6 +761,22 @@ class SemanticSchemaValidator {
 
   /// Validates object constraints across all schemas.
   ///
+  /// Coordinates validation of all object-specific constraints:
+  /// 1. Min/max properties bounds
+  /// 2. Property schema compatibility
+  /// 3. Required properties existence
+  ///
+  /// [schemas] All schemas to validate.
+  ///
+  /// Throws [_SchemaListValidationError] if constraints conflict.
+  void _validateObjectConstraints(List<SchemaObject> schemas) {
+    _validateObjectMinMaxProperties(schemas);
+    _validateObjectProperties(schemas);
+    _validateObjectRequired(schemas);
+  }
+
+  /// Validates object min/max properties constraints across all schemas.
+  ///
   /// Ensures that object property count bounds are coherent across all schemas:
   /// - max(all minProperties) ≤ min(all maxProperties)
   ///
@@ -769,7 +785,7 @@ class SemanticSchemaValidator {
   /// [schemas] All schemas to validate.
   ///
   /// Throws [_SchemaListValidationError] if constraints conflict.
-  void _validateObjectConstraints(List<SchemaObject> schemas) {
+  void _validateObjectMinMaxProperties(List<SchemaObject> schemas) {
     // Collect all object constraints across all schemas
     int? globalMinProperties;
     int? globalMaxProperties;
@@ -792,6 +808,101 @@ class SemanticSchemaValidator {
     if (globalMinProperties != null && globalMaxProperties != null && globalMinProperties > globalMaxProperties) {
       throw _SchemaListValidationError(
         'Schema list constraints are incompatible: effective minProperties ($globalMinProperties) cannot be greater than effective maxProperties ($globalMaxProperties) across all schemas',
+        specReference: 'JSON Schema Validation',
+      );
+    }
+  }
+
+  /// Validates property schemas across all schemas.
+  ///
+  /// When multiple schemas define the same property name, all schemas for that
+  /// property must be compatible. This method:
+  /// 1. Collects all unique property names across all schemas
+  /// 2. For each property name, collects all schemas that define it
+  /// 3. Validates each property's schemas together using core schema list validation
+  ///
+  /// For example, if Schema A defines property "age" as {type: integer, minimum: 0}
+  /// and Schema B defines "age" as {type: integer, maximum: 120}, both schemas
+  /// must be compatible (which they are in this case).
+  ///
+  /// [schemas] All schemas to validate.
+  ///
+  /// Throws [_SchemaListValidationError] if property schemas are incompatible.
+  void _validateObjectProperties(List<SchemaObject> schemas) {
+    // Collect all unique property names across all schemas
+    final allPropertyNames = <String>{};
+    for (final schema in schemas) {
+      if (schema.properties != null) {
+        allPropertyNames.addAll(schema.properties!.keys);
+      }
+    }
+
+    // For each unique property name, validate all its schemas together
+    for (final propertyName in allPropertyNames) {
+      final propertySchemas = <SchemaObject>[];
+
+      // Collect all schemas for this property
+      for (final schema in schemas) {
+        if (schema.properties != null && schema.properties!.containsKey(propertyName)) {
+          final propertySchemaRef = schema.properties![propertyName]!;
+          final propertySchema = _resolveAndGetSchema(propertySchemaRef, '');
+          if (propertySchema != null) {
+            propertySchemas.add(propertySchema);
+          }
+        }
+      }
+
+      // Validate this property's schemas together if we have multiple
+      if (propertySchemas.length > 1) {
+        try {
+          _validateSchemaList(propertySchemas);
+        } on _SchemaListValidationError catch (e) {
+          // Re-throw with additional context about which property
+          throw _SchemaListValidationError(
+            'Schema list has incompatible schemas for property "$propertyName": ${e.message}',
+            specReference: e.specReference,
+          );
+        }
+      }
+    }
+  }
+
+  /// Validates that all required properties have corresponding property definitions.
+  ///
+  /// When schemas specify required properties, those properties must be defined
+  /// in at least one schema's properties map across all schemas. This ensures
+  /// that required properties actually exist.
+  ///
+  /// For example:
+  /// - Schema A: required: ["name", "age"], properties: {name: {...}, age: {...}} ✓
+  /// - Schema A: required: ["name"], Schema B: properties: {name: {...}} ✓
+  /// - Schema A: required: ["name"], properties: {} ✗ (name not defined anywhere)
+  ///
+  /// [schemas] All schemas to validate.
+  ///
+  /// Throws [_SchemaListValidationError] if required properties are not defined.
+  void _validateObjectRequired(List<SchemaObject> schemas) {
+    // Collect all required properties across all schemas
+    final allRequired = <String>{};
+    for (final schema in schemas) {
+      if (schema.required_ != null) {
+        allRequired.addAll(schema.required_!);
+      }
+    }
+
+    // Collect all defined properties across all schemas
+    final allDefinedProperties = <String>{};
+    for (final schema in schemas) {
+      if (schema.properties != null) {
+        allDefinedProperties.addAll(schema.properties!.keys);
+      }
+    }
+
+    // Check that every required property is defined somewhere
+    final missingProperties = allRequired.difference(allDefinedProperties);
+    if (missingProperties.isNotEmpty) {
+      throw _SchemaListValidationError(
+        'Schema list has required properties that are not defined: ${missingProperties.join(", ")}',
         specReference: 'JSON Schema Validation',
       );
     }
