@@ -27,14 +27,29 @@ class ValidationContext {
 
   /// Adds an exception to the collection.
   ///
-  /// Critical exceptions are not collected - they should be thrown immediately.
-  /// Only moderate and low severity exceptions should be collected.
-  void addException(OpenApiValidationException exception) {
-    if (exception.severity == ValidationSeverity.critical) {
-      // Critical exceptions should not be collected, they should throw immediately
+  /// Throws the exception immediately if the combination of severity and strictness
+  /// requires it. Otherwise, collects it for later processing.
+  ///
+  /// [path] The JSON-like path to the field that failed validation.
+  /// [message] Human-readable error message describing the validation failure.
+  /// [specReference] Optional reference to the OpenAPI specification section.
+  /// [severity] Severity level of this validation issue.
+  void addException(String path, String message, {String? specReference, required ValidationSeverity severity}) {
+    final exception = OpenApiValidationException(path, message, specReference: specReference, severity: severity);
+
+    final shouldThrow = switch (strictness) {
+      ValidationStrictness.strict => true, // All severities throw
+      ValidationStrictness.moderate =>
+        severity == ValidationSeverity.critical || severity == ValidationSeverity.moderate,
+      ValidationStrictness.permissive => severity == ValidationSeverity.critical,
+    };
+
+    if (shouldThrow) {
       throw exception;
+    } else {
+      // Collect for later processing (will be printed as warnings)
+      _exceptions.add(exception);
     }
-    _exceptions.add(exception);
   }
 
   /// Processes all collected exceptions based on strictness level.
@@ -137,23 +152,24 @@ abstract class SemanticValidator {
     // Step 1: Validate reference resolution and existence
     // This must run first to ensure all references are valid before other validators
     // attempt to resolve them. Also detects circular references.
-    final resolver = ReferenceResolver(document);
-    resolver.validateAllSchemaReferences(context);
+    final resolver = ReferenceResolver(document, context);
+    resolver.validateAllSchemaReferences();
 
     // Step 2: Validate paths semantic rules
     // Checks for duplicate templated paths that would be ambiguous at runtime.
     // Example: /users/{id} and /users/{userId} are considered duplicates.
-    SemanticPathsValidator.validate(document.paths, context);
+    final pathsValidator = SemanticPathsValidator(context);
+    pathsValidator.validate(document.paths);
 
     // Step 3: Validate schema semantic rules
     // Validates logical consistency of all schema definitions in components.
     // This includes composition semantics, constraint logic, and more.
     if (document.components?.schemas != null) {
-      final schemaValidator = SemanticSchemaValidator(document);
+      final schemaValidator = SemanticSchemaValidator(document, context);
       for (final entry in document.components!.schemas!.entries) {
         final schemaName = entry.key;
         final schemaRef = entry.value;
-        schemaValidator.validate(schemaRef, '/components/schemas/$schemaName', context);
+        schemaValidator.validate(schemaRef, '/components/schemas/$schemaName');
       }
     }
 

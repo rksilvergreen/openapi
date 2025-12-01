@@ -8,6 +8,14 @@ import '../semantic_validator.dart';
 /// Unlike structural validation (which checks syntax), this validates that
 /// paths won't conflict or cause ambiguity at runtime.
 class SemanticPathsValidator {
+  /// Validation context for collecting exceptions.
+  final ValidationContext? context;
+
+  /// Creates a new paths validator.
+  ///
+  /// [context] Optional validation context for collecting exceptions.
+  SemanticPathsValidator([this.context]);
+
   /// Validates semantic correctness of a Paths Object.
   ///
   /// Currently checks:
@@ -19,11 +27,10 @@ class SemanticPathsValidator {
   /// - HTTP method coverage
   ///
   /// [paths] The Paths object containing all API path definitions.
-  /// [context] Optional validation context for collecting exceptions.
   ///
   /// Throws [OpenApiValidationException] if duplicate templated paths are found.
-  static void validate(Paths paths, [ValidationContext? context]) {
-    _checkDuplicateTemplatedPaths(paths, context);
+  void validate(Paths paths) {
+    _checkDuplicateTemplatedPaths(paths);
 
     // Additional semantic path validations would go here
     // e.g., checking path parameter consistency, etc.
@@ -40,10 +47,9 @@ class SemanticPathsValidator {
   /// - `/items/{itemId}/details` and `/items/{id}/details` → Conflict
   ///
   /// [paths] The Paths object to check.
-  /// [context] Optional validation context for collecting exceptions.
   ///
   /// Throws [OpenApiValidationException] when duplicate patterns are detected.
-  static void _checkDuplicateTemplatedPaths(Paths paths, [ValidationContext? context]) {
+  void _checkDuplicateTemplatedPaths(Paths paths) {
     final pathPatterns = <String, String>{};
     for (final key in paths.paths.keys) {
       final pathStr = key;
@@ -69,7 +75,7 @@ class SemanticPathsValidator {
   ///
   /// [pathStr] The original path string with template parameters.
   /// Returns the normalized path with all templates as `{param}`.
-  static String _normalizePathForDuplicateCheck(String pathStr) {
+  String _normalizePathForDuplicateCheck(String pathStr) {
     return pathStr.replaceAll(RegExp(r'\{[^}]+\}'), '{param}');
   }
 }
