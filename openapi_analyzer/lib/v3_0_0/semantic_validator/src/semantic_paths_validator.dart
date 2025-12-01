@@ -50,6 +50,7 @@ class SemanticPathsValidator {
           '/paths/$pathStr',
           'Duplicate templated path: $pathStr conflicts with ${pathPatterns[pattern]}',
           specReference: 'OpenAPI 3.0.0 - Paths Object',
+          severity: ValidationSeverity.critical,
         );
       }
       pathPatterns[pattern] = pathStr;

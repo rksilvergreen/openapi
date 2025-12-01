@@ -18,6 +18,7 @@ class PathItemObjectStructuralValidator {
             ValidationUtils.buildPath(path, method),
             'Operation must be an Operation Object',
             specReference: 'OpenAPI 3.0.0 - Path Item Object',
+            severity: ValidationSeverity.critical,
           );
         }
         // Operation validation would go here
@@ -34,6 +35,7 @@ class PathItemObjectStructuralValidator {
             ValidationUtils.buildPath(path, 'parameters[$i]'),
             'Parameter must be a Parameter Object or Reference Object',
             specReference: 'OpenAPI 3.0.0 - Path Item Object',
+            severity: ValidationSeverity.critical,
           );
         }
       }
@@ -58,6 +60,7 @@ class PathItemObjectStructuralValidator {
         ValidationUtils.buildPath(path, 'responses'),
         'Operation must have a responses field',
         specReference: 'OpenAPI 3.0.0 - Operation Object',
+        severity: ValidationSeverity.critical,
       );
     }
 
@@ -66,6 +69,7 @@ class PathItemObjectStructuralValidator {
         ValidationUtils.buildPath(path, 'responses'),
         'responses must be a Responses Object',
         specReference: 'OpenAPI 3.0.0 - Operation Object',
+        severity: ValidationSeverity.critical,
       );
     }
 

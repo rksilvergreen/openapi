@@ -34,6 +34,7 @@ class ComponentsObjectStructuralValidator {
         path,
         'Component key "$keyStr" does not match required pattern: ^[a-zA-Z0-9\\.\\-_]+\$',
         specReference: 'OpenAPI 3.0.0 - Components Object',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -51,6 +52,7 @@ class ComponentsObjectStructuralValidator {
             ValidationUtils.buildPath(path, 'schemas.$keyStr'),
             'Schema must be a Schema Object or Reference Object',
             specReference: 'OpenAPI 3.0.0 - Components Object',
+            severity: ValidationSeverity.critical,
           );
         }
         final schemaMap = schema;
@@ -76,6 +78,7 @@ class ComponentsObjectStructuralValidator {
             ValidationUtils.buildPath(path, 'responses.$keyStr'),
             'Response must be a Response Object or Reference Object',
             specReference: 'OpenAPI 3.0.0 - Components Object',
+            severity: ValidationSeverity.critical,
           );
         }
       }
@@ -95,6 +98,7 @@ class ComponentsObjectStructuralValidator {
             ValidationUtils.buildPath(path, 'parameters.$keyStr'),
             'Parameter must be a Parameter Object or Reference Object',
             specReference: 'OpenAPI 3.0.0 - Components Object',
+            severity: ValidationSeverity.critical,
           );
         }
       }
@@ -127,6 +131,7 @@ class ComponentsObjectStructuralValidator {
             ValidationUtils.buildPath(path, 'requestBodies.$keyStr'),
             'Request Body must be a Request Body Object or Reference Object',
             specReference: 'OpenAPI 3.0.0 - Components Object',
+            severity: ValidationSeverity.critical,
           );
         }
       }
@@ -146,6 +151,7 @@ class ComponentsObjectStructuralValidator {
             ValidationUtils.buildPath(path, 'headers.$keyStr'),
             'Header must be a Header Object or Reference Object',
             specReference: 'OpenAPI 3.0.0 - Components Object',
+            severity: ValidationSeverity.critical,
           );
         }
       }
@@ -168,6 +174,7 @@ class ComponentsObjectStructuralValidator {
             ValidationUtils.buildPath(path, 'securitySchemes.$keyStr'),
             'Security Scheme must be a Security Scheme Object or Reference Object',
             specReference: 'OpenAPI 3.0.0 - Components Object',
+            severity: ValidationSeverity.critical,
           );
         }
       }

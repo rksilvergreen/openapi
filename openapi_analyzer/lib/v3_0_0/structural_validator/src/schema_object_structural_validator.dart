@@ -47,6 +47,7 @@ class SchemaObjectStructuralValidator {
         ValidationUtils.buildPath(path, 'items'),
         'Schema with type "array" MUST have an "items" field',
         specReference: 'OpenAPI 3.0.0 - Schema Object',
+        severity: ValidationSeverity.critical,
       );
     }
     // items MUST be an object (not array in OpenAPI 3.0.0)
@@ -56,6 +57,7 @@ class SchemaObjectStructuralValidator {
         ValidationUtils.buildPath(path, 'items'),
         'Schema items MUST be an object, got ${items.runtimeType}',
         specReference: 'OpenAPI 3.0.0 - Schema Object',
+        severity: ValidationSeverity.critical,
       );
     }
     // Recursively validate items schema
@@ -172,6 +174,7 @@ class SchemaObjectStructuralValidator {
             ValidationUtils.buildPath(path, 'properties.$keyStr'),
             'Property schema must be an object',
             specReference: 'OpenAPI 3.0.0 - Schema Object',
+            severity: ValidationSeverity.critical,
           );
         }
         validate(propertySchema, ValidationUtils.buildPath(path, 'properties.$keyStr'));
@@ -187,6 +190,7 @@ class SchemaObjectStructuralValidator {
           ValidationUtils.buildPath(path, 'additionalProperties'),
           'additionalProperties must be boolean or Schema Object',
           specReference: 'OpenAPI 3.0.0 - Schema Object',
+          severity: ValidationSeverity.critical,
         );
       }
       if (additionalProperties is Map) {
@@ -214,6 +218,7 @@ class SchemaObjectStructuralValidator {
           ValidationUtils.buildPath(path, keyword),
           '$keyword array MUST contain at least one schema',
           specReference: 'JSON Schema Core - Section 10.2.1',
+          severity: ValidationSeverity.critical,
         );
       }
 
@@ -227,6 +232,7 @@ class SchemaObjectStructuralValidator {
             itemPath,
             'Each item in $keyword array MUST be a Schema Object or Reference Object',
             specReference: 'OpenAPI 3.0.0 - Schema Object',
+            severity: ValidationSeverity.critical,
           );
         }
 
@@ -246,6 +252,7 @@ class SchemaObjectStructuralValidator {
           notPath,
           'not keyword\'s value MUST be a Schema Object',
           specReference: 'JSON Schema Core - Section 10.2.1.4',
+          severity: ValidationSeverity.critical,
         );
       }
 
@@ -262,6 +269,7 @@ class SchemaObjectStructuralValidator {
           ValidationUtils.buildPath(path, 'enum'),
           'enum array cannot be empty',
           specReference: 'JSON Schema Validation - Section 6.1.2',
+          severity: ValidationSeverity.critical,
         );
       }
     }

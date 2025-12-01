@@ -21,6 +21,7 @@ class PathsObjectStructuralValidator {
           ValidationUtils.buildPath(path, pathStr),
           'Path item must be a Path Item Object',
           specReference: 'OpenAPI 3.0.0 - Paths Object',
+          severity: ValidationSeverity.critical,
         );
       }
 
@@ -37,6 +38,7 @@ class PathsObjectStructuralValidator {
         ValidationUtils.buildPath(path, pathStr),
         'Path must begin with a slash, got: $pathStr',
         specReference: 'OpenAPI 3.0.0 - Paths Object',
+        severity: ValidationSeverity.critical,
       );
     }
   }

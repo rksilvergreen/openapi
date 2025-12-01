@@ -158,6 +158,7 @@ class SemanticSchemaValidator {
             '$path/$compositionType',
             'Duplicate reference "$ref" found in $compositionType array',
             specReference: 'OpenAPI 3.0.0 - Schema Object',
+            severity: ValidationSeverity.critical,
           );
         }
         refs.add(ref);
@@ -201,7 +202,7 @@ class SemanticSchemaValidator {
     try {
       _validateSchemaList(schemas);
     } on _SchemaListValidationError catch (e) {
-      throw OpenApiValidationException(path, e.message, specReference: e.specReference);
+      throw OpenApiValidationException(path, e.message, specReference: e.specReference, severity: e.severity);
     }
   }
 
@@ -254,6 +255,7 @@ class SemanticSchemaValidator {
         throw _SchemaListValidationError(
           'Schema must have an explicit "type" property. Types cannot be inferred from other properties.',
           specReference: 'OpenAPI 3.0.0 - Schema Object',
+          severity: ValidationSeverity.critical,
         );
       }
     }
@@ -290,6 +292,7 @@ class SemanticSchemaValidator {
             throw _SchemaListValidationError(
               'Schema list contains incompatible types: $typeNames. A value cannot be both $pairNames simultaneously.',
               specReference: 'JSON Schema Core - allOf semantics',
+              severity: ValidationSeverity.critical,
             );
           }
         }
@@ -386,18 +389,21 @@ class SemanticSchemaValidator {
             throw _SchemaListValidationError(
               'Schema list has type "string" but contains number/integer properties (minimum/maximum/exclusiveMinimum/exclusiveMaximum/multipleOf).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           if (hasArrayProps) {
             throw _SchemaListValidationError(
               'Schema list has type "string" but contains array properties (minItems/maxItems/uniqueItems/items).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           if (hasObjectProps) {
             throw _SchemaListValidationError(
               'Schema list has type "string" but contains object properties (minProperties/maxProperties/required/properties/additionalProperties/discriminator).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           break;
@@ -408,18 +414,21 @@ class SemanticSchemaValidator {
             throw _SchemaListValidationError(
               'Schema list has type "${schemaType.name}" but contains string properties (minLength/maxLength/pattern).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           if (hasArrayProps) {
             throw _SchemaListValidationError(
               'Schema list has type "${schemaType.name}" but contains array properties (minItems/maxItems/uniqueItems/items).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           if (hasObjectProps) {
             throw _SchemaListValidationError(
               'Schema list has type "${schemaType.name}" but contains object properties (minProperties/maxProperties/required/properties/additionalProperties/discriminator).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           break;
@@ -429,18 +438,21 @@ class SemanticSchemaValidator {
             throw _SchemaListValidationError(
               'Schema list has type "array" but contains string properties (minLength/maxLength/pattern).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           if (hasNumberProps) {
             throw _SchemaListValidationError(
               'Schema list has type "array" but contains number/integer properties (minimum/maximum/exclusiveMinimum/exclusiveMaximum/multipleOf).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           if (hasObjectProps) {
             throw _SchemaListValidationError(
               'Schema list has type "array" but contains object properties (minProperties/maxProperties/required/properties/additionalProperties/discriminator).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           break;
@@ -450,18 +462,21 @@ class SemanticSchemaValidator {
             throw _SchemaListValidationError(
               'Schema list has type "object" but contains string properties (minLength/maxLength/pattern).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           if (hasNumberProps) {
             throw _SchemaListValidationError(
               'Schema list has type "object" but contains number/integer properties (minimum/maximum/exclusiveMinimum/exclusiveMaximum/multipleOf).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           if (hasArrayProps) {
             throw _SchemaListValidationError(
               'Schema list has type "object" but contains array properties (minItems/maxItems/uniqueItems/items).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           break;
@@ -471,24 +486,28 @@ class SemanticSchemaValidator {
             throw _SchemaListValidationError(
               'Schema list has type "boolean" but contains string properties (minLength/maxLength/pattern).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           if (hasNumberProps) {
             throw _SchemaListValidationError(
               'Schema list has type "boolean" but contains number/integer properties (minimum/maximum/exclusiveMinimum/exclusiveMaximum/multipleOf).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           if (hasArrayProps) {
             throw _SchemaListValidationError(
               'Schema list has type "boolean" but contains array properties (minItems/maxItems/uniqueItems/items).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           if (hasObjectProps) {
             throw _SchemaListValidationError(
               'Schema list has type "boolean" but contains object properties (minProperties/maxProperties/required/properties/additionalProperties/discriminator).',
               specReference: 'JSON Schema Core',
+              severity: ValidationSeverity.critical,
             );
           }
           break;
@@ -587,6 +606,7 @@ class SemanticSchemaValidator {
       throw _SchemaListValidationError(
         'Schema list constraints are incompatible: effective minimum ($globalMinimum) cannot be greater than effective maximum ($globalMaximum) across all schemas',
         specReference: 'JSON Schema Validation',
+        severity: ValidationSeverity.critical,
       );
     }
 
@@ -596,6 +616,7 @@ class SemanticSchemaValidator {
       throw _SchemaListValidationError(
         'Schema list constraints are incompatible: effective exclusiveMinimum ($globalExclusiveMinimum) must be less than effective exclusiveMaximum ($globalExclusiveMaximum) across all schemas',
         specReference: 'JSON Schema Validation',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -634,6 +655,7 @@ class SemanticSchemaValidator {
       throw _SchemaListValidationError(
         'Schema list constraints are incompatible: effective minLength ($globalMinLength) cannot be greater than effective maxLength ($globalMaxLength) across all schemas',
         specReference: 'JSON Schema Validation',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -688,6 +710,7 @@ class SemanticSchemaValidator {
       throw _SchemaListValidationError(
         'Schema list constraints are incompatible: effective minItems ($globalMinItems) cannot be greater than effective maxItems ($globalMaxItems) across all schemas',
         specReference: 'JSON Schema Validation',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -719,6 +742,7 @@ class SemanticSchemaValidator {
       throw _SchemaListValidationError(
         'Schema list has conflicting uniqueItems constraints: some schemas require unique items while others allow duplicates',
         specReference: 'JSON Schema Validation',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -762,6 +786,7 @@ class SemanticSchemaValidator {
         throw _SchemaListValidationError(
           'Schema list has incompatible items schemas and minItems requires at least one item: ${e.message}',
           specReference: e.specReference,
+          severity: e.severity,
         );
       }
     }
@@ -817,6 +842,7 @@ class SemanticSchemaValidator {
       throw _SchemaListValidationError(
         'Schema list constraints are incompatible: effective minProperties ($globalMinProperties) cannot be greater than effective maxProperties ($globalMaxProperties) across all schemas',
         specReference: 'JSON Schema Validation',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -877,6 +903,7 @@ class SemanticSchemaValidator {
           throw _SchemaListValidationError(
             'Schema list has incompatible schemas for required property "$propertyName": ${e.message}',
             specReference: e.specReference,
+            severity: e.severity,
           );
         }
       }
@@ -920,6 +947,7 @@ class SemanticSchemaValidator {
       throw _SchemaListValidationError(
         'Schema list has required properties that are not defined: ${missingProperties.join(", ")}',
         specReference: 'JSON Schema Validation',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -970,6 +998,7 @@ class SemanticSchemaValidator {
         throw _SchemaListValidationError(
           'Schema list contains multiple different const values: ${constValues.join(", ")}. This schema can never be satisfied.',
           specReference: 'JSON Schema Core - allOf semantics',
+          severity: ValidationSeverity.critical,
         );
       }
     }
@@ -1011,6 +1040,7 @@ class SemanticSchemaValidator {
         throw _SchemaListValidationError(
           'Schema list contains enum constraints with no common values. This schema can never be satisfied.',
           specReference: 'JSON Schema Core - allOf semantics',
+          severity: ValidationSeverity.critical,
         );
       }
     }
@@ -1120,6 +1150,7 @@ class SemanticSchemaValidator {
         '$path/default',
         'Default value "$defaultValue" is not one of the enum values: ${enumValues.join(", ")}',
         specReference: 'JSON Schema Validation',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -1239,7 +1270,10 @@ class _SchemaListValidationError {
   /// The OpenAPI/JSON Schema specification reference.
   final String specReference;
 
-  _SchemaListValidationError(this.message, {required this.specReference});
+  /// Severity level of this validation issue.
+  final ValidationSeverity severity;
+
+  _SchemaListValidationError(this.message, {required this.specReference, required this.severity});
 
   @override
   String toString() => 'SchemaListValidationError: $message (Spec: $specReference)';

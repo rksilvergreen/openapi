@@ -26,6 +26,7 @@ class ContactObjectStructuralValidator {
           ValidationUtils.buildPath(path, 'url'),
           'Contact url cannot be empty',
           specReference: 'OpenAPI 3.0.0 - Contact Object',
+          severity: ValidationSeverity.critical,
         );
       }
     }
@@ -39,6 +40,7 @@ class ContactObjectStructuralValidator {
           ValidationUtils.buildPath(path, 'email'),
           'Contact email cannot be empty',
           specReference: 'OpenAPI 3.0.0 - Contact Object',
+          severity: ValidationSeverity.critical,
         );
       }
       // Basic email format check (contains @)
@@ -47,6 +49,7 @@ class ContactObjectStructuralValidator {
           ValidationUtils.buildPath(path, 'email'),
           'Contact email must be in valid email format',
           specReference: 'OpenAPI 3.0.0 - Contact Object',
+          severity: ValidationSeverity.critical,
         );
       }
     }

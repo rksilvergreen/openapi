@@ -18,6 +18,7 @@ class ValidationUtils {
         buildPath(path, field),
         'Required field "$field" is missing',
         specReference: 'OpenAPI 3.0.0 Specification',
+        severity: ValidationSeverity.critical,
       );
     }
     final value = data[field];
@@ -32,6 +33,7 @@ class ValidationUtils {
         path,
         'Expected type ${expected.toString()}, got ${value.runtimeType}',
         specReference: 'OpenAPI 3.0.0 Specification',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -45,6 +47,7 @@ class ValidationUtils {
         path,
         'Value "$value" does not match required pattern: $pattern',
         specReference: 'OpenAPI 3.0.0 Specification',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -57,6 +60,7 @@ class ValidationUtils {
         path,
         'Value "$value" is not one of the allowed values: ${allowed.join(", ")}',
         specReference: 'OpenAPI 3.0.0 Specification',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -69,6 +73,7 @@ class ValidationUtils {
         path,
         'Value must be non-negative, got $value',
         specReference: 'OpenAPI 3.0.0 Specification',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -81,6 +86,7 @@ class ValidationUtils {
         path,
         'Value must be strictly greater than 0, got $value',
         specReference: 'OpenAPI 3.0.0 Specification',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -93,6 +99,7 @@ class ValidationUtils {
         path,
         'Expected Map, got ${value.runtimeType}',
         specReference: 'OpenAPI 3.0.0 Specification',
+        severity: ValidationSeverity.critical,
       );
     }
     return value;
@@ -106,6 +113,7 @@ class ValidationUtils {
         path,
         'Expected List, got ${value.runtimeType}',
         specReference: 'OpenAPI 3.0.0 Specification',
+        severity: ValidationSeverity.critical,
       );
     }
     return value;
@@ -119,6 +127,7 @@ class ValidationUtils {
         path,
         'Expected String, got ${value.runtimeType}',
         specReference: 'OpenAPI 3.0.0 Specification',
+        severity: ValidationSeverity.critical,
       );
     }
     return value;
@@ -132,6 +141,7 @@ class ValidationUtils {
         path,
         'Expected bool, got ${value.runtimeType}',
         specReference: 'OpenAPI 3.0.0 Specification',
+        severity: ValidationSeverity.critical,
       );
     }
     return value;
@@ -145,6 +155,7 @@ class ValidationUtils {
         path,
         'Expected number, got ${value.runtimeType}',
         specReference: 'OpenAPI 3.0.0 Specification',
+        severity: ValidationSeverity.critical,
       );
     }
     return value;
@@ -174,6 +185,7 @@ class ValidationUtils {
         path,
         'Unknown field(s) in $objectType: ${unknownFields.join(", ")}. Allowed fields: ${sortedAllowed.join(", ")}',
         specReference: 'OpenAPI 3.0.0 - $objectType',
+        severity: ValidationSeverity.critical,
       );
     }
   }

@@ -36,6 +36,7 @@ abstract class StructuralValidator {
           '/',
           'OpenAPI document root must be an object',
           specReference: 'OpenAPI 3.0.0 - Document Structure',
+          severity: ValidationSeverity.critical,
         );
       }
 
@@ -46,6 +47,7 @@ abstract class StructuralValidator {
           '/',
           'OpenAPI document must have an "openapi" field',
           specReference: 'OpenAPI 3.0.0 - OpenAPI Object',
+          severity: ValidationSeverity.critical,
         );
       }
 
@@ -55,6 +57,7 @@ abstract class StructuralValidator {
           '/openapi',
           'openapi field cannot be empty',
           specReference: 'OpenAPI 3.0.0 - OpenAPI Object',
+          severity: ValidationSeverity.critical,
         );
       }
 
@@ -67,6 +70,7 @@ abstract class StructuralValidator {
           '/openapi',
           'Unsupported OpenAPI version: $openapiVersion. Only 3.0.0 is currently supported',
           specReference: 'OpenAPI 3.0.0 - Versions',
+          severity: ValidationSeverity.critical,
         );
       }
 
@@ -80,7 +84,7 @@ abstract class StructuralValidator {
       if (e is OpenApiValidationException) {
         rethrow;
       }
-      throw OpenApiValidationException('/', 'Unexpected error during structural validation: $e', specReference: 'OpenAPI 3.0.0');
+      throw OpenApiValidationException('/', 'Unexpected error during structural validation: $e', specReference: 'OpenAPI 3.0.0', severity: ValidationSeverity.critical);
     }
   }
 }

@@ -31,6 +31,7 @@ class OpenApiObjectStructuralValidator {
         ValidationUtils.buildPath(path, 'openapi'),
         'openapi field must be "3.0.0", got: $openapi',
         specReference: 'OpenAPI 3.0.0 - OpenAPI Object',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -61,6 +62,7 @@ class OpenApiObjectStructuralValidator {
             ValidationUtils.buildPath(path, 'servers[$i]'),
             'Server must be a Server Object',
             specReference: 'OpenAPI 3.0.0 - OpenAPI Object',
+            severity: ValidationSeverity.critical,
           );
         }
         ServerObjectStructuralValidator.validate(server, ValidationUtils.buildPath(path, 'servers[$i]'));
@@ -90,6 +92,7 @@ class OpenApiObjectStructuralValidator {
         ValidationUtils.buildPath(path, 'security[$index]'),
         'Security requirement must be a Security Requirement Object',
         specReference: 'OpenAPI 3.0.0 - OpenAPI Object',
+        severity: ValidationSeverity.critical,
       );
     }
     // Security Requirement Object is a map of security scheme names to scopes
@@ -101,6 +104,7 @@ class OpenApiObjectStructuralValidator {
         throw OpenApiValidationException(
           ValidationUtils.buildPath(path, 'security[$index].$keyStr'),
           'Security requirement scopes must be an array',
+          severity: ValidationSeverity.critical,
           specReference: 'OpenAPI 3.0.0 - Security Requirement Object',
         );
       }
@@ -126,6 +130,7 @@ class OpenApiObjectStructuralValidator {
         ValidationUtils.buildPath(path, 'tags[$index]'),
         'Tag must be a Tag Object',
         specReference: 'OpenAPI 3.0.0 - OpenAPI Object',
+        severity: ValidationSeverity.critical,
       );
     }
     final tagMap = tag;

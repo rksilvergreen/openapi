@@ -33,6 +33,7 @@ class ServerVariableObjectStructuralValidator {
         ValidationUtils.buildPath(path, 'enum'),
         'Server variable enum array cannot be empty',
         specReference: 'OpenAPI 3.0.0 - Server Variable Object',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -49,6 +50,7 @@ class ServerVariableObjectStructuralValidator {
         ValidationUtils.buildPath(path, 'default'),
         'Server variable default value "$defaultValue" must be one of the enum values',
         specReference: 'OpenAPI 3.0.0 - Server Variable Object',
+        severity: ValidationSeverity.critical,
       );
     }
   }

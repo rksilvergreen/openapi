@@ -29,30 +29,41 @@ abstract class SemanticValidator {
   /// - Parsed into an OpenApiDocument (Stage 2)
   ///
   /// [document] is the parsed OpenApiDocument from Stage 2.
-  /// [strict] controls whether warnings are treated as errors. When true (default),
-  ///   warnings cause validation to fail. When false, warnings are printed to stderr
-  ///   but validation continues.
+  /// [strictness] controls which severity levels cause validation to fail:
+  ///   - [ValidationStrictness.strict] (default): All severities fail validation
+  ///   - [ValidationStrictness.moderate]: Only critical and moderate fail
+  ///   - [ValidationStrictness.permissive]: Only critical fails
   ///
-  /// Throws [OpenApiValidationException] if semantic validation fails.
-  /// Throws [OpenApiValidationWarning] if strict mode is enabled and a warning occurs.
-  static void validate(OpenApiDocument document, {bool strict = true}) {
+  /// Lower severity issues that don't fail validation are printed to stderr as warnings.
+  ///
+  /// Throws [OpenApiValidationException] if semantic validation fails based on
+  /// the strictness level and issue severity.
+  static void validate(OpenApiDocument document, {ValidationStrictness strictness = ValidationStrictness.strict}) {
     try {
       // Validate semantic rules using the typed OpenApiDocument
       _validateSemanticRules(document);
-    } on OpenApiValidationWarning catch (e) {
-      if (strict) {
+    } on OpenApiValidationException catch (e) {
+      // Determine if this exception should cause validation to fail
+      // based on its severity and the current strictness level
+      final shouldThrow = switch (strictness) {
+        ValidationStrictness.strict => true, // All severities throw
+        ValidationStrictness.moderate =>
+          e.severity == ValidationSeverity.critical || e.severity == ValidationSeverity.moderate,
+        ValidationStrictness.permissive => e.severity == ValidationSeverity.critical,
+      };
+
+      if (shouldThrow) {
         rethrow;
       } else {
-        // In non-strict mode, print warning to stderr and continue
-        stderr.writeln('Warning: $e');
+        // Print as warning and continue validation
+        stderr.writeln('$e');
       }
-    } on OpenApiValidationException {
-      rethrow;
     } catch (e) {
       throw OpenApiValidationException(
         '/',
         'Unexpected error during semantic validation: $e',
         specReference: 'OpenAPI 3.0.0',
+        severity: ValidationSeverity.critical,
       );
     }
   }

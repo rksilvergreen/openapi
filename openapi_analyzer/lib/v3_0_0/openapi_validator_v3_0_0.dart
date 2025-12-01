@@ -85,6 +85,7 @@ abstract class OpenApiValidatorV3_0_0 {
         '/',
         'Unexpected error during validation: $e',
         specReference: 'OpenAPI 3.0.0',
+        severity: ValidationSeverity.critical,
       );
     }
   }

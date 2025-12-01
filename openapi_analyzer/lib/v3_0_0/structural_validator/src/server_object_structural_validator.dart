@@ -23,6 +23,7 @@ class ServerObjectStructuralValidator {
         ValidationUtils.buildPath(path, 'url'),
         'Server url cannot be empty',
         specReference: 'OpenAPI 3.0.0 - Server Object',
+        severity: ValidationSeverity.critical,
       );
     }
   }
@@ -49,6 +50,7 @@ class ServerObjectStructuralValidator {
         ValidationUtils.buildPath(path, 'variables.$keyStr'),
         'Server variable must be a Server Variable Object',
         specReference: 'OpenAPI 3.0.0 - Server Object',
+        severity: ValidationSeverity.critical,
       );
     }
     ServerVariableObjectStructuralValidator.validate(

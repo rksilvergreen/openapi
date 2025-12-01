@@ -8,16 +8,16 @@ import '../../parser/src/request_body.dart';
 import '../../parser/src/header.dart';
 
 /// Resolves OpenAPI $ref pointers to their actual objects within a document.
-/// 
+///
 /// Handles JSON Pointer resolution (RFC 6901) for internal references starting
 /// with `#/`. External references (URLs) are not yet supported.
-/// 
+///
 /// Features:
 /// - Resolves schemas, responses, parameters, request bodies, and headers
 /// - Detects circular references to prevent infinite loops
 /// - Follows nested references (a ref to a ref to a schema)
 /// - Validates reference existence during resolution
-/// 
+///
 /// Example usage:
 /// ```dart
 /// final resolver = ReferenceResolver(document);
@@ -26,35 +26,35 @@ import '../../parser/src/header.dart';
 class ReferenceResolver {
   /// The complete OpenAPI document being analyzed.
   final OpenApiDocument document;
-  
+
   /// Tracks visited references to detect circular dependencies.
   /// Reset for each top-level validation to allow the same schema
   /// to be referenced from multiple places without false positives.
   final Set<String> _visitedRefs = {};
 
   /// Creates a new reference resolver.
-  /// 
+  ///
   /// [document] The complete OpenAPI document containing all definitions
   /// and components that can be referenced.
   ReferenceResolver(this.document);
 
   /// Resolves a schema reference string to the actual SchemaObject.
-  /// 
+  ///
   /// Follows the JSON Pointer format (RFC 6901) for internal references.
   /// Currently supports only `#/components/schemas/{name}` format.
-  /// 
+  ///
   /// [ref] The reference string, e.g., `#/components/schemas/User`
   /// [detectCircular] If true, tracks visited refs to detect cycles.
   ///   Set to false if you need to resolve the same schema multiple times
   ///   in different contexts.
-  /// 
+  ///
   /// Returns the resolved SchemaObject, or null if:
   /// - The reference format is invalid
   /// - The reference points to a non-existent schema
   /// - The reference is external (not yet supported)
-  /// 
+  ///
   /// Throws [OpenApiValidationException] if a circular reference is detected.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final user = resolver.resolveSchema('#/components/schemas/User');
@@ -66,6 +66,7 @@ class ReferenceResolver {
           ref,
           'Circular reference detected: $ref',
           specReference: 'OpenAPI 3.0.0 - Reference Object',
+          severity: ValidationSeverity.critical,
         );
       }
       _visitedRefs.add(ref);
@@ -78,7 +79,7 @@ class ReferenceResolver {
     }
 
     final parts = ref.substring(2).split('/');
-    
+
     // Expected format: components/schemas/SchemaName
     if (parts.length != 3) {
       return null;
@@ -90,7 +91,7 @@ class ReferenceResolver {
 
     final schemaName = parts[2];
     final schemaRef = document.components?.schemas?[schemaName];
-    
+
     if (schemaRef == null) {
       return null;
     }
@@ -104,16 +105,16 @@ class ReferenceResolver {
   }
 
   /// Resolves a Referenceable<SchemaObject> to the actual SchemaObject.
-  /// 
+  ///
   /// This is a convenience wrapper that handles both direct values and
   /// references within a Referenceable container.
-  /// 
+  ///
   /// [schemaRef] The Referenceable container that may hold a reference or value.
   /// [path] JSON Pointer path for error reporting if resolution fails.
-  /// 
+  ///
   /// Returns the resolved SchemaObject (either the direct value or the
   /// referenced schema).
-  /// 
+  ///
   /// Throws [OpenApiValidationException] if the reference doesn't exist.
   SchemaObject? resolveSchemaRef(Referenceable<SchemaObject> schemaRef, String path) {
     if (schemaRef.isReference()) {
@@ -124,6 +125,7 @@ class ReferenceResolver {
           path,
           'Reference "$ref" not found in document',
           specReference: 'OpenAPI 3.0.0 - Reference Object',
+          severity: ValidationSeverity.critical,
         );
       }
       return resolved;
@@ -132,16 +134,16 @@ class ReferenceResolver {
   }
 
   /// Validates that all schema references in the document are resolvable.
-  /// 
+  ///
   /// This performs a comprehensive check of all schemas in the Components
   /// section, ensuring:
   /// 1. All $ref pointers point to existing schemas
   /// 2. No circular references exist that would cause infinite loops
   /// 3. All nested references (in properties, items, composition) are valid
-  /// 
+  ///
   /// This should be called early in semantic validation to catch broken
   /// references before other validators attempt to use them.
-  /// 
+  ///
   /// Throws [OpenApiValidationException] if any reference is invalid or circular.
   void validateAllSchemaReferences() {
     if (document.components?.schemas == null) return;
@@ -154,17 +156,17 @@ class ReferenceResolver {
   }
 
   /// Recursively validates all references within a schema or reference.
-  /// 
+  ///
   /// This internal method traverses the entire schema tree, checking every
   /// nested reference in:
   /// - properties (object schemas)
   /// - items (array schemas)
   /// - additionalProperties (object schemas)
   /// - allOf/oneOf/anyOf/not (composition schemas)
-  /// 
+  ///
   /// [schemaRef] The schema or reference to validate.
   /// [path] JSON Pointer path for error reporting.
-  /// 
+  ///
   /// Throws [OpenApiValidationException] for invalid or circular references.
   void _validateSchemaReferences(Referenceable<SchemaObject> schemaRef, String path) {
     if (schemaRef.isReference()) {
@@ -176,6 +178,7 @@ class ReferenceResolver {
           path,
           'Reference "$ref" not found in document',
           specReference: 'OpenAPI 3.0.0 - Reference Object',
+          severity: ValidationSeverity.critical,
         );
       }
       // Continue validating the resolved schema
@@ -229,9 +232,9 @@ class ReferenceResolver {
   }
 
   /// Resolves a response reference to the actual Response object.
-  /// 
+  ///
   /// [ref] The reference string, e.g., `#/components/responses/NotFound`
-  /// 
+  ///
   /// Returns the resolved Response, or null if the reference is invalid
   /// or doesn't exist.
   Response? resolveResponse(String ref) {
@@ -244,7 +247,7 @@ class ReferenceResolver {
 
     final responseName = parts[2];
     final responseRef = document.components?.responses?[responseName];
-    
+
     if (responseRef == null) return null;
     if (responseRef.isReference()) {
       return resolveResponse(responseRef.asReference()!);
@@ -253,9 +256,9 @@ class ReferenceResolver {
   }
 
   /// Resolves a parameter reference to the actual Parameter object.
-  /// 
+  ///
   /// [ref] The reference string, e.g., `#/components/parameters/PageSize`
-  /// 
+  ///
   /// Returns the resolved Parameter, or null if the reference is invalid
   /// or doesn't exist.
   Parameter? resolveParameter(String ref) {
@@ -268,7 +271,7 @@ class ReferenceResolver {
 
     final paramName = parts[2];
     final paramRef = document.components?.parameters?[paramName];
-    
+
     if (paramRef == null) return null;
     if (paramRef.isReference()) {
       return resolveParameter(paramRef.asReference()!);
@@ -277,9 +280,9 @@ class ReferenceResolver {
   }
 
   /// Resolves a request body reference to the actual RequestBody object.
-  /// 
+  ///
   /// [ref] The reference string, e.g., `#/components/requestBodies/CreateUser`
-  /// 
+  ///
   /// Returns the resolved RequestBody, or null if the reference is invalid
   /// or doesn't exist.
   RequestBody? resolveRequestBody(String ref) {
@@ -292,7 +295,7 @@ class ReferenceResolver {
 
     final requestBodyName = parts[2];
     final requestBodyRef = document.components?.requestBodies?[requestBodyName];
-    
+
     if (requestBodyRef == null) return null;
     if (requestBodyRef.isReference()) {
       return resolveRequestBody(requestBodyRef.asReference()!);
@@ -301,9 +304,9 @@ class ReferenceResolver {
   }
 
   /// Resolves a header reference to the actual Header object.
-  /// 
+  ///
   /// [ref] The reference string, e.g., `#/components/headers/X-Rate-Limit`
-  /// 
+  ///
   /// Returns the resolved Header, or null if the reference is invalid
   /// or doesn't exist.
   Header? resolveHeader(String ref) {
@@ -316,7 +319,7 @@ class ReferenceResolver {
 
     final headerName = parts[2];
     final headerRef = document.components?.headers?[headerName];
-    
+
     if (headerRef == null) return null;
     if (headerRef.isReference()) {
       return resolveHeader(headerRef.asReference()!);
@@ -324,4 +327,3 @@ class ReferenceResolver {
     return headerRef.asValue();
   }
 }
-

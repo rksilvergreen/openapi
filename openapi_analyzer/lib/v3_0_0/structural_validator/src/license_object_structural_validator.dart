@@ -25,6 +25,7 @@ class LicenseObjectStructuralValidator {
           ValidationUtils.buildPath(path, 'url'),
           'License url cannot be empty',
           specReference: 'OpenAPI 3.0.0 - License Object',
+          severity: ValidationSeverity.critical,
         );
       }
     }
@@ -35,4 +36,3 @@ class LicenseObjectStructuralValidator {
     ValidationUtils.validateNoUnknownFields(data, allowedFields, path, 'License Object');
   }
 }
-

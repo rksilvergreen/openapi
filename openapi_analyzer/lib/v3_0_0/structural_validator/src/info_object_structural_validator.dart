@@ -26,6 +26,7 @@ class InfoObjectStructuralValidator {
       throw OpenApiValidationException(
         ValidationUtils.buildPath(path, 'title'),
         'Info title cannot be empty',
+        severity: ValidationSeverity.critical,
         specReference: 'OpenAPI 3.0.0 - Info Object',
       );
     }
@@ -41,6 +42,7 @@ class InfoObjectStructuralValidator {
       throw OpenApiValidationException(
         ValidationUtils.buildPath(path, 'version'),
         'Info version cannot be empty',
+        severity: ValidationSeverity.critical,
         specReference: 'OpenAPI 3.0.0 - Info Object',
       );
     }
@@ -63,6 +65,7 @@ class InfoObjectStructuralValidator {
           ValidationUtils.buildPath(path, 'termsOfService'),
           'Info termsOfService cannot be empty',
           specReference: 'OpenAPI 3.0.0 - Info Object',
+          severity: ValidationSeverity.critical,
         );
       }
     }

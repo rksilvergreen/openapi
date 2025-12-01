@@ -16,6 +16,7 @@ class ReferenceObjectStructuralValidator {
         ValidationUtils.buildPath(path, r'$ref'),
         '\$ref cannot be empty',
         specReference: 'OpenAPI 3.0.0 - Reference Object',
+        severity: ValidationSeverity.critical,
       );
     }
 
