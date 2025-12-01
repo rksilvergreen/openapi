@@ -9,11 +9,7 @@ class OpenApiValidationException implements Exception {
   /// Reference to the OpenAPI 3.0.0 specification section that was violated.
   final String? specReference;
 
-  OpenApiValidationException(
-    this.path,
-    this.message, {
-    this.specReference,
-  });
+  OpenApiValidationException(this.path, this.message, {this.specReference});
 
   @override
   String toString() {
@@ -25,3 +21,20 @@ class OpenApiValidationException implements Exception {
   }
 }
 
+/// Warning thrown during OpenAPI validation.
+///
+/// Warnings indicate potential issues that may not necessarily invalidate
+/// the specification. In strict mode, warnings are treated as errors.
+/// In non-strict mode, warnings are logged but don't stop validation.
+class OpenApiValidationWarning extends OpenApiValidationException {
+  OpenApiValidationWarning(super.path, super.message, {super.specReference});
+
+  @override
+  String toString() {
+    final buffer = StringBuffer('Validation warning at $path: $message');
+    if (specReference != null) {
+      buffer.write(' (See: $specReference)');
+    }
+    return buffer.toString();
+  }
+}

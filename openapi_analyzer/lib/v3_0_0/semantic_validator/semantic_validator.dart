@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../../validation_exception.dart';
 import '../parser/src/openapi_document.dart';
 import 'src/semantic_paths_validator.dart';
@@ -27,16 +29,26 @@ abstract class SemanticValidator {
   /// - Parsed into an OpenApiDocument (Stage 2)
   ///
   /// [document] is the parsed OpenApiDocument from Stage 2.
+  /// [strict] controls whether warnings are treated as errors. When true (default),
+  ///   warnings cause validation to fail. When false, warnings are printed to stderr
+  ///   but validation continues.
   ///
   /// Throws [OpenApiValidationException] if semantic validation fails.
-  static void validate(OpenApiDocument document) {
+  /// Throws [OpenApiValidationWarning] if strict mode is enabled and a warning occurs.
+  static void validate(OpenApiDocument document, {bool strict = true}) {
     try {
       // Validate semantic rules using the typed OpenApiDocument
       _validateSemanticRules(document);
-    } catch (e) {
-      if (e is OpenApiValidationException) {
+    } on OpenApiValidationWarning catch (e) {
+      if (strict) {
         rethrow;
+      } else {
+        // In non-strict mode, print warning to stderr and continue
+        stderr.writeln('Warning: $e');
       }
+    } on OpenApiValidationException {
+      rethrow;
+    } catch (e) {
       throw OpenApiValidationException(
         '/',
         'Unexpected error during semantic validation: $e',
