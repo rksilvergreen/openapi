@@ -6,6 +6,7 @@ import '../../parser/src/response.dart';
 import '../../parser/src/parameter.dart';
 import '../../parser/src/request_body.dart';
 import '../../parser/src/header.dart';
+import '../semantic_validator.dart';
 
 /// Resolves OpenAPI $ref pointers to their actual objects within a document.
 ///
@@ -144,14 +145,16 @@ class ReferenceResolver {
   /// This should be called early in semantic validation to catch broken
   /// references before other validators attempt to use them.
   ///
+  /// [context] Optional validation context for collecting exceptions.
+  ///
   /// Throws [OpenApiValidationException] if any reference is invalid or circular.
-  void validateAllSchemaReferences() {
+  void validateAllSchemaReferences([ValidationContext? context]) {
     if (document.components?.schemas == null) return;
 
     for (final entry in document.components!.schemas!.entries) {
       final schemaName = entry.key;
       final schemaRef = entry.value;
-      _validateSchemaReferences(schemaRef, '/components/schemas/$schemaName');
+      _validateSchemaReferences(schemaRef, '/components/schemas/$schemaName', context);
     }
   }
 
@@ -166,9 +169,10 @@ class ReferenceResolver {
   ///
   /// [schemaRef] The schema or reference to validate.
   /// [path] JSON Pointer path for error reporting.
+  /// [context] Optional validation context for collecting exceptions.
   ///
   /// Throws [OpenApiValidationException] for invalid or circular references.
-  void _validateSchemaReferences(Referenceable<SchemaObject> schemaRef, String path) {
+  void _validateSchemaReferences(Referenceable<SchemaObject> schemaRef, String path, [ValidationContext? context]) {
     if (schemaRef.isReference()) {
       final ref = schemaRef.asReference()!;
       _visitedRefs.clear(); // Reset for each top-level validation
@@ -182,7 +186,7 @@ class ReferenceResolver {
         );
       }
       // Continue validating the resolved schema
-      _validateSchemaReferences(Referenceable.value(resolved), path);
+      _validateSchemaReferences(Referenceable.value(resolved), path, context);
       return;
     }
 
@@ -192,42 +196,43 @@ class ReferenceResolver {
     // Validate nested references
     if (schema.properties != null) {
       for (final entry in schema.properties!.entries) {
-        _validateSchemaReferences(entry.value, '$path/properties/${entry.key}');
+        _validateSchemaReferences(entry.value, '$path/properties/${entry.key}', context);
       }
     }
 
     if (schema.items != null) {
-      _validateSchemaReferences(schema.items!, '$path/items');
+      _validateSchemaReferences(schema.items!, '$path/items', context);
     }
 
     if (schema.additionalProperties is Referenceable<SchemaObject>) {
       _validateSchemaReferences(
         schema.additionalProperties as Referenceable<SchemaObject>,
         '$path/additionalProperties',
+        context,
       );
     }
 
     // Validate composition references
     if (schema.allOf != null) {
       for (var i = 0; i < schema.allOf!.length; i++) {
-        _validateSchemaReferences(schema.allOf![i], '$path/allOf[$i]');
+        _validateSchemaReferences(schema.allOf![i], '$path/allOf[$i]', context);
       }
     }
 
     if (schema.oneOf != null) {
       for (var i = 0; i < schema.oneOf!.length; i++) {
-        _validateSchemaReferences(schema.oneOf![i], '$path/oneOf[$i]');
+        _validateSchemaReferences(schema.oneOf![i], '$path/oneOf[$i]', context);
       }
     }
 
     if (schema.anyOf != null) {
       for (var i = 0; i < schema.anyOf!.length; i++) {
-        _validateSchemaReferences(schema.anyOf![i], '$path/anyOf[$i]');
+        _validateSchemaReferences(schema.anyOf![i], '$path/anyOf[$i]', context);
       }
     }
 
     if (schema.not != null) {
-      _validateSchemaReferences(schema.not!, '$path/not');
+      _validateSchemaReferences(schema.not!, '$path/not', context);
     }
   }
 

@@ -158,6 +158,7 @@ class SchemaObjectStructuralValidator {
           ValidationUtils.buildPath(path, 'required'),
           'Required array must contain unique strings',
           specReference: 'OpenAPI 3.0.0 - Schema Object',
+          severity: ValidationSeverity.critical,
         );
       }
     }

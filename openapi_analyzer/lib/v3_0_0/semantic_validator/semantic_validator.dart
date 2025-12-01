@@ -8,6 +8,58 @@ import 'src/reference_resolver.dart';
 
 export '../../validation_exception.dart';
 
+/// Context for collecting validation exceptions during validation.
+///
+/// Allows non-critical exceptions to be collected and processed at the end
+/// based on strictness level, enabling validation to continue even when
+/// moderate/low severity exceptions occur.
+///
+/// This class is used internally by the semantic validator.
+class ValidationContext {
+  /// List of collected exceptions.
+  final List<OpenApiValidationException> _exceptions = [];
+
+  /// The strictness level for validation.
+  final ValidationStrictness strictness;
+
+  /// Creates a new validation context.
+  ValidationContext(this.strictness);
+
+  /// Adds an exception to the collection.
+  ///
+  /// Critical exceptions are not collected - they should be thrown immediately.
+  /// Only moderate and low severity exceptions should be collected.
+  void addException(OpenApiValidationException exception) {
+    if (exception.severity == ValidationSeverity.critical) {
+      // Critical exceptions should not be collected, they should throw immediately
+      throw exception;
+    }
+    _exceptions.add(exception);
+  }
+
+  /// Processes all collected exceptions based on strictness level.
+  ///
+  /// - Throws exceptions that should cause validation to fail
+  /// - Prints exceptions that should only be warnings
+  void handleExceptions() {
+    for (final exception in _exceptions) {
+      final shouldThrow = switch (strictness) {
+        ValidationStrictness.strict => true, // All severities throw
+        ValidationStrictness.moderate =>
+          exception.severity == ValidationSeverity.critical || exception.severity == ValidationSeverity.moderate,
+        ValidationStrictness.permissive => exception.severity == ValidationSeverity.critical,
+      };
+
+      if (shouldThrow) {
+        throw exception;
+      } else {
+        // Print as warning and continue
+        stderr.writeln('$exception');
+      }
+    }
+  }
+}
+
 /// Semantic validator for OpenAPI specifications (Stage 3).
 ///
 /// This validator performs post-parsing semantic checks to ensure:
@@ -40,25 +92,18 @@ abstract class SemanticValidator {
   /// the strictness level and issue severity.
   static void validate(OpenApiDocument document, {ValidationStrictness strictness = ValidationStrictness.strict}) {
     try {
-      // Validate semantic rules using the typed OpenApiDocument
-      _validateSemanticRules(document);
-    } on OpenApiValidationException catch (e) {
-      // Determine if this exception should cause validation to fail
-      // based on its severity and the current strictness level
-      final shouldThrow = switch (strictness) {
-        ValidationStrictness.strict => true, // All severities throw
-        ValidationStrictness.moderate =>
-          e.severity == ValidationSeverity.critical || e.severity == ValidationSeverity.moderate,
-        ValidationStrictness.permissive => e.severity == ValidationSeverity.critical,
-      };
+      // Create validation context to collect exceptions
+      final context = ValidationContext(strictness);
 
-      if (shouldThrow) {
-        rethrow;
-      } else {
-        // Print as warning and continue validation
-        stderr.writeln('$e');
-      }
+      // Validate semantic rules using the typed OpenApiDocument
+      _validateSemanticRules(document, context);
+
+      // Process all collected exceptions at the end
+      context.handleExceptions();
     } catch (e) {
+      if (e is OpenApiValidationException) {
+        rethrow;
+      }
       throw OpenApiValidationException(
         '/',
         'Unexpected error during semantic validation: $e',
@@ -85,19 +130,20 @@ abstract class SemanticValidator {
   ///    - Discriminator property existence
   ///
   /// [document] The fully parsed OpenAPI document with typed objects.
+  /// [context] Validation context for collecting exceptions.
   ///
   /// Throws [OpenApiValidationException] if any semantic rule is violated.
-  static void _validateSemanticRules(OpenApiDocument document) {
+  static void _validateSemanticRules(OpenApiDocument document, ValidationContext context) {
     // Step 1: Validate reference resolution and existence
     // This must run first to ensure all references are valid before other validators
     // attempt to resolve them. Also detects circular references.
     final resolver = ReferenceResolver(document);
-    resolver.validateAllSchemaReferences();
+    resolver.validateAllSchemaReferences(context);
 
     // Step 2: Validate paths semantic rules
     // Checks for duplicate templated paths that would be ambiguous at runtime.
     // Example: /users/{id} and /users/{userId} are considered duplicates.
-    SemanticPathsValidator.validate(document.paths);
+    SemanticPathsValidator.validate(document.paths, context);
 
     // Step 3: Validate schema semantic rules
     // Validates logical consistency of all schema definitions in components.
@@ -107,7 +153,7 @@ abstract class SemanticValidator {
       for (final entry in document.components!.schemas!.entries) {
         final schemaName = entry.key;
         final schemaRef = entry.value;
-        schemaValidator.validate(schemaRef, '/components/schemas/$schemaName');
+        schemaValidator.validate(schemaRef, '/components/schemas/$schemaName', context);
       }
     }
 

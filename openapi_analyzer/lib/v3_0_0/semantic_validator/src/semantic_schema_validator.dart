@@ -4,6 +4,7 @@ import '../../parser/src/referenceable.dart';
 import '../../parser/src/openapi_document.dart';
 import '../../parser/src/enums.dart';
 import 'reference_resolver.dart';
+import '../semantic_validator.dart';
 
 /// Semantic validator for Schema Objects using typed objects.
 ///
@@ -31,6 +32,24 @@ class SemanticSchemaValidator {
   /// and checking cross-schema relationships.
   SemanticSchemaValidator(this.document) : resolver = ReferenceResolver(document);
 
+  /// Handles a validation exception by either collecting it or throwing it.
+  ///
+  /// - If context is provided and severity is moderate/low: collects the exception
+  /// - Otherwise: throws immediately (critical or no context)
+  ///
+  /// [exception] The validation exception to handle.
+  /// [context] Optional validation context for collecting exceptions.
+  void _handleValidationException(OpenApiValidationException exception, {ValidationContext? context}) {
+    if (context != null &&
+        (exception.severity == ValidationSeverity.moderate || exception.severity == ValidationSeverity.low)) {
+      // Collect exception and continue validation
+      context.addException(exception);
+    } else {
+      // Throw immediately (critical or no context)
+      throw exception;
+    }
+  }
+
   /// Validates semantic correctness of a Schema Object or reference.
   ///
   /// This is the main entry point for schema validation using a branch-based approach.
@@ -50,9 +69,10 @@ class SemanticSchemaValidator {
   ///
   /// [schemaRef] The schema or reference to validate.
   /// [path] JSON Pointer path to this schema for error reporting.
+  /// [context] Optional validation context for collecting exceptions.
   ///
   /// Throws [OpenApiValidationException] if semantic rules are violated.
-  void validate(Referenceable<SchemaObject> schemaRef, String path) {
+  void validate(Referenceable<SchemaObject> schemaRef, String path, [ValidationContext? context]) {
     // If it's a reference, resolve it first
     SchemaObject? schema;
     if (schemaRef.isReference()) {
@@ -68,21 +88,21 @@ class SemanticSchemaValidator {
 
     // Step 2: Validate each branch independently
     for (final branch in branches) {
-      _validateBranch(branch);
+      _validateBranch(branch, context);
     }
 
     // Step 3: Validate discriminator
     if (schema.discriminator != null) {
-      _validateDiscriminatorSemantics(schema, path);
+      _validateDiscriminatorSemantics(schema, path, context);
     }
 
     // Step 4: Validate default against enum
     if (schema.default_ != null && schema.enum_ != null) {
-      _validateDefaultAgainstEnum(schema.default_!, schema.enum_!, path);
+      _validateDefaultAgainstEnum(schema.default_!, schema.enum_!, path, context);
     }
 
     // Step 5: Recursively validate nested schemas
-    _validateNestedSchemas(schema, path);
+    _validateNestedSchemas(schema, path, context);
   }
 
   /// Enumerates all possible branches in a schema's composition structure.
@@ -195,14 +215,17 @@ class SemanticSchemaValidator {
   /// [branch] The branch to validate.
   ///
   /// Throws [OpenApiValidationException] if any validation fails.
-  void _validateBranch(_SchemaBranch branch) {
+  void _validateBranch(_SchemaBranch branch, [ValidationContext? context]) {
     final schemas = branch.schemas;
     final path = branch.path;
 
     try {
-      _validateSchemaList(schemas);
+      _validateSchemaList(schemas, context);
     } on _SchemaListValidationError catch (e) {
-      throw OpenApiValidationException(path, e.message, specReference: e.specReference, severity: e.severity);
+      _handleValidationException(
+        OpenApiValidationException(path, e.message, specReference: e.specReference, severity: e.severity),
+        context: context,
+      );
     }
   }
 
@@ -217,26 +240,27 @@ class SemanticSchemaValidator {
   /// 5. Enum value compatibility
   ///
   /// [schemas] The list of schemas to validate together.
+  /// [context] Optional validation context for collecting exceptions.
   ///
   /// Throws [_SchemaListValidationError] if any validation fails.
-  void _validateSchemaList(List<SchemaObject> schemas) {
+  void _validateSchemaList(List<SchemaObject> schemas, [ValidationContext? context]) {
     // Step 1: Validate explicit types and ensure all schemas have compatible types
-    _validateExplicitTypes(schemas);
+    _validateExplicitTypes(schemas, context);
 
     // Step 2: Determine the effective schema type
     final schemaType = _determineSchemaType(schemas);
 
     // Step 3: Validate that all type-specific properties match the determined type
-    _validateImplicitTypes(schemas, schemaType);
+    _validateImplicitTypes(schemas, schemaType, context);
 
     // Step 4: Validate type-specific constraints for the determined type
-    _validateConstraints(schemas, schemaType);
+    _validateConstraints(schemas, schemaType, context);
 
     // Step 5: Validate const compatibility
-    _validateConsts(schemas);
+    _validateConsts(schemas, context);
 
     // Step 6: Validate enum compatibility
-    _validateEnums(schemas);
+    _validateEnums(schemas, context);
   }
 
   /// Validates explicit type requirements and compatibility across schemas.
@@ -248,7 +272,7 @@ class SemanticSchemaValidator {
   /// [schemas] All schemas to validate.
   ///
   /// Throws [_SchemaListValidationError] if types are missing or incompatible.
-  void _validateExplicitTypes(List<SchemaObject> schemas) {
+  void _validateExplicitTypes(List<SchemaObject> schemas, [ValidationContext? context]) {
     // Step 1: Validate that each schema has an explicit type
     for (final schema in schemas) {
       if (schema.type == null) {
@@ -353,7 +377,7 @@ class SemanticSchemaValidator {
   /// [schemaType] The determined type for these schemas.
   ///
   /// Throws [_SchemaListValidationError] if properties don't match the schema type.
-  void _validateImplicitTypes(List<SchemaObject> schemas, SchemaType schemaType) {
+  void _validateImplicitTypes(List<SchemaObject> schemas, SchemaType schemaType, [ValidationContext? context]) {
     // Check that all type-specific properties match the determined schema type
     for (var i = 0; i < schemas.length; i++) {
       final schema = schemas[i];
@@ -535,20 +559,20 @@ class SemanticSchemaValidator {
   /// [schemaType] The determined type for these schemas.
   ///
   /// Throws [_SchemaListValidationError] if constraints are incoherent across schemas.
-  void _validateConstraints(List<SchemaObject> schemas, SchemaType schemaType) {
+  void _validateConstraints(List<SchemaObject> schemas, SchemaType schemaType, [ValidationContext? context]) {
     switch (schemaType) {
       case SchemaType.string:
-        _validateStringConstraints(schemas);
+        _validateStringConstraints(schemas, context);
         break;
       case SchemaType.number:
       case SchemaType.integer:
-        _validateNumericConstraints(schemas);
+        _validateNumericConstraints(schemas, context);
         break;
       case SchemaType.array:
-        _validateArrayConstraints(schemas);
+        _validateArrayConstraints(schemas, context);
         break;
       case SchemaType.object:
-        _validateObjectConstraints(schemas);
+        _validateObjectConstraints(schemas, context);
         break;
       case SchemaType.boolean:
         // Boolean has no specific constraints to validate
@@ -570,7 +594,7 @@ class SemanticSchemaValidator {
   /// [schemas] All schemas to validate.
   ///
   /// Throws [_SchemaListValidationError] if constraints conflict.
-  void _validateNumericConstraints(List<SchemaObject> schemas) {
+  void _validateNumericConstraints(List<SchemaObject> schemas, [ValidationContext? context]) {
     // Collect all numeric constraints across all schemas
     num? globalMinimum;
     num? globalMaximum;
@@ -631,7 +655,7 @@ class SemanticSchemaValidator {
   /// [schemas] All schemas to validate.
   ///
   /// Throws [_SchemaListValidationError] if constraints conflict.
-  void _validateStringConstraints(List<SchemaObject> schemas) {
+  void _validateStringConstraints(List<SchemaObject> schemas, [ValidationContext? context]) {
     // Collect all string constraints across all schemas
     int? globalMinLength;
     int? globalMaxLength;
@@ -670,10 +694,10 @@ class SemanticSchemaValidator {
   /// [schemas] All schemas to validate.
   ///
   /// Throws [_SchemaListValidationError] if constraints conflict.
-  void _validateArrayConstraints(List<SchemaObject> schemas) {
-    _validateArrayMinMaxItems(schemas);
-    _validateArrayUniqueItems(schemas);
-    _validateArrayItems(schemas);
+  void _validateArrayConstraints(List<SchemaObject> schemas, [ValidationContext? context]) {
+    _validateArrayMinMaxItems(schemas, context);
+    _validateArrayUniqueItems(schemas, context);
+    _validateArrayItems(schemas, context);
   }
 
   /// Validates array min/max items constraints across all schemas.
@@ -686,7 +710,7 @@ class SemanticSchemaValidator {
   /// [schemas] All schemas to validate.
   ///
   /// Throws [_SchemaListValidationError] if constraints conflict.
-  void _validateArrayMinMaxItems(List<SchemaObject> schemas) {
+  void _validateArrayMinMaxItems(List<SchemaObject> schemas, [ValidationContext? context]) {
     // Collect all array constraints across all schemas
     int? globalMinItems;
     int? globalMaxItems;
@@ -732,7 +756,7 @@ class SemanticSchemaValidator {
   /// [schemas] All schemas to validate.
   ///
   /// Throws [_SchemaListValidationError] if uniqueItems values conflict.
-  void _validateArrayUniqueItems(List<SchemaObject> schemas) {
+  void _validateArrayUniqueItems(List<SchemaObject> schemas, [ValidationContext? context]) {
     // Collect all uniqueItems values that are explicitly set to true
     final uniqueItemsValues = schemas.map((s) => s.uniqueItems).toSet();
 
@@ -758,7 +782,7 @@ class SemanticSchemaValidator {
   ///
   /// Throws [_SchemaListValidationError] if items schemas are incompatible
   /// and at least one schema requires items.
-  void _validateArrayItems(List<SchemaObject> schemas) {
+  void _validateArrayItems(List<SchemaObject> schemas, [ValidationContext? context]) {
     // Collect all items schemas
     final itemsSchemas = <SchemaObject>[];
 
@@ -780,13 +804,17 @@ class SemanticSchemaValidator {
     // If no items are required, an empty array satisfies all schemas regardless of items compatibility
     if (itemsSchemas.length > 1 && requiresItems) {
       try {
-        _validateSchemaList(itemsSchemas);
+        _validateSchemaList(itemsSchemas, context);
       } on _SchemaListValidationError catch (e) {
         // Re-throw with additional context about items
-        throw _SchemaListValidationError(
-          'Schema list has incompatible items schemas and minItems requires at least one item: ${e.message}',
-          specReference: e.specReference,
-          severity: e.severity,
+        _handleValidationException(
+          OpenApiValidationException(
+            '',
+            'Schema list has incompatible items schemas and minItems requires at least one item: ${e.message}',
+            specReference: e.specReference,
+            severity: e.severity,
+          ),
+          context: context,
         );
       }
     }
@@ -802,10 +830,10 @@ class SemanticSchemaValidator {
   /// [schemas] All schemas to validate.
   ///
   /// Throws [_SchemaListValidationError] if constraints conflict.
-  void _validateObjectConstraints(List<SchemaObject> schemas) {
-    _validateObjectMinMaxProperties(schemas);
-    _validateObjectProperties(schemas);
-    _validateObjectRequired(schemas);
+  void _validateObjectConstraints(List<SchemaObject> schemas, [ValidationContext? context]) {
+    _validateObjectMinMaxProperties(schemas, context);
+    _validateObjectProperties(schemas, context);
+    _validateObjectRequired(schemas, context);
   }
 
   /// Validates object min/max properties constraints across all schemas.
@@ -818,7 +846,7 @@ class SemanticSchemaValidator {
   /// [schemas] All schemas to validate.
   ///
   /// Throws [_SchemaListValidationError] if constraints conflict.
-  void _validateObjectMinMaxProperties(List<SchemaObject> schemas) {
+  void _validateObjectMinMaxProperties(List<SchemaObject> schemas, [ValidationContext? context]) {
     // Collect all object constraints across all schemas
     int? globalMinProperties;
     int? globalMaxProperties;
@@ -863,7 +891,7 @@ class SemanticSchemaValidator {
   ///
   /// Throws [_SchemaListValidationError] if property schemas are incompatible
   /// and the property is required.
-  void _validateObjectProperties(List<SchemaObject> schemas) {
+  void _validateObjectProperties(List<SchemaObject> schemas, [ValidationContext? context]) {
     // Collect all unique property names across all schemas
     final allPropertyNames = <String>{};
     for (final schema in schemas) {
@@ -897,13 +925,17 @@ class SemanticSchemaValidator {
       // If not required, an object without this property satisfies all schemas
       if (propertySchemas.length > 1 && isRequired) {
         try {
-          _validateSchemaList(propertySchemas);
+          _validateSchemaList(propertySchemas, context);
         } on _SchemaListValidationError catch (e) {
           // Re-throw with additional context about which property
-          throw _SchemaListValidationError(
-            'Schema list has incompatible schemas for required property "$propertyName": ${e.message}',
-            specReference: e.specReference,
-            severity: e.severity,
+          _handleValidationException(
+            OpenApiValidationException(
+              '',
+              'Schema list has incompatible schemas for required property "$propertyName": ${e.message}',
+              specReference: e.specReference,
+              severity: e.severity,
+            ),
+            context: context,
           );
         }
       }
@@ -924,7 +956,7 @@ class SemanticSchemaValidator {
   /// [schemas] All schemas to validate.
   ///
   /// Throws [_SchemaListValidationError] if required properties are not defined.
-  void _validateObjectRequired(List<SchemaObject> schemas) {
+  void _validateObjectRequired(List<SchemaObject> schemas, [ValidationContext? context]) {
     // Collect all required properties across all schemas
     final allRequired = <String>{};
     for (final schema in schemas) {
@@ -988,7 +1020,7 @@ class SemanticSchemaValidator {
   /// [schemas] The resolved schemas.
   ///
   /// Throws [_SchemaListValidationError] if multiple different const values exist.
-  void _validateConsts(List<SchemaObject> schemas) {
+  void _validateConsts(List<SchemaObject> schemas, [ValidationContext? context]) {
     // Collect const values from all schemas
     final constValues = schemas.where((s) => s.const_ != null).map((s) => s.const_).toList();
 
@@ -1025,7 +1057,7 @@ class SemanticSchemaValidator {
   /// [schemas] The resolved schemas.
   ///
   /// Throws [_SchemaListValidationError] if enum sets have no intersection.
-  void _validateEnums(List<SchemaObject> schemas) {
+  void _validateEnums(List<SchemaObject> schemas, [ValidationContext? context]) {
     // Collect enum lists from all schemas
     final enumLists = schemas.where((s) => s.enum_ != null).map((s) => s.enum_!).toList();
 
@@ -1073,7 +1105,7 @@ class SemanticSchemaValidator {
   ///
   /// [schema] The schema object containing a discriminator.
   /// [path] JSON Pointer path for error reporting.
-  void _validateDiscriminatorSemantics(SchemaObject schema, String path) {
+  void _validateDiscriminatorSemantics(SchemaObject schema, String path, [ValidationContext? context]) {
     final discriminator = schema.discriminator!;
     final propertyName = discriminator.propertyName;
 
@@ -1144,13 +1176,21 @@ class SemanticSchemaValidator {
   /// [path] JSON Pointer path for error reporting.
   ///
   /// Throws [OpenApiValidationException] if default is not in enum.
-  void _validateDefaultAgainstEnum(dynamic defaultValue, List<dynamic> enumValues, String path) {
+  void _validateDefaultAgainstEnum(
+    dynamic defaultValue,
+    List<dynamic> enumValues,
+    String path, [
+    ValidationContext? context,
+  ]) {
     if (!enumValues.contains(defaultValue)) {
-      throw OpenApiValidationException(
-        '$path/default',
-        'Default value "$defaultValue" is not one of the enum values: ${enumValues.join(", ")}',
-        specReference: 'JSON Schema Validation',
-        severity: ValidationSeverity.critical,
+      _handleValidationException(
+        OpenApiValidationException(
+          '$path/default',
+          'Default value "$defaultValue" is not one of the enum values: ${enumValues.join(", ")}',
+          specReference: 'JSON Schema Validation',
+          severity: ValidationSeverity.critical,
+        ),
+        context: context,
       );
     }
   }
@@ -1189,38 +1229,39 @@ class SemanticSchemaValidator {
   ///
   /// [schema] The parent schema containing nested schemas.
   /// [path] JSON Pointer path for error reporting (will be extended for each nested schema).
-  void _validateNestedSchemas(SchemaObject schema, String path) {
+  /// [context] Optional validation context for collecting exceptions.
+  void _validateNestedSchemas(SchemaObject schema, String path, [ValidationContext? context]) {
     // Recursively validate properties
     if (schema.properties != null) {
       for (final entry in schema.properties!.entries) {
-        validate(entry.value, '$path/properties/${entry.key}');
+        validate(entry.value, '$path/properties/${entry.key}', context);
       }
     }
 
     // Recursively validate items
     if (schema.items != null) {
-      validate(schema.items!, '$path/items');
+      validate(schema.items!, '$path/items', context);
     }
 
     // Recursively validate additionalProperties if it's a schema
     if (schema.additionalProperties is Referenceable<SchemaObject>) {
-      validate(schema.additionalProperties as Referenceable<SchemaObject>, '$path/additionalProperties');
+      validate(schema.additionalProperties as Referenceable<SchemaObject>, '$path/additionalProperties', context);
     }
 
     // Recursively validate composition schemas
     if (schema.allOf != null) {
       for (var i = 0; i < schema.allOf!.length; i++) {
-        validate(schema.allOf![i], '$path/allOf[$i]');
+        validate(schema.allOf![i], '$path/allOf[$i]', context);
       }
     }
     if (schema.oneOf != null) {
       for (var i = 0; i < schema.oneOf!.length; i++) {
-        validate(schema.oneOf![i], '$path/oneOf[$i]');
+        validate(schema.oneOf![i], '$path/oneOf[$i]', context);
       }
     }
     if (schema.anyOf != null) {
       for (var i = 0; i < schema.anyOf!.length; i++) {
-        validate(schema.anyOf![i], '$path/anyOf[$i]');
+        validate(schema.anyOf![i], '$path/anyOf[$i]', context);
       }
     }
 

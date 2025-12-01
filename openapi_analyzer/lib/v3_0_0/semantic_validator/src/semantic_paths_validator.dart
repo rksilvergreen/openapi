@@ -1,5 +1,6 @@
 import '../../../validation_exception.dart';
 import '../../parser/src/paths.dart';
+import '../semantic_validator.dart';
 
 /// Semantic validator for Paths Objects (OpenAPI 3.0.0).
 ///
@@ -18,10 +19,11 @@ class SemanticPathsValidator {
   /// - HTTP method coverage
   ///
   /// [paths] The Paths object containing all API path definitions.
+  /// [context] Optional validation context for collecting exceptions.
   ///
   /// Throws [OpenApiValidationException] if duplicate templated paths are found.
-  static void validate(Paths paths) {
-    _checkDuplicateTemplatedPaths(paths);
+  static void validate(Paths paths, [ValidationContext? context]) {
+    _checkDuplicateTemplatedPaths(paths, context);
 
     // Additional semantic path validations would go here
     // e.g., checking path parameter consistency, etc.
@@ -38,9 +40,10 @@ class SemanticPathsValidator {
   /// - `/items/{itemId}/details` and `/items/{id}/details` → Conflict
   ///
   /// [paths] The Paths object to check.
+  /// [context] Optional validation context for collecting exceptions.
   ///
   /// Throws [OpenApiValidationException] when duplicate patterns are detected.
-  static void _checkDuplicateTemplatedPaths(Paths paths) {
+  static void _checkDuplicateTemplatedPaths(Paths paths, [ValidationContext? context]) {
     final pathPatterns = <String, String>{};
     for (final key in paths.paths.keys) {
       final pathStr = key;
