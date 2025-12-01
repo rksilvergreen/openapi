@@ -377,26 +377,26 @@ class SemanticSchemaValidator {
           schema.required_ != null ||
           schema.properties != null ||
           schema.additionalProperties != null ||
-          schema.patternProperties != null;
+          schema.discriminator != null;
 
       // Validate properties match the schema type
       switch (schemaType) {
         case SchemaType.string:
           if (hasNumberProps) {
             throw _SchemaListValidationError(
-              'Schema list has type "string" but contains number/integer properties (minimum/maximum/multipleOf).',
+              'Schema list has type "string" but contains number/integer properties (minimum/maximum/exclusiveMinimum/exclusiveMaximum/multipleOf).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasArrayProps) {
             throw _SchemaListValidationError(
-              'Schema list has type "string" but contains array properties (minItems/maxItems/items).',
+              'Schema list has type "string" but contains array properties (minItems/maxItems/uniqueItems/items).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasObjectProps) {
             throw _SchemaListValidationError(
-              'Schema list has type "string" but contains object properties (properties/required/additionalProperties).',
+              'Schema list has type "string" but contains object properties (minProperties/maxProperties/required/properties/additionalProperties/discriminator).',
               specReference: 'JSON Schema Core',
             );
           }
@@ -412,13 +412,13 @@ class SemanticSchemaValidator {
           }
           if (hasArrayProps) {
             throw _SchemaListValidationError(
-              'Schema list has type "${schemaType.name}" but contains array properties (minItems/maxItems/items).',
+              'Schema list has type "${schemaType.name}" but contains array properties (minItems/maxItems/uniqueItems/items).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasObjectProps) {
             throw _SchemaListValidationError(
-              'Schema list has type "${schemaType.name}" but contains object properties (properties/required/additionalProperties).',
+              'Schema list has type "${schemaType.name}" but contains object properties (minProperties/maxProperties/required/properties/additionalProperties/discriminator).',
               specReference: 'JSON Schema Core',
             );
           }
@@ -433,13 +433,13 @@ class SemanticSchemaValidator {
           }
           if (hasNumberProps) {
             throw _SchemaListValidationError(
-              'Schema list has type "array" but contains number/integer properties (minimum/maximum/multipleOf).',
+              'Schema list has type "array" but contains number/integer properties (minimum/maximum/exclusiveMinimum/exclusiveMaximum/multipleOf).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasObjectProps) {
             throw _SchemaListValidationError(
-              'Schema list has type "array" but contains object properties (properties/required/additionalProperties).',
+              'Schema list has type "array" but contains object properties (minProperties/maxProperties/required/properties/additionalProperties/discriminator).',
               specReference: 'JSON Schema Core',
             );
           }
@@ -454,13 +454,13 @@ class SemanticSchemaValidator {
           }
           if (hasNumberProps) {
             throw _SchemaListValidationError(
-              'Schema list has type "object" but contains number/integer properties (minimum/maximum/multipleOf).',
+              'Schema list has type "object" but contains number/integer properties (minimum/maximum/exclusiveMinimum/exclusiveMaximum/multipleOf).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasArrayProps) {
             throw _SchemaListValidationError(
-              'Schema list has type "object" but contains array properties (minItems/maxItems/items).',
+              'Schema list has type "object" but contains array properties (minItems/maxItems/uniqueItems/items).',
               specReference: 'JSON Schema Core',
             );
           }
@@ -475,19 +475,19 @@ class SemanticSchemaValidator {
           }
           if (hasNumberProps) {
             throw _SchemaListValidationError(
-              'Schema list has type "boolean" but contains number/integer properties (minimum/maximum/multipleOf).',
+              'Schema list has type "boolean" but contains number/integer properties (minimum/maximum/exclusiveMinimum/exclusiveMaximum/multipleOf).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasArrayProps) {
             throw _SchemaListValidationError(
-              'Schema list has type "boolean" but contains array properties (minItems/maxItems/items).',
+              'Schema list has type "boolean" but contains array properties (minItems/maxItems/uniqueItems/items).',
               specReference: 'JSON Schema Core',
             );
           }
           if (hasObjectProps) {
             throw _SchemaListValidationError(
-              'Schema list has type "boolean" but contains object properties (properties/required/additionalProperties).',
+              'Schema list has type "boolean" but contains object properties (minProperties/maxProperties/required/properties/additionalProperties/discriminator).',
               specReference: 'JSON Schema Core',
             );
           }
@@ -725,18 +725,25 @@ class SemanticSchemaValidator {
 
   /// Validates items schemas across all schemas.
   ///
-  /// When multiple schemas specify an items constraint, all items schemas must be
-  /// compatible. This method collects all items schemas and validates them together
-  /// using the core schema list validation.
+  /// Incompatible items schemas are only a problem if at least one array item
+  /// is required (minItems >= 1). If all schemas allow empty arrays, then
+  /// incompatible items schemas are acceptable since an empty array satisfies
+  /// all constraints.
   ///
   /// [schemas] All schemas to validate.
   ///
-  /// Throws [_SchemaListValidationError] if items schemas are incompatible.
+  /// Throws [_SchemaListValidationError] if items schemas are incompatible
+  /// and at least one schema requires items.
   void _validateArrayItems(List<SchemaObject> schemas) {
     // Collect all items schemas
     final itemsSchemas = <SchemaObject>[];
 
+    // Check if any schema requires at least one item
+    bool requiresItems = false;
     for (final schema in schemas) {
+      if (schema.minItems != null && schema.minItems! >= 1) {
+        requiresItems = true;
+      }
       if (schema.items != null) {
         final itemsSchema = _resolveAndGetSchema(schema.items!, '');
         if (itemsSchema != null) {
@@ -745,14 +752,15 @@ class SemanticSchemaValidator {
       }
     }
 
-    // If we have multiple items schemas, validate them together
-    if (itemsSchemas.length > 1) {
+    // Only validate items schemas if we have multiple AND at least one item is required
+    // If no items are required, an empty array satisfies all schemas regardless of items compatibility
+    if (itemsSchemas.length > 1 && requiresItems) {
       try {
         _validateSchemaList(itemsSchemas);
       } on _SchemaListValidationError catch (e) {
         // Re-throw with additional context about items
         throw _SchemaListValidationError(
-          'Schema list has incompatible items schemas: ${e.message}',
+          'Schema list has incompatible items schemas and minItems requires at least one item: ${e.message}',
           specReference: e.specReference,
         );
       }
@@ -815,19 +823,20 @@ class SemanticSchemaValidator {
 
   /// Validates property schemas across all schemas.
   ///
-  /// When multiple schemas define the same property name, all schemas for that
-  /// property must be compatible. This method:
-  /// 1. Collects all unique property names across all schemas
-  /// 2. For each property name, collects all schemas that define it
-  /// 3. Validates each property's schemas together using core schema list validation
+  /// Incompatible property schemas are only a problem if the property is required
+  /// in at least one schema. If all schemas allow the property to be omitted,
+  /// then incompatible property schemas are acceptable since an object without
+  /// that property satisfies all constraints.
   ///
-  /// For example, if Schema A defines property "age" as {type: integer, minimum: 0}
-  /// and Schema B defines "age" as {type: integer, maximum: 120}, both schemas
-  /// must be compatible (which they are in this case).
+  /// For example, if Schema A defines property "age" as {type: string, required: ['age']}
+  /// and Schema B defines "age" as {type: number, required: ['age']}, there is no
+  /// valid object. But if neither schema requires "age", then an object without
+  /// "age" satisfies both.
   ///
   /// [schemas] All schemas to validate.
   ///
-  /// Throws [_SchemaListValidationError] if property schemas are incompatible.
+  /// Throws [_SchemaListValidationError] if property schemas are incompatible
+  /// and the property is required.
   void _validateObjectProperties(List<SchemaObject> schemas) {
     // Collect all unique property names across all schemas
     final allPropertyNames = <String>{};
@@ -840,9 +849,15 @@ class SemanticSchemaValidator {
     // For each unique property name, validate all its schemas together
     for (final propertyName in allPropertyNames) {
       final propertySchemas = <SchemaObject>[];
+      bool isRequired = false;
 
-      // Collect all schemas for this property
+      // Collect all schemas for this property and check if it's required
       for (final schema in schemas) {
+        // Check if this property is required in this schema
+        if (schema.required_ != null && schema.required_!.contains(propertyName)) {
+          isRequired = true;
+        }
+
         if (schema.properties != null && schema.properties!.containsKey(propertyName)) {
           final propertySchemaRef = schema.properties![propertyName]!;
           final propertySchema = _resolveAndGetSchema(propertySchemaRef, '');
@@ -852,14 +867,15 @@ class SemanticSchemaValidator {
         }
       }
 
-      // Validate this property's schemas together if we have multiple
-      if (propertySchemas.length > 1) {
+      // Only validate if we have multiple schemas AND the property is required
+      // If not required, an object without this property satisfies all schemas
+      if (propertySchemas.length > 1 && isRequired) {
         try {
           _validateSchemaList(propertySchemas);
         } on _SchemaListValidationError catch (e) {
           // Re-throw with additional context about which property
           throw _SchemaListValidationError(
-            'Schema list has incompatible schemas for property "$propertyName": ${e.message}',
+            'Schema list has incompatible schemas for required property "$propertyName": ${e.message}',
             specReference: e.specReference,
           );
         }

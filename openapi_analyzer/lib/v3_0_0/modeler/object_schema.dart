@@ -13,7 +13,7 @@ class ObjectSchema extends SingleTypeSchema<Map<String, dynamic>, ObjectSchema> 
   final List<String> requiredProperties;
   final Map<String, Schema> properties;
   final bool? additionalPropertiesAllowed;
-  final Map<String, Schema> additionalProperties;
+  final Schema? additionalProperties;
   final int? maxProperties;
   final int? minProperties;
 
@@ -36,7 +36,7 @@ class ObjectSchema extends SingleTypeSchema<Map<String, dynamic>, ObjectSchema> 
     this.requiredProperties = const [],
     this.properties = const {},
     this.additionalPropertiesAllowed = true,
-    this.additionalProperties = const {},
+    this.additionalProperties,
     this.maxProperties,
     this.minProperties,
   }) : assert(_doVariantsOrBaseSchemasIncludeDiscriminator(discriminator, variants, isBaseFor));

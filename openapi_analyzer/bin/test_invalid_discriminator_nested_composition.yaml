@@ -120,3 +120,48 @@ components:
           - title: "7"
             type: string
 
+    Test5:
+      allOf:
+        - type: object
+          properties:
+            name: 
+              type: string
+            age:
+              type: integer
+          additionalProperties:
+              type: string
+        - type: object
+          properties:
+            address:
+              type: string
+            city:
+              type: string
+          additionalProperties: false
+    
+    Test6:
+      allOf:
+        - type: object
+          properties:
+            name:
+              type: string
+        - type: object
+          properties:
+            name:
+              type: integer
+
+    Test7:
+      allOf:
+        - type: array
+          items:
+            type: string
+        - type: array
+          items:
+            type: integer
+
+    Example1:
+      allOf:
+        - type: integer
+          minimum: 10
+        - type: integer
+          minimum: 20
+
