@@ -220,133 +220,310 @@ class SemanticSchemaValidator {
   /// [path] JSON Pointer path for error reporting.
   ///
   void _validateSchemaList(List<SchemaObject> schemas, String path) {
-    // Step 1: Validate explicit types and ensure all schemas have compatible types
-    _validateExplicitTypes(schemas, path);
+    // If schema list is empty, return
+    if (schemas.isEmpty) {
+      return;
+    }
 
-    // Step 2: Determine the effective schema type
-    final schemaType = _determineSchemaType(schemas, path);
+    // Step 1: Validate and determine the schema type
+    final schemaType = _validateType(schemas, path);
+    if (schemaType == null) {
+      return;
+    }
 
-    // Step 3: Validate that all type-specific properties match the determined type
-    _validateImplicitTypes(schemas, schemaType, path);
-
-    // Step 4: Validate type-specific constraints for the determined type
+    // Step 2: Validate type-specific constraints for the determined type
     _validateConstraints(schemas, schemaType, path);
 
-    // Step 5: Validate const compatibility
+    // Step 3: Validate const compatibility
     _validateConsts(schemas, path);
 
-    // Step 6: Validate enum compatibility
+    // Step 4: Validate enum compatibility
     _validateEnums(schemas, path);
   }
 
-  /// Validates explicit type requirements and compatibility across schemas.
+  /// Validates and determines the schema type from explicit types and properties.
   ///
-  /// This ensures that:
-  /// 1. Every schema has an explicit `type` property
-  /// 2. All explicit types are compatible (same type or compatible subtypes)
+  /// Handles the case where some schemas have explicit types and some don't:
+  /// 1. Separates schemas with and without explicit types
+  /// 2. Validates schemas with explicit types
+  /// 3. Validates schemas without explicit types
+  /// 4. Compares explicit and implicit types if both exist
   ///
   /// [schemas] All schemas to validate.
   /// [path] JSON Pointer path for error reporting.
   ///
-  void _validateExplicitTypes(List<SchemaObject> schemas, String path) {
-    // Step 1: Validate that each schema has an explicit type
-    for (final schema in schemas) {
-      if (schema.type == null) {
+  /// Returns the validated SchemaType, or null if validation failed or type couldn't be established.
+  SchemaType? _validateType(List<SchemaObject> schemas, String path) {
+    // Step 1: Separate schemas with and without explicit types
+    final (:schemasWithTypes, :schemasWithoutTypes) = _getExplicitTypes(schemas, path);
+
+    // Step 2: Validate schemas with explicit types
+    SchemaType? explicitType;
+    if (schemasWithTypes.isNotEmpty) {
+      explicitType = _validateSchemasWithExplicitTypes(schemasWithTypes, path);
+    }
+
+    // Step 3: Validate schemas without explicit types
+    SchemaType? implicitType;
+    if (schemasWithoutTypes.isNotEmpty) {
+      implicitType = _validateSchemasWithoutExplicitTypes(schemasWithoutTypes, path);
+    }
+
+    // Step 4: Compare explicit and implicit types if both exist
+    SchemaType? schemaType;
+    if (explicitType != null && implicitType != null) {
+      if (explicitType != implicitType) {
         context.addException(
           path,
-          'Schema must have an explicit "type" property. Types cannot be inferred from other properties.',
-          specReference: 'OpenAPI 3.0.0 - Schema Object',
+          'Schema list has explicit type "${explicitType.name}" but properties suggest type "${implicitType.name}". Types must match.',
+          specReference: 'JSON Schema Core',
           severity: ValidationSeverity.critical,
         );
-        return;
+        return null;
       }
+      schemaType = explicitType;
+    } else {
+      schemaType = explicitType ?? implicitType;
     }
 
-    // Step 2: Collect types from all schemas
-    final types = schemas.where((s) => s.type != null).map((s) => s.type!).toList();
-
-    if (types.length > 1) {
-      final uniqueTypes = types.toSet();
-      if (uniqueTypes.length > 1) {
-        // Different types - check if they're incompatible
-        final incompatiblePairs = [
-          [SchemaType.string, SchemaType.number],
-          [SchemaType.string, SchemaType.integer],
-          [SchemaType.string, SchemaType.boolean],
-          [SchemaType.string, SchemaType.array],
-          [SchemaType.string, SchemaType.object],
-          [SchemaType.number, SchemaType.boolean],
-          [SchemaType.number, SchemaType.array],
-          [SchemaType.number, SchemaType.object],
-          [SchemaType.integer, SchemaType.boolean],
-          [SchemaType.integer, SchemaType.array],
-          [SchemaType.integer, SchemaType.object],
-          [SchemaType.boolean, SchemaType.array],
-          [SchemaType.boolean, SchemaType.object],
-          [SchemaType.array, SchemaType.object],
-        ];
-
-        for (final pair in incompatiblePairs) {
-          if (types.contains(pair[0]) && types.contains(pair[1])) {
-            // Convert enum values to strings for error message
-            final typeNames = types.map((t) => t.name).join(', ');
-            final pairNames = '${pair[0].name} and ${pair[1].name}';
-            context.addException(
-              path,
-              'Schema list contains incompatible types: $typeNames. A value cannot be both $pairNames simultaneously.',
-              specReference: 'JSON Schema Core - allOf semantics',
-              severity: ValidationSeverity.critical,
-            );
-            return;
-          }
-        }
-      }
+    // If we couldn't establish a type, add exception and return null
+    if (schemaType == null) {
+      context.addException(
+        path,
+        'Schema list has no explicit type and no type-specific properties. This is an empty schema.',
+        specReference: 'JSON Schema Core',
+        severity: ValidationSeverity.low,
+      );
+      return null;
     }
+
+    return schemaType;
   }
 
-  /// Determines the actual type after validating type compatibility.
+  /// Separates schemas into those with and without explicit types.
   ///
-  /// After ensuring all schemas have compatible types, this determines what the
-  /// effective type is. Returns the most specific type.
+  /// Adds a low severity exception for each schema without an explicit type.
   ///
-  /// For example:
-  /// - All schemas have `string` → returns `string`
-  /// - Mix of `integer` and `number` → returns `integer` (most specific)
-  /// - All empty parent schemas → returns first non-null type found
-  ///
-  /// [schemas] All schemas to analyze.
+  /// [schemas] All schemas to categorize.
   /// [path] JSON Pointer path for error reporting.
   ///
-  /// Returns the determined schema type.
-  SchemaType _determineSchemaType(List<SchemaObject> schemas, String path) {
-    // Collect all types
-    final types = schemas.where((s) => s.type != null).map((s) => s.type!).toList();
+  /// Returns a record with two lists: schemas with types and schemas without types.
+  ({List<SchemaObject> schemasWithTypes, List<SchemaObject> schemasWithoutTypes}) _getExplicitTypes(
+    List<SchemaObject> schemas,
+    String path,
+  ) {
+    final schemasWithTypes = <SchemaObject>[];
+    final schemasWithoutTypes = <SchemaObject>[];
 
-    if (types.isEmpty) {
-      // This shouldn't happen as _validateBranchExplicitTypes ensures all have types
-      throw StateError('No types found in branch schemas');
+    for (final schema in schemas) {
+      if (schema.type != null) {
+        schemasWithTypes.add(schema);
+      } else {
+        schemasWithoutTypes.add(schema);
+        context.addException(
+          path,
+          'Schema should have an explicit "type" property. Type will be inferred from properties.',
+          specReference: 'OpenAPI 3.0.0 - Schema Object',
+          severity: ValidationSeverity.low,
+        );
+      }
     }
 
-    // If all the same type, return it
-    final uniqueTypes = types.toSet();
-    if (uniqueTypes.length == 1) {
-      return types.first;
-    }
-
-    // If mix of integer and number, prefer integer (most specific)
-    if (uniqueTypes.contains(SchemaType.integer) && uniqueTypes.contains(SchemaType.number)) {
-      return SchemaType.integer;
-    }
-
-    // Otherwise return the first type (they should all be compatible at this point)
-    return types.first;
+    return (schemasWithTypes: schemasWithTypes, schemasWithoutTypes: schemasWithoutTypes);
   }
 
-  /// Validates that all type-specific properties match the explicit type.
+  /// Validates schemas that have explicit type declarations.
   ///
-  /// After determining the effective type, this ensures that all type-specific
-  /// properties (like minLength, required, items, etc.) belong to that type and
-  /// no properties from other types are present.
+  /// 1. Checks that all explicit types are the same (or compatible)
+  /// 2. Validates that all properties match the explicit type
+  ///
+  /// Returns the validated type, or null if validation failed.
+  ///
+  /// [schemas] Schemas with explicit type declarations.
+  /// [path] JSON Pointer path for error reporting.
+  ///
+  /// Returns the validated SchemaType, or null if validation failed.
+  SchemaType? _validateSchemasWithExplicitTypes(List<SchemaObject> schemas, String path) {
+    // If schema list is empty, return null
+    if (schemas.isEmpty) {
+      return null;
+    }
+
+    // Step 1: Check that all types are the same
+    final types = schemas.map((s) => s.type!).toList();
+    final uniqueTypes = types.toSet();
+
+    if (uniqueTypes.length > 1) {
+      // Different types - check if they're incompatible
+      final incompatiblePairs = [
+        [SchemaType.string, SchemaType.number],
+        [SchemaType.string, SchemaType.integer],
+        [SchemaType.string, SchemaType.boolean],
+        [SchemaType.string, SchemaType.array],
+        [SchemaType.string, SchemaType.object],
+        [SchemaType.number, SchemaType.boolean],
+        [SchemaType.number, SchemaType.array],
+        [SchemaType.number, SchemaType.object],
+        [SchemaType.integer, SchemaType.boolean],
+        [SchemaType.integer, SchemaType.array],
+        [SchemaType.integer, SchemaType.object],
+        [SchemaType.boolean, SchemaType.array],
+        [SchemaType.boolean, SchemaType.object],
+        [SchemaType.array, SchemaType.object],
+      ];
+
+      for (final pair in incompatiblePairs) {
+        if (types.contains(pair[0]) && types.contains(pair[1])) {
+          // Convert enum values to strings for error message
+          final typeNames = types.map((t) => t.name).join(', ');
+          final pairNames = '${pair[0].name} and ${pair[1].name}';
+          context.addException(
+            path,
+            'Schema list contains incompatible types: $typeNames. A value cannot be both $pairNames simultaneously.',
+            specReference: 'JSON Schema Core - allOf semantics',
+            severity: ValidationSeverity.critical,
+          );
+          return null;
+        }
+      }
+
+      // Compatible types (e.g., integer and number) - use most specific
+      if (uniqueTypes.contains(SchemaType.integer) && uniqueTypes.contains(SchemaType.number)) {
+        final schemaType = SchemaType.integer;
+        // Step 2: Validate properties match the type
+        _validateTypeProperties(schemas, schemaType, path);
+        return schemaType;
+      }
+    }
+
+    // All types are the same
+    final schemaType = types.first;
+
+    // Step 2: Validate properties match the type
+    _validateTypeProperties(schemas, schemaType, path);
+
+    return schemaType;
+  }
+
+  /// Validates schemas that don't have explicit type declarations.
+  ///
+  /// For each schema:
+  /// 1. Checks that all its properties belong to the same type
+  /// 2. Compares inferred types across all schemas
+  ///
+  /// Returns the inferred type, or null if validation failed.
+  ///
+  /// [schemas] Schemas without explicit type declarations.
+  /// [path] JSON Pointer path for error reporting.
+  ///
+  /// Returns the inferred SchemaType, or null if inference failed.
+  SchemaType? _validateSchemasWithoutExplicitTypes(List<SchemaObject> schemas, String path) {
+    // If schema list is empty, return null
+    if (schemas.isEmpty) {
+      return null;
+    }
+
+    final inferredTypes = <SchemaType>[];
+
+    // For each schema, infer its type from properties
+    for (final schema in schemas) {
+      final hasStringProps = schema.minLength != null || schema.maxLength != null || schema.pattern != null;
+      final hasNumberProps =
+          schema.minimum != null ||
+          schema.maximum != null ||
+          schema.exclusiveMinimum != null ||
+          schema.exclusiveMaximum != null ||
+          schema.multipleOf != null;
+      final hasArrayProps =
+          schema.minItems != null || schema.maxItems != null || schema.uniqueItems || schema.items != null;
+      final hasObjectProps =
+          schema.minProperties != null ||
+          schema.maxProperties != null ||
+          schema.required_ != null ||
+          schema.properties != null ||
+          schema.additionalProperties != null ||
+          schema.discriminator != null;
+
+      // Count how many type groups have properties
+      int typeCount = 0;
+      SchemaType? schemaType;
+
+      if (hasStringProps) {
+        typeCount++;
+        schemaType = SchemaType.string;
+      }
+      if (hasNumberProps) {
+        typeCount++;
+        schemaType = SchemaType.number;
+      }
+      if (hasArrayProps) {
+        typeCount++;
+        schemaType = SchemaType.array;
+      }
+      if (hasObjectProps) {
+        typeCount++;
+        schemaType = SchemaType.object;
+      }
+
+      // If no properties found at all, it's an empty schema
+      if (typeCount == 0) {
+        context.addException(
+          path,
+          'Schema without an explicit type has no type-specific properties. This is an empty schema.',
+          specReference: 'JSON Schema Core',
+          severity: ValidationSeverity.low,
+        );
+        continue;
+      }
+
+      // If properties suggest multiple types, it's invalid
+      if (typeCount > 1) {
+        final types = <String>[];
+        if (hasStringProps) types.add('string');
+        if (hasNumberProps) types.add('number');
+        if (hasArrayProps) types.add('array');
+        if (hasObjectProps) types.add('object');
+        context.addException(
+          path,
+          'Schema without an explicit type contains properties from multiple types: ${types.join(", ")}. A schema cannot have properties from different types.',
+          specReference: 'JSON Schema Core',
+          severity: ValidationSeverity.critical,
+        );
+        return null;
+      }
+
+      // If this schema has a type inferred from properties, add it to the list
+      if (schemaType != null) {
+        inferredTypes.add(schemaType);
+      }
+    }
+
+    // If no types could be inferred, return null
+    if (inferredTypes.isEmpty) {
+      return null;
+    }
+
+    // Check that all inferred types are the same
+    final uniqueTypes = inferredTypes.toSet();
+    if (uniqueTypes.length > 1) {
+      final typeNames = inferredTypes.map((t) => t.name).join(', ');
+      context.addException(
+        path,
+        'Schema list contains properties suggesting different types: $typeNames. All schemas must be consistent.',
+        specReference: 'JSON Schema Core',
+        severity: ValidationSeverity.critical,
+      );
+      return null;
+    }
+
+    return inferredTypes.first;
+  }
+
+  /// Validates that all type-specific properties match the given explicit type.
+  ///
+  /// After determining the effective type from explicit type declarations, this ensures
+  /// that all type-specific properties (like minLength, required, items, etc.) belong
+  /// to that type and no properties from other types are present.
   ///
   /// Type-specific property groups:
   /// - String: minLength, maxLength, pattern
@@ -355,9 +532,10 @@ class SemanticSchemaValidator {
   /// - Object: minProperties, maxProperties, required, properties, additionalProperties, patternProperties
   ///
   /// [schemas] All schemas to validate.
-  /// [schemaType] The determined type for these schemas.
+  /// [schemaType] The explicit type determined from type declarations.
+  /// [path] JSON Pointer path for error reporting.
   ///
-  void _validateImplicitTypes(List<SchemaObject> schemas, SchemaType schemaType, String path) {
+  void _validateTypeProperties(List<SchemaObject> schemas, SchemaType schemaType, String path) {
     // Check that all type-specific properties match the determined schema type
     for (var i = 0; i < schemas.length; i++) {
       final schema = schemas[i];
@@ -386,7 +564,7 @@ class SemanticSchemaValidator {
           schema.additionalProperties != null ||
           schema.discriminator != null;
 
-      // Validate properties match the schema type
+      // Validate that properties match the schema type
       switch (schemaType) {
         case SchemaType.string:
           if (hasNumberProps) {
@@ -394,7 +572,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "string" but contains number/integer properties (minimum/maximum/exclusiveMinimum/exclusiveMaximum/multipleOf).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -403,7 +581,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "string" but contains array properties (minItems/maxItems/uniqueItems/items).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -412,7 +590,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "string" but contains object properties (minProperties/maxProperties/required/properties/additionalProperties/discriminator).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -425,7 +603,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "${schemaType.name}" but contains string properties (minLength/maxLength/pattern).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -434,7 +612,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "${schemaType.name}" but contains array properties (minItems/maxItems/uniqueItems/items).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -443,7 +621,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "${schemaType.name}" but contains object properties (minProperties/maxProperties/required/properties/additionalProperties/discriminator).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -455,7 +633,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "array" but contains string properties (minLength/maxLength/pattern).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -464,7 +642,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "array" but contains number/integer properties (minimum/maximum/exclusiveMinimum/exclusiveMaximum/multipleOf).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -473,7 +651,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "array" but contains object properties (minProperties/maxProperties/required/properties/additionalProperties/discriminator).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -485,7 +663,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "object" but contains string properties (minLength/maxLength/pattern).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -494,7 +672,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "object" but contains number/integer properties (minimum/maximum/exclusiveMinimum/exclusiveMaximum/multipleOf).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -503,7 +681,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "object" but contains array properties (minItems/maxItems/uniqueItems/items).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -515,7 +693,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "boolean" but contains string properties (minLength/maxLength/pattern).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -524,7 +702,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "boolean" but contains number/integer properties (minimum/maximum/exclusiveMinimum/exclusiveMaximum/multipleOf).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -533,7 +711,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "boolean" but contains array properties (minItems/maxItems/uniqueItems/items).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -542,7 +720,7 @@ class SemanticSchemaValidator {
               path,
               'Schema list has type "boolean" but contains object properties (minProperties/maxProperties/required/properties/additionalProperties/discriminator).',
               specReference: 'JSON Schema Core',
-              severity: ValidationSeverity.critical,
+              severity: ValidationSeverity.low,
             );
             return;
           }
@@ -929,49 +1107,49 @@ class SemanticSchemaValidator {
     }
   }
 
-  /// Validates that all required properties have corresponding property definitions.
-  ///
-  /// When schemas specify required properties, those properties must be defined
-  /// in at least one schema's properties map across all schemas. This ensures
-  /// that required properties actually exist.
-  ///
-  /// For example:
-  /// - Schema A: required: ["name", "age"], properties: {name: {...}, age: {...}} ✓
-  /// - Schema A: required: ["name"], Schema B: properties: {name: {...}} ✓
-  /// - Schema A: required: ["name"], properties: {} ✗ (name not defined anywhere)
-  ///
-  /// [schemas] All schemas to validate.
-  /// [path] JSON Pointer path for error reporting.
-  ///
-  void _validateObjectRequired(List<SchemaObject> schemas, String path) {
-    // Collect all required properties across all schemas
-    final allRequired = <String>{};
-    for (final schema in schemas) {
-      if (schema.required_ != null) {
-        allRequired.addAll(schema.required_!);
-      }
-    }
+  // /// Validates that all required properties have corresponding property definitions.
+  // ///
+  // /// When schemas specify required properties, those properties must be defined
+  // /// in at least one schema's properties map across all schemas. This ensures
+  // /// that required properties actually exist.
+  // ///
+  // /// For example:
+  // /// - Schema A: required: ["name", "age"], properties: {name: {...}, age: {...}} ✓
+  // /// - Schema A: required: ["name"], Schema B: properties: {name: {...}} ✓
+  // /// - Schema A: required: ["name"], properties: {} ✗ (name not defined anywhere)
+  // ///
+  // /// [schemas] All schemas to validate.
+  // /// [path] JSON Pointer path for error reporting.
+  // ///
+  // void _validateObjectRequired(List<SchemaObject> schemas, String path) {
+  //   // Collect all required properties across all schemas
+  //   final allRequired = <String>{};
+  //   for (final schema in schemas) {
+  //     if (schema.required_ != null) {
+  //       allRequired.addAll(schema.required_!);
+  //     }
+  //   }
 
-    // Collect all defined properties across all schemas
-    final allDefinedProperties = <String>{};
-    for (final schema in schemas) {
-      if (schema.properties != null) {
-        allDefinedProperties.addAll(schema.properties!.keys);
-      }
-    }
+  //   // Collect all defined properties across all schemas
+  //   final allDefinedProperties = <String>{};
+  //   for (final schema in schemas) {
+  //     if (schema.properties != null) {
+  //       allDefinedProperties.addAll(schema.properties!.keys);
+  //     }
+  //   }
 
-    // Check that every required property is defined somewhere
-    final missingProperties = allRequired.difference(allDefinedProperties);
-    if (missingProperties.isNotEmpty) {
-      context.addException(
-        path,
-        'Schema list has required properties that are not defined: ${missingProperties.join(", ")}',
-        specReference: 'JSON Schema Validation',
-        severity: ValidationSeverity.critical,
-      );
-      return;
-    }
-  }
+  //   // Check that every required property is defined somewhere
+  //   final missingProperties = allRequired.difference(allDefinedProperties);
+  //   if (missingProperties.isNotEmpty) {
+  //     context.addException(
+  //       path,
+  //       'Schema list has required properties that are not defined: ${missingProperties.join(", ")}',
+  //       specReference: 'JSON Schema Validation',
+  //       severity: ValidationSeverity.critical,
+  //     );
+  //     return;
+  //   }
+  // }
 
   /// Resolves a schema reference and returns the schema object.
   ///
