@@ -1,25 +1,155 @@
-I would like to make major changes to the way this project works.
-The way it is currently intended to works is in 3 stages:
+I am creating a validator for openapi 3.0.0 written in Dart code. This is intended as part of a code generator.
+The validation process has a couple of steps:
+1. structural validation - read the yaml file and find openapi/json schema syntax errors and unallowed keywords.
+2. parsing - turn the openapi document into a Dart tree with Dart classes (OperationObject, PathsObject, SchemaObject etc')
+3. ...?
+4. semantic validation - take the parsed Dart tree, and find logical errors in it, like conflicting types, conflicting constrainsts, or just bad patterns that could lead to confusing code generation. Mostly focused on analyzing SchemaObjects.
 
-1.validate - make sure that the yaml input is valid
-2.parse - create a Dart tree from the yaml input
-3.analyze (not yet implemented) - use the created Dart tree and create some sort of analysis that would later on be used by the openapi_dart_generator.
+I am missing a step 3.
+Step 2 creates the SchemaObject:
+'''
+@CopyWith()
+@JsonSerializable()
+class SchemaObject implements OpenapiObject {
+  // JSON Schema Core keywords
+  @JsonKey(name: r'$ref')
+  final String? ref;
+  final String? title;
+  final String? description;
+  @JsonKey(name: 'default')
+  final dynamic default_;
 
-I want it to be different:
-1.structural validation.
-2.parse - create a Dart tree from the yaml input.
-3.semantic validation.
-4.schema modeling - creating more specific models of schemas and operations. This is what will be imported by the generator, to be used for code generation.
+  // Type and format
+  final SchemaType? type;
+  final String? format;
 
-The difference between structural validation and semantic validation is explained in openapi_validation.md.
+  // Numeric validations
+  final num? multipleOf;
+  final num? maximum;
+  final num? exclusiveMaximum;
+  final num? minimum;
+  final num? exclusiveMinimum;
 
-we are still focusing on creating this for version openapi 3.0.0 in folder v3_0_0. we will work later on doing the same for later versions.
-Every stage should have its own folder so change the folder names and create new ones if needed.
+  // String validations
+  final int? maxLength;
+  final int? minLength;
+  final String? pattern;
 
-What I want you to do now is this: separate the validation logic we have already implemented into the two different types of validation.
-openapi_validation.md gives a good explanation on the differences between the two. A lot of the examples in the file are things we have already implemented. Do not start creating new validation rules, or removing rules, for either stage.
-the idea is just to separate them into different stages. Later on if we see a rule we should add/remove, we will do it. not for now.
-The structural validation is done before, as we have said.
-Then the parsing stage, which is already been implemented (tweek if needed).
-Then the semantic validation is done using the Dart tree from the parsing stage.
-Leave aside the schema modeling stage for now. do not implement it yet. There is some content in the 'modeler' folder currently. Ignore it.
+  // Array validations
+  final int? maxItems;
+  final int? minItems;
+  final bool uniqueItems;
+  final Referenceable<SchemaObject>? items;
+
+  // Object validations
+  final int? maxProperties;
+  final int? minProperties;
+  @JsonKey(name: 'required')
+  final List<String>? required_;
+  final Map<String, Referenceable<SchemaObject>>? properties;
+  final Map<String, Referenceable<SchemaObject>>? patternProperties;
+  final dynamic additionalProperties; // bool or SchemaObject
+
+  // Composition
+  final List<Referenceable<SchemaObject>>? allOf;
+  final List<Referenceable<SchemaObject>>? oneOf;
+  final List<Referenceable<SchemaObject>>? anyOf;
+  final Referenceable<SchemaObject>? not;
+
+  @JsonKey(name: 'if')
+  final Referenceable<SchemaObject>? if_;
+  final Referenceable<SchemaObject>? then;
+  @JsonKey(name: 'else')
+  final Referenceable<SchemaObject>? else_;
+
+  // Generic
+  @JsonKey(name: 'enum')
+  final List<dynamic>? enum_;
+  @JsonKey(name: 'const')
+  final dynamic const_;
+
+  // OpenAPI-specific
+  final bool nullable;
+  final Discriminator? discriminator;
+  final bool readOnly;
+  final bool writeOnly;
+  final XML? xml;
+  final ExternalDocumentation? externalDocs;
+  final dynamic example;
+  final bool deprecated;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final Map<String, dynamic>? extensions;
+
+  SchemaObject({
+    this.ref,
+    this.title,
+    this.description,
+    this.default_,
+    this.type,
+    this.format,
+    this.multipleOf,
+    this.maximum,
+    this.exclusiveMaximum,
+    this.minimum,
+    this.exclusiveMinimum,
+    this.maxLength,
+    this.minLength,
+    this.pattern,
+    this.maxItems,
+    this.minItems,
+    this.uniqueItems = false,
+    this.items,
+    this.maxProperties,
+    this.minProperties,
+    this.required_,
+    this.properties,
+    this.patternProperties,
+    this.additionalProperties,
+    this.allOf,
+    this.oneOf,
+    this.anyOf,
+    this.not,
+    this.if_,
+    this.then,
+    this.else_,
+    this.enum_,
+    this.const_,
+    this.nullable = false,
+    this.discriminator,
+    this.readOnly = false,
+    this.writeOnly = false,
+    this.xml,
+    this.externalDocs,
+    this.example,
+    this.deprecated = false,
+    this.extensions,
+  });
+
+  factory SchemaObject.fromJson(Map<String, dynamic> json) {
+    final extensions = extractExtensions(json);
+    final schema = _$SchemaObjectFromJson(jsonWithoutExtensions(json));
+    return schema.copyWith(extensions: extensions);
+  }
+
+  @override
+  Map<String, dynamic> toJson() => _$SchemaObjectToJson(this);
+}
+'''
+But this is not the best structure to validate. It's fine for an 'atomic' schema, but once there are applicators it becomes more complicated. We need to compare this atomic schema with the atomic schemas inside 'allOf' and inside 'oneOf' (I will use 'oneOf' as also representing 'anyOf' from now on) to make sure they validate.
+
+So the first challenge is that schemas inside the applicators could be references, which means that the references need to be resolved mid validation, which seems inappropriate. This should not be done during validation. It should be done beforehand.
+The next challenge is that dealing with the applicator keywords at all. I don't want to engage with allOf/oneOf, but with their meaning.
+There should be a new schema strucutre (derived from SchemaObject) that has a list of all the atomic schemas that comprise the schema (whos source is the original schema's atomic schema + all the atomic schemas from the applicators). Important to say that this is recursive, meaning that the atmoic schemas are derived from the applicators, and the appliactor's applicators etc.. And then what we do is just validate those schema against each other.
+It is also not that simple because of the oneOf applicator. A oneOf applicator creates variants. So the new structure also needs 'variants' - a list of lists. one list for each 'oneOf'. and every 'oneOf' list contains the
+
+
+void validateSchema(SchemaObject schema) {...}
+
+AtomicSchemaObject _atomizeSchema(SchemaObject schema) {...}
+
+void _validateAtomicSchema(AtomicSchemaObject atomicSchema) {...}
+
+void _validateAtomicSchemaList(List<AtomicSchemaObject> atomicSchemaList) {...}
+
+

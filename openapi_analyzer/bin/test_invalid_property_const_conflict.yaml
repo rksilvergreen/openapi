@@ -6,14 +6,11 @@ info:
 paths: {}
 components:
   schemas:
-    InvalidConflictingConstValues:
+    Test1:
+      type: string
       allOf:
-        - type: object
-          properties:
-            status:
-              const: "active"
-        - type: object
-          properties:
-            status:
-              const: "inactive"
-
+        - $ref: "#/components/schemas/Test2"
+    Test2:
+      type: string
+      allOf:
+        - $ref: "#/components/schemas/Test1"

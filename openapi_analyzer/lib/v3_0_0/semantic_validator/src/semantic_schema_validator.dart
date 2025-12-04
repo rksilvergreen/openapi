@@ -1012,7 +1012,7 @@ class SemanticSchemaValidator {
   void _validateObjectConstraints(List<SchemaObject> schemas, String path) {
     _validateObjectMinMaxProperties(schemas, path);
     _validateObjectProperties(schemas, path);
-    _validateObjectRequired(schemas, path);
+    // _validateObjectRequired(schemas, path);
   }
 
   /// Validates object min/max properties constraints across all schemas.
