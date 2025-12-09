@@ -35,4 +35,10 @@ components:
               type: string
             pedals:
               type: boolean
+    
+    Test:
+      type: object
+      oneOf:
+        - type: object
+        - type: string
 

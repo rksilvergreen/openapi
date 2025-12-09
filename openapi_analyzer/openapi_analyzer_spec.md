@@ -1,0 +1,3 @@
+# OpenAPI Analyzer Architecture Specification
+
+... full content here ...

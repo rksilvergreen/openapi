@@ -1,0 +1,53 @@
+openapi: 3.0.0
+info:
+  title: Valid Child Defines Discriminator Test
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    User:
+      oneOf:
+        - $ref: "#/components/schemas/AdminUser"
+        - $ref: "#/components/schemas/GuestUser"
+    AdminUser:
+      type: object
+      properties:
+        name:
+          type: string
+    GuestUser:
+      type: object
+      properties:
+        email:
+          type: string
+      oneOf:
+        - $ref: "#/components/schemas/AdminUser"
+        - $ref: "#/components/schemas/GuestUser"
+    OneTimeGuestUser:
+      type: object
+      properties:
+        a: 
+          type: string
+    PermanentGuestUser:
+      type: object
+      properties:
+        b:
+          type: integer
+
+    Summary1:
+      type: object
+      properties:
+        date:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    Summary2:
+      type: object
+      properties:
+        date:
+          type: string
+      oneOf:
+        - $ref: "#/components/schemas/AdminUser"
+        - $ref: "#/components/schemas/GuestUser"
+
+  ## Difference between Request1 and Request2?
