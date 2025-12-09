@@ -1,5 +1,5 @@
-import 'package:openapi_analyzer/v3_0_0/modeler/schema/integer_schema.dart';
-import 'package:openapi_analyzer/v3_0_0/modeler/schema_node/schema_node.dart';
+import 'package:openapi_analyzer/beta/schema/integer_schema.dart';
+import 'package:openapi_analyzer/beta/schema_node/schema_node.dart';
 
 class IntegerSchemaNode extends IntegerSchema with SingleTypeSchemaNode<int, IntegerSchema> {
   final String $id;

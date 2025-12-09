@@ -1,5 +1,5 @@
-import 'package:openapi_analyzer/v3_0_0/modeler/effective_schema_node/effective_schema_node.dart';
-import 'package:openapi_analyzer/v3_0_0/modeler/schema/integer_schema.dart';
+import 'package:openapi_analyzer/beta/effective_schema_node/effective_schema_node.dart';
+import 'package:openapi_analyzer/beta/schema/integer_schema.dart';
 
 mixin IntegerTypeEffectiveSchema {}
 

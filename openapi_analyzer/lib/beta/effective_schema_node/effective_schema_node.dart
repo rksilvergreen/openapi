@@ -1,6 +1,6 @@
-import 'package:openapi_analyzer/v3_0_0/modeler/schema/schema.dart';
-import 'package:openapi_analyzer/v3_0_0/modeler/schema_node/schema_node.dart';
-import 'package:openapi_analyzer/v3_0_0/modeler/analysis_result/analysis_result.dart';
+import 'package:openapi_analyzer/beta/schema/schema.dart';
+import 'package:openapi_analyzer/beta/schema_node/schema_node.dart';
+import 'package:openapi_analyzer/beta/analysis_result/analysis_result.dart';
 
 abstract interface class EffectiveSchemaNode {
   String get $id;
