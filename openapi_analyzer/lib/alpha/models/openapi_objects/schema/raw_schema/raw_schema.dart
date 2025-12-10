@@ -2,6 +2,9 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 import '../../../openapi_object.dart';
 import '../../../referencable.dart';
+import '../schema.dart';
+import '../typed_schema/typed_schema.dart';
+import '../effective_schema/effective_schema.dart';
 
 part '_gen/raw_schema.g.dart';
 
@@ -117,5 +120,8 @@ class RawSchema {
   }
 
   @override
-  Map<String, dynamic> toJson() => _$SchemaObjectToJson(this);
+  Map<String, dynamic> toJson() => _$RawSchemaToJson(this);
+
+  TypedSchema get $typedSchema => (referenceGraph[$id] as Schema).typed;
+  EffectiveSchema get $effectiveSchema => (referenceGraph[$id] as Schema).effective;
 }

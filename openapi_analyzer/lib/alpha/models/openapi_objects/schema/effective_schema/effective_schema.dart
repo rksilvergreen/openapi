@@ -1,22 +1,16 @@
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:json_annotation/json_annotation.dart';
+import '../schema.dart';
 import '../../../referencable.dart';
 
 @CopyWith()
 @JsonSerializable()
-abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
+abstract class EffectiveSchema<T, S extends EffectiveSchema<T, S>> {
   final ReferencableId $id;
-  final List<String> _allOf;
-  final List<String> _oneOf;
-  final List<String> _anyOf;
 
-  EffectiveSchema(
-    this.$id,
-    this._allOf,
-    this._oneOf,
-    this._anyOf,
-  );
+  EffectiveSchema(this.$id);
 
-  List<T> get allOf => _allOf.map((id) => referenceGraph[id] as T).toList();
-
+  List<S> get allOf => (referenceGraph[$id] as Schema).allOf.map((schema) => schema.effective as S).toList();
+  List<S> get oneOf => (referenceGraph[$id] as Schema).oneOf.map((schema) => schema.effective as S).toList();
+  List<S> get anyOf => (referenceGraph[$id] as Schema).anyOf.map((schema) => schema.effective as S).toList();
 }
