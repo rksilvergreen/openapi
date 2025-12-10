@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 
 import '../openapi_object.dart';
-import '../referencable.dart';
+import '../openapi_graph.dart';
 import 'enums.dart';
 import 'schema/raw_schema/raw_schema.dart';
 import 'example.dart';

@@ -1,27 +1,32 @@
-import '../../referencable.dart';
+import '../../openapi_graph.dart';
 import 'raw_schema/raw_schema.dart';
 import 'typed_schema/typed_schema.dart';
 import 'effective_schema/effective_schema.dart';
 
-class Schema implements Referencable {
-  final ReferencableId $id;
-  final List<String> _allOf;
-  final List<String> _oneOf;
-  final List<String> _anyOf;
-  final List<String> _additionalProperties;
-  final List<String> properties;
-  final List<String> patternProperties;
-  final List<String> items;
+class SchemaNode implements Node {
+  final NodeId $id;
 
-  Schema(this.$id, this._allOf, this._oneOf, this._anyOf);
+  SchemaNode(this.$id);
 
   late final RawSchema raw;
   late final TypedSchema typed;
   late final EffectiveSchema effective;
 
-  List<Schema> get allOf => _allOf.map((id) => referenceGraph[id] as Schema).toList();
-  List<Schema> get oneOf => _oneOf.map((id) => referenceGraph[id] as Schema).toList();
-  List<Schema> get anyOf => _anyOf.map((id) => referenceGraph[id] as Schema).toList();
+  List<SchemaNode>? _$allOf;
+  List<SchemaNode>? _$oneOf;
+  List<SchemaNode>? _$anyOf;
+  List<SchemaNode>? _$properties;
+  List<SchemaNode>? _$additionalProperties;
+  List<SchemaNode>? _$items;
+
+  List<SchemaNode> get allOf => _$allOf ??= OpenApiRegistry.i.getSchemaNodeApplicatorChildren<AllOfEdge>(this);
+  List<SchemaNode> get oneOf => _$oneOf ??= OpenApiRegistry.i.getSchemaNodeApplicatorChildren<OneOfEdge>(this);
+  List<SchemaNode> get anyOf => _$anyOf ??= OpenApiRegistry.i.getSchemaNodeApplicatorChildren<AnyOfEdge>(this);
+
+  List<SchemaNode> get properties => _$properties ??= OpenApiRegistry.i.getSchemaNodeStructuralChildren<PropertiesEdge>(this);
+  List<SchemaNode> get additionalProperties =>
+      _$additionalProperties ??= OpenApiRegistry.i.getSchemaNodeStructuralChildren<AdditionalPropertiesEdge>(this);
+  List<SchemaNode> get items => _$items ??= OpenApiRegistry.i.getSchemaNodeStructuralChildren<ItemsEdge>(this);
 
   bool _isStructuralValidationPassed = false;
   bool _isRawSet = false;

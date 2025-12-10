@@ -1,7 +1,7 @@
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:json_annotation/json_annotation.dart';
-import '../schema.dart';
-import '../../../referencable.dart';
+import '../schema_node.dart';
+import '../../../openapi_graph.dart';
 
 @CopyWith()
 @JsonSerializable()

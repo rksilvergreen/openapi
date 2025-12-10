@@ -1,8 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 import '../../../openapi_object.dart';
-import '../../../referencable.dart';
-import '../schema.dart';
+import '../../../openapi_graph.dart';
+import '../schema_node.dart';
 import '../typed_schema/typed_schema.dart';
 import '../effective_schema/effective_schema.dart';
 

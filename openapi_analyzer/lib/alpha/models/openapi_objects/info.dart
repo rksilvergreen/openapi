@@ -2,25 +2,26 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 
 import '../openapi_object.dart';
-import 'json_helpers.dart';
+import '../openapi_graph.dart';
 
 part '_gen/info.g.dart';
 
 /// Contact information for the exposed API.
 @CopyWith()
 @JsonSerializable()
-class Contact implements OpenapiObject {
+class Contact implements OpenApiNode {
+  final NodeId $id;
   final String? name;
   final String? url;
   final String? email;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
 
-  Contact({this.name, this.url, this.email, this.extensions});
+  Contact({required this.$id, this.name, this.url, this.email, this.extensions});
 
   factory Contact.fromJson(Map<String, dynamic> json) {
-    final extensions = extractExtensions(json);
-    final contact = _$ContactFromJson(jsonWithoutExtensions(json));
+    final extensions = OpenapiObject.extractExtensions(json);
+    final contact = _$ContactFromJson(OpenapiObject.jsonWithoutExtensions(json));
     return contact.copyWith(extensions: extensions);
   }
 
@@ -49,10 +50,15 @@ class License implements OpenapiObject {
   Map<String, dynamic> toJson() => _$LicenseToJson(this);
 }
 
+class InfoNode implements OpenApiNode {
+  Info content;
+}
+
 /// Metadata about the API.
 @CopyWith()
 @JsonSerializable()
-class Info implements OpenapiObject {
+class Info implements OpenApiNode {
+  final NodeId $id;
   final String title;
   final String? description;
   final String? termsOfService;
@@ -63,6 +69,7 @@ class Info implements OpenapiObject {
   final Map<String, dynamic>? extensions;
 
   Info({
+    required this.$id,
     required this.title,
     this.description,
     this.termsOfService,
@@ -73,10 +80,12 @@ class Info implements OpenapiObject {
   });
 
   factory Info.fromJson(Map<String, dynamic> json) {
-    final extensions = extractExtensions(json);
-    final info = _$InfoFromJson(jsonWithoutExtensions(json));
+    final extensions = OpenapiObject.extractExtensions(json);
+    final info = _$InfoFromJson(OpenapiObject.jsonWithoutExtensions(json));
     return info.copyWith(extensions: extensions);
   }
+
+  static validate(Map<String, dynamic> data) {}
 
   @override
   Map<String, dynamic> toJson() => _$InfoToJson(this);
