@@ -1,111 +1,44 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
-
-import '../openapi_object.dart';
-import '../referenceable.dart';
-import 'schema/raw_schema/raw_schema.dart';
+import '../openapi_graph.dart';
+import 'schema/schema_node.dart';
+import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
-import 'enums.dart';
-import 'header.dart';
-import 'json_helpers.dart';
+import 'encoding.dart';
 
-part '_gen/media_type.g.dart';
+class MediaTypeNode extends OpenApiNode {
+  MediaTypeNode(super.$id, super.json) {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
+
+  bool _structureValidated = false;
+  bool _contentValidated = false;
+
+  bool get structureValidated => _structureValidated;
+  bool get contentValidated => _contentValidated;
+
+  late final SchemaNode? schemaNode;
+  late final Map<String, ExampleNode>? examplesNodes;
+  late final Map<String, EncodingNode>? encodingNodes;
+
+  late final MediaType content;
+
+  void _validateStructure() {}
+  void _createChildNodes() {}
+  void _createContent() {
+    content = MediaType._($id: $id, example: json['example'], extensions: extractExtensions(json));
+  }
+}
 
 /// Each Media Type Object provides schema and examples for the media type.
-@CopyWith()
-@JsonSerializable()
-class MediaType implements OpenapiObject {
-  // @JsonKey(fromJson: _schemaFromJson, toJson: _schemaToJson)
-  final Referenceable<SchemaObject>? schema;
+class MediaType {
+  final MediaTypeNode _$node;
+  EffectiveSchema? get schema => _$node.schemaNode?.effective;
   final dynamic example;
-  // @JsonKey(fromJson: _examplesFromJson, toJson: _examplesToJson)
-  final Map<String, Referenceable<Example>>? examples;
-  final Map<String, Encoding>? encoding;
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, Example>? get examples => _$node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, Encoding>? get encoding => _$node.encodingNodes?.map((k, v) => MapEntry(k, v.content));
   final Map<String, dynamic>? extensions;
 
-  MediaType({this.schema, this.example, this.examples, this.encoding, this.extensions});
-
-  factory MediaType.fromJson(Map<String, dynamic> json) {
-    final extensions = extractExtensions(json);
-    final mediaType = _$MediaTypeFromJson(jsonWithoutExtensions(json));
-    return mediaType.copyWith(extensions: extensions);
-  }
-
-  @override
-  Map<String, dynamic> toJson() => _$MediaTypeToJson(this);
+  MediaType._({required NodeId $id, this.example, this.extensions})
+    : _$node = OpenApiRegistry.i.getOpenApiNode<MediaTypeNode>($id);
 }
-
-// Referenceable<SchemaObject>? _schemaFromJson(dynamic json) =>
-//     Referenceable.fromJson<SchemaObject>(json, SchemaObject.fromJson);
-
-// dynamic _schemaToJson(Referenceable<SchemaObject>? schema) {
-//   if (schema == null) return null;
-//   if (schema.isReference()) return schema.asReference();
-//   return schema.asValue()?.toJson();
-// }
-
-// Map<String, Referenceable<Example>>? _examplesFromJson(dynamic json) {
-//   if (json == null) return null;
-//   if (json is! Map) return null;
-//   final result = <String, Referenceable<Example>>{};
-//   for (final entry in json.entries) {
-//     final value = Referenceable.fromJson<Example>(entry.value, Example.fromJson);
-//     if (value != null) result[entry.key.toString()] = value;
-//   }
-//   return result;
-// }
-
-// Map<String, dynamic>? _examplesToJson(Map<String, Referenceable<Example>>? examples) {
-//   if (examples == null) return null;
-//   final result = <String, dynamic>{};
-//   for (final entry in examples.entries) {
-//     result[entry.key] = entry.value.isReference() ? entry.value.asReference() : entry.value.asValue()?.toJson();
-//   }
-//   return result;
-// }
-
-/// A single encoding definition applied to a single schema property.
-@CopyWith()
-@JsonSerializable()
-class Encoding implements OpenapiObject {
-  final String? contentType;
-  // @JsonKey(fromJson: _headersFromJson, toJson: _headersToJson)
-  final Map<String, Referenceable<Header>>? headers;
-  final ParameterStyle? style;
-  final bool? explode;
-  final bool allowReserved;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
-
-  Encoding({this.contentType, this.headers, this.style, this.explode, this.allowReserved = false, this.extensions});
-
-  factory Encoding.fromJson(Map<String, dynamic> json) {
-    final extensions = extractExtensions(json);
-    final encoding = _$EncodingFromJson(jsonWithoutExtensions(json));
-    return encoding.copyWith(extensions: extensions);
-  }
-
-  @override
-  Map<String, dynamic> toJson() => _$EncodingToJson(this);
-}
-
-// Map<String, Referenceable<Header>>? _headersFromJson(dynamic json) {
-//   if (json == null) return null;
-//   if (json is! Map) return null;
-//   final result = <String, Referenceable<Header>>{};
-//   for (final entry in json.entries) {
-//     final value = Referenceable.fromJson<Header>(entry.value, Header.fromJson);
-//     if (value != null) result[entry.key.toString()] = value;
-//   }
-//   return result;
-// }
-
-// Map<String, dynamic>? _headersToJson(Map<String, Referenceable<Header>>? headers) {
-//   if (headers == null) return null;
-//   final result = <String, dynamic>{};
-//   for (final entry in headers.entries) {
-//     result[entry.key] = entry.value.isReference() ? entry.value.asReference() : entry.value.asValue()?.toJson();
-//   }
-//   return result;
-// }

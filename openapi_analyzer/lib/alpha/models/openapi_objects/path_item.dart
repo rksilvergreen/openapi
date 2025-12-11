@@ -1,4 +1,7 @@
 import '../openapi_graph.dart';
+import 'operation.dart';
+import 'server.dart';
+import 'parameter.dart';
 
 class PathItemNode extends OpenApiNode {
   PathItemNode(super.$id, super.json) {
