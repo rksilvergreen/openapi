@@ -5,8 +5,6 @@ import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
 import 'media_type.dart';
 
-part '_gen/parameter.g.dart';
-
 class ParameterNode extends OpenApiNode {
   ParameterNode(super.$id, super.json) {
     _validateStructure();

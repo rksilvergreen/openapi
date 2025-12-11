@@ -1,16 +1,50 @@
-import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:json_annotation/json_annotation.dart';
 import '../schema_node.dart';
-import '../../../openapi_graph.dart';
+import '../schema_type.dart';
+import '../../xml.dart';
+import '../../external_documentation.dart';
 
-@CopyWith()
-@JsonSerializable()
-abstract class EffectiveSchema<T, S extends EffectiveSchema<T, S>> {
-  final ReferencableId $id;
+abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
+  final SchemaNode $node;
+  final SchemaType type;
+  final String? description;
+  final bool readOnly;
+  final bool writeOnly;
+  XML? get xml => $node.xmlNode?.content;
+  ExternalDocumentation? get externalDocs => $node.externalDocsNode?.content;
+  final Map<String, dynamic>? example;
+  final bool deprecated;
+  final bool nullable;
 
-  EffectiveSchema(this.$id);
+  EffectiveSchema(
+    this.$node,
+    this.type, 
+    this.description,
+    this.readOnly,
+    this.writeOnly,
+    this.example,
+    this.deprecated,
+    this.nullable,
+  );
 
-  List<S> get allOf => (referenceGraph[$id] as Schema).allOf.map((schema) => schema.effective as S).toList();
-  List<S> get oneOf => (referenceGraph[$id] as Schema).oneOf.map((schema) => schema.effective as S).toList();
-  List<S> get anyOf => (referenceGraph[$id] as Schema).anyOf.map((schema) => schema.effective as S).toList();
+  List<T>? get allOf => $node.allOfNodes?.map((node) => node.typed as T).toList();
+  List<T>? get oneOf => $node.oneOfNodes?.map((node) => node.typed as T).toList();
+  List<T>? get anyOf => $node.anyOfNodes?.map((node) => node.typed as T).toList();
+}
+
+abstract class SingleTypeEffectiveSchema<T, S extends SingleTypeEffectiveSchema<T, S>> extends EffectiveSchema<S> {
+  final T? defaultValue;
+  final List<T>? enumValues;
+
+  SingleTypeEffectiveSchema(
+    super.$node,
+    super.type,
+    super.description, 
+    super.readOnly,
+    super.writeOnly,
+    super.example,
+    super.deprecated,
+    super.nullable,
+    this.defaultValue,
+    this.enumValues,
+  );
 }
