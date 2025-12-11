@@ -1,5 +1,3 @@
-
-
 import '../openapi_graph.dart';
 import 'external_documentation.dart';
 import 'parameter.dart';
@@ -17,10 +15,10 @@ class OperationNode extends OpenApiNode {
   }
 
   bool _structureValidated = false;
-  bool _contentValidated = false;
+  bool _contentCreated = false;
 
   bool get structureValidated => _structureValidated;
-  bool get contentValidated => _contentValidated;
+  bool get contentCreated => _contentCreated;
 
   late final ExternalDocumentationNode? externalDocsNode;
   late final List<ParameterNode>? parametersNodes;
@@ -45,22 +43,24 @@ class OperationNode extends OpenApiNode {
     );
   }
 }
+
 /// Describes a single API operation on a path.
-class Operation  {
+class Operation {
   final OperationNode _$node;
   final List<String>? tags;
   final String? summary;
   final String? description;
-  ExternalDocumentation? get externalDocs => _$node.externalDocsNode.content;
+  ExternalDocumentation? get externalDocs => _$node.externalDocsNode?.content;
   final String? operationId;
   List<Parameter>? get parameters => _$node.parametersNodes?.map((parameter) => parameter.content).toList();
   RequestBody? get requestBody => _$node.requestBodyNode?.content;
-  Map<String, Response> get responses => _$node.responseNodes.map((k,v) => MapEntry(k, v.content));
-  Map<String, Callback>? get callbacks => _$node.callbackNodes?.map((k,v) => MapEntry(k, v.content));
-  List<SecurityRequirement>? get security => _$node.securityRequirementNodes?.map((securityRequirement) => securityRequirement.content).toList();
+  Map<String, Response> get responses => _$node.responseNodes.map((k, v) => MapEntry(k, v.content));
+  Map<String, Callback>? get callbacks => _$node.callbackNodes?.map((k, v) => MapEntry(k, v.content));
+  List<SecurityRequirement>? get security =>
+      _$node.securityRequirementNodes?.map((securityRequirement) => securityRequirement.content).toList();
   List<Server>? get servers => _$node.serverNodes?.map((server) => server.content).toList();
   final Map<String, dynamic>? extensions;
 
   Operation._({required NodeId $id, this.tags, this.summary, this.description, this.operationId, this.extensions})
-    : _$node = OpenApiRegistry.i.getOpenApiNode<OperationNode>($id);
-  }
+    : _$node = OpenApiGraph.i.getOpenApiNode<OperationNode>($id);
+}

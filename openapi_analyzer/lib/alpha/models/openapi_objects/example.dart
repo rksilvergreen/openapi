@@ -1,30 +1,41 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
+import '../openapi_graph.dart';
 
-import '../openapi_object.dart';
-import 'json_helpers.dart';
+class ExampleNode extends OpenApiNode {
+  ExampleNode(super.$id, super.json) {
+    _validateStructure();
+    _createContent();
+  }
 
-part '_gen/example.g.dart';
+  bool _structureValidated = false;
+  bool _contentCreated = false;
+
+  bool get structureValidated => _structureValidated;
+  bool get contentCreated => _contentCreated;
+
+  late final Example content;
+
+  void _validateStructure() {}
+  void _createContent() {
+    content = Example._(
+      $id: $id,
+      summary: json['summary'],
+      description: json['description'],
+      value: json['value'],
+      externalValue: json['externalValue'],
+      extensions: extractExtensions(json),
+    );
+  }
+}
 
 /// Example object for media type examples.
-@CopyWith()
-@JsonSerializable()
-class Example implements OpenapiObject {
+class Example {
+  final ExampleNode _$node;
   final String? summary;
   final String? description;
   final dynamic value;
   final String? externalValue;
-  @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
 
-  Example({this.summary, this.description, this.value, this.externalValue, this.extensions});
-
-  factory Example.fromJson(Map<String, dynamic> json) {
-    final extensions = extractExtensions(json);
-    final example = _$ExampleFromJson(jsonWithoutExtensions(json));
-    return example.copyWith(extensions: extensions);
-  }
-
-  @override
-  Map<String, dynamic> toJson() => _$ExampleToJson(this);
+  Example._({required NodeId $id, this.summary, this.description, this.value, this.externalValue, this.extensions})
+    : _$node = OpenApiGraph.i.getOpenApiNode<ExampleNode>($id);
 }

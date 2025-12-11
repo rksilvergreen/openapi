@@ -7,10 +7,10 @@ class LicenseNode extends OpenApiNode {
   }
 
   bool _structureValidated = false;
-  bool _contentValidated = false;
+  bool _contentCreated = false;
 
   bool get structureValidated => _structureValidated;
-  bool get contentValidated => _contentValidated;
+  bool get contentCreated => _contentCreated;
 
   late final License content;
 
@@ -29,5 +29,5 @@ class License {
   final Map<String, dynamic>? extensions;
 
   License._({required NodeId $id, required this.name, this.url, this.extensions})
-    : _$node = OpenApiRegistry.i.getOpenApiNode<LicenseNode>($id);
+    : _$node = OpenApiGraph.i.getOpenApiNode<LicenseNode>($id);
 }

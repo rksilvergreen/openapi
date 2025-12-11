@@ -4,7 +4,6 @@ import 'typed_schema/typed_schema.dart';
 import 'effective_schema/effective_schema.dart';
 
 class SchemaNode extends Node {
-
   SchemaNode(super.$id, super.json);
 
   late final RawSchema raw;
@@ -18,14 +17,15 @@ class SchemaNode extends Node {
   List<SchemaNode>? _$additionalProperties;
   List<SchemaNode>? _$items;
 
-  List<SchemaNode> get allOf => _$allOf ??= OpenApiRegistry.i.getSchemaNodeApplicatorChildren<AllOfEdge>(this);
-  List<SchemaNode> get oneOf => _$oneOf ??= OpenApiRegistry.i.getSchemaNodeApplicatorChildren<OneOfEdge>(this);
-  List<SchemaNode> get anyOf => _$anyOf ??= OpenApiRegistry.i.getSchemaNodeApplicatorChildren<AnyOfEdge>(this);
+  List<SchemaNode> get allOf => _$allOf ??= OpenApiGraph.i.getSchemaNodeApplicatorChildren<AllOfEdge>(this);
+  List<SchemaNode> get oneOf => _$oneOf ??= OpenApiGraph.i.getSchemaNodeApplicatorChildren<OneOfEdge>(this);
+  List<SchemaNode> get anyOf => _$anyOf ??= OpenApiGraph.i.getSchemaNodeApplicatorChildren<AnyOfEdge>(this);
 
-  List<SchemaNode> get properties => _$properties ??= OpenApiRegistry.i.getSchemaNodeStructuralChildren<PropertiesEdge>(this);
+  List<SchemaNode> get properties =>
+      _$properties ??= OpenApiGraph.i.getSchemaNodeStructuralChildren<PropertiesEdge>(this);
   List<SchemaNode> get additionalProperties =>
-      _$additionalProperties ??= OpenApiRegistry.i.getSchemaNodeStructuralChildren<AdditionalPropertiesEdge>(this);
-  List<SchemaNode> get items => _$items ??= OpenApiRegistry.i.getSchemaNodeStructuralChildren<ItemsEdge>(this);
+      _$additionalProperties ??= OpenApiGraph.i.getSchemaNodeStructuralChildren<AdditionalPropertiesEdge>(this);
+  List<SchemaNode> get items => _$items ??= OpenApiGraph.i.getSchemaNodeStructuralChildren<ItemsEdge>(this);
 
   bool _isStructuralValidationPassed = false;
   bool _isRawSet = false;

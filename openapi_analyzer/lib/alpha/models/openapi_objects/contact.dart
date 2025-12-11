@@ -7,10 +7,10 @@ class ContactNode extends OpenApiNode {
   }
 
   bool _structureValidated = false;
-  bool _contentValidated = false;
+  bool _contentCreated = false;
 
   bool get structureValidated => _structureValidated;
-  bool get contentValidated => _contentValidated;
+  bool get contentCreated => _contentCreated;
 
   late final Contact content;
 
@@ -35,5 +35,5 @@ class Contact {
   final Map<String, dynamic>? extensions;
 
   Contact._({required NodeId $id, required this.name, this.url, this.email, this.extensions})
-    : _$node = OpenApiRegistry.i.getOpenApiNode<ContactNode>($id);
+    : _$node = OpenApiGraph.i.getOpenApiNode<ContactNode>($id);
 }

@@ -49,6 +49,7 @@ Future<void> main(List<String> arguments) async {
     print('Error: Failed to read file: $e');
     exit(1);
   }
+  final yamlDoc = loadYaml(yamlContent);
 
   // Get base directory for resolving external references
   final baseDir = file.parent.absolute.path;

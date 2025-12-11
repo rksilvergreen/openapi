@@ -11,10 +11,10 @@ class PathItemNode extends OpenApiNode {
   }
 
   bool _structureValidated = false;
-  bool _contentValidated = false;
+  bool _contentCreated = false;
 
   bool get structureValidated => _structureValidated;
-  bool get contentValidated => _contentValidated;
+  bool get contentCreated => _contentCreated;
 
   late final OperationNode? getNode;
   late final OperationNode? putNode;
@@ -59,5 +59,5 @@ class PathItem {
   final Map<String, dynamic>? extensions;
 
   PathItem._({required NodeId $id, this.summary, this.description, this.extensions})
-    : _$node = OpenApiRegistry.i.getOpenApiNode<PathItemNode>($id);
+    : _$node = OpenApiGraph.i.getOpenApiNode<PathItemNode>($id);
 }

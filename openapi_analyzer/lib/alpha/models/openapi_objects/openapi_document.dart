@@ -3,7 +3,7 @@ import 'info.dart';
 import 'server.dart';
 import 'paths.dart';
 import 'components.dart';
-import 'security.dart';
+import 'security_requirement.dart';
 import 'tag.dart';
 import 'external_documentation.dart';
 
@@ -15,10 +15,10 @@ class OpenApiDocumentNode extends OpenApiNode {
   }
 
   bool _structureValidated = false;
-  bool _contentValidated = false;
+  bool _contentCreated = false;
 
   bool get structureValidated => _structureValidated;
-  bool get contentValidated => _contentValidated;
+  bool get contentCreated => _contentCreated;
 
   late final InfoNode infoNode;
   late final List<ServerNode>? serversNode;
@@ -52,5 +52,5 @@ class OpenApiDocument {
   final Map<String, dynamic>? extensions;
 
   OpenApiDocument._({required NodeId $id, required this.openapi, this.extensions})
-    : _$node = OpenApiRegistry.i.getOpenApiNode<OpenApiDocumentNode>($id);
+    : _$node = OpenApiGraph.i.getOpenApiNode<OpenApiDocumentNode>($id);
 }

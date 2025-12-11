@@ -9,10 +9,10 @@ class PathsNode extends OpenApiNode {
   }
 
   bool _structureValidated = false;
-  bool _contentValidated = false;
+  bool _contentCreated = false;
 
   bool get structureValidated => _structureValidated;
-  bool get contentValidated => _contentValidated;
+  bool get contentCreated => _contentCreated;
 
   late final Map<String, PathItemNode> pathItemNodes;
 
@@ -28,7 +28,7 @@ class PathsNode extends OpenApiNode {
 class Paths {
   final PathsNode _$node;
 
-  Map<String, PathItem> get paths => _$node.pathItemNodes.map((k,v) => MapEntry(k, v.content));
+  Map<String, PathItem> get paths => _$node.pathItemNodes.map((k, v) => MapEntry(k, v.content));
   final Map<String, dynamic>? extensions;
-  Paths._({required NodeId $id, this.extensions}) : _$node = OpenApiRegistry.i.getOpenApiNode<PathsNode>($id);
+  Paths._({required NodeId $id, this.extensions}) : _$node = OpenApiGraph.i.getOpenApiNode<PathsNode>($id);
 }

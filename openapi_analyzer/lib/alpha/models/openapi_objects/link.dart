@@ -1,41 +1,56 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
-
-import '../openapi_object.dart';
+import '../openapi_graph.dart';
 import 'server.dart';
-import 'json_helpers.dart';
 
-part '_gen/link.g.dart';
+class LinkNode extends OpenApiNode {
+  LinkNode(super.$id, super.json) {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
+
+  bool _structureValidated = false;
+  bool _contentCreated = false;
+
+  bool get structureValidated => _structureValidated;
+  bool get contentCreated => _contentCreated;
+
+  late final ServerNode? serverNode;
+
+  late final Link content;
+
+  void _validateStructure() {}
+  void _createChildNodes() {}
+  void _createContent() {
+    content = Link._(
+      $id: $id,
+      operationRef: json['operationRef'],
+      operationId: json['operationId'],
+      parameters: json['parameters'] != null ? Map<String, dynamic>.from(json['parameters']) : null,
+      requestBody: json['requestBody'],
+      description: json['description'],
+      extensions: extractExtensions(json),
+    );
+  }
+}
 
 /// Link object represents a possible design-time link for a response.
-@CopyWith()
-@JsonSerializable()
-class Link implements OpenapiObject {
+class Link {
+  final LinkNode _$node;
   final String? operationRef;
   final String? operationId;
   final Map<String, dynamic>? parameters;
   final dynamic requestBody;
   final String? description;
-  final Server? server;
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  Server? get server => _$node.serverNode?.content;
   final Map<String, dynamic>? extensions;
 
-  Link({
+  Link._({
+    required NodeId $id,
     this.operationRef,
     this.operationId,
     this.parameters,
     this.requestBody,
     this.description,
-    this.server,
     this.extensions,
-  });
-
-  factory Link.fromJson(Map<String, dynamic> json) {
-    final extensions = extractExtensions(json);
-    final link = _$LinkFromJson(jsonWithoutExtensions(json));
-    return link.copyWith(extensions: extensions);
-  }
-
-  @override
-  Map<String, dynamic> toJson() => _$LinkToJson(this);
+  }) : _$node = OpenApiGraph.i.getOpenApiNode<LinkNode>($id);
 }

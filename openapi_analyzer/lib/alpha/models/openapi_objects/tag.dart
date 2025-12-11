@@ -1,36 +1,43 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
-
-import '../openapi_object.dart';
+import '../openapi_graph.dart';
 import 'external_documentation.dart';
-import 'json_helpers.dart';
 
-part '_gen/tag.g.dart';
-
-/// Adds metadata to a single tag that is used by the Operation Object.
-@CopyWith()
-@JsonSerializable()
-class Tag implements OpenapiObject {
-  final String name;
-  final String? description;
-  final ExternalDocumentation? externalDocs;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
-
-  Tag({
-    required this.name,
-    this.description,
-    this.externalDocs,
-    this.extensions,
-  });
-
-  factory Tag.fromJson(Map<String, dynamic> json) {
-    final extensions = extractExtensions(json);
-    final tag = _$TagFromJson(jsonWithoutExtensions(json));
-    return tag.copyWith(extensions: extensions);
+class TagNode extends OpenApiNode {
+  TagNode(super.$id, super.json) {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
   }
 
-  @override
-  Map<String, dynamic> toJson() => _$TagToJson(this);
+  bool _structureValidated = false;
+  bool _contentCreated = false;
+
+  bool get structureValidated => _structureValidated;
+  bool get contentCreated => _contentCreated;
+
+  late final ExternalDocumentationNode? externalDocsNode;
+
+  late final Tag content;
+
+  void _validateStructure() {}
+  void _createChildNodes() {}
+  void _createContent() {
+    content = Tag._(
+      $id: $id,
+      name: json['name'],
+      description: json['description'],
+      extensions: extractExtensions(json),
+    );
+  }
 }
 
+/// Adds metadata to a single tag that is used by the Operation Object.
+class Tag {
+  final TagNode _$node;
+  final String name;
+  final String? description;
+  ExternalDocumentation? get externalDocs => _$node.externalDocsNode?.content;
+  final Map<String, dynamic>? extensions;
+
+  Tag._({required NodeId $id, required this.name, this.description, this.extensions})
+    : _$node = OpenApiGraph.i.getOpenApiNode<TagNode>($id);
+}

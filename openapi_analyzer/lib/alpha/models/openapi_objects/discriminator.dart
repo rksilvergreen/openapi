@@ -1,33 +1,37 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
+import '../openapi_graph.dart';
 
-import '../openapi_object.dart';
-import 'json_helpers.dart';
-
-part '_gen/discriminator.g.dart';
-
-/// Discriminator object for polymorphism support.
-@CopyWith()
-@JsonSerializable()
-class Discriminator implements OpenapiObject {
-  final String propertyName;
-  final Map<String, String>? mapping;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
-
-  Discriminator({
-    required this.propertyName,
-    this.mapping,
-    this.extensions,
-  });
-
-  factory Discriminator.fromJson(Map<String, dynamic> json) {
-    final extensions = extractExtensions(json);
-    final discriminator = _$DiscriminatorFromJson(jsonWithoutExtensions(json));
-    return discriminator.copyWith(extensions: extensions);
+class DiscriminatorNode extends OpenApiNode {
+  DiscriminatorNode(super.$id, super.json) {
+    _validateStructure();
+    _createContent();
   }
 
-  @override
-  Map<String, dynamic> toJson() => _$DiscriminatorToJson(this);
+  bool _structureValidated = false;
+  bool _contentCreated = false;
+
+  bool get structureValidated => _structureValidated;
+  bool get contentCreated => _contentCreated;
+
+  late final Discriminator content;
+
+  void _validateStructure() {}
+  void _createContent() {
+    content = Discriminator._(
+      $id: $id,
+      propertyName: json['propertyName'],
+      mapping: json['mapping'] != null ? Map<String, String>.from(json['mapping']) : null,
+      extensions: extractExtensions(json),
+    );
+  }
 }
 
+/// Discriminator object for polymorphism support.
+class Discriminator {
+  final DiscriminatorNode _$node;
+  final String propertyName;
+  final Map<String, String>? mapping;
+  final Map<String, dynamic>? extensions;
+
+  Discriminator._({required NodeId $id, required this.propertyName, this.mapping, this.extensions})
+    : _$node = OpenApiGraph.i.getOpenApiNode<DiscriminatorNode>($id);
+}

@@ -9,10 +9,10 @@ class ServerNode extends OpenApiNode {
   }
 
   bool _structureValidated = false;
-  bool _contentValidated = false;
+  bool _contentCreated = false;
 
   bool get structureValidated => _structureValidated;
-  bool get contentValidated => _contentValidated;
+  bool get contentCreated => _contentCreated;
 
   late final List<ServerVariableNode>? variableNodes;
 
@@ -42,5 +42,5 @@ class Server {
   final Map<String, dynamic>? extensions;
 
   Server._({required NodeId $id, required this.url, this.description, this.variables, this.extensions})
-    : _$node = OpenApiRegistry.i.getOpenApiNode<ServerNode>($id);
+    : _$node = OpenApiGraph.i.getOpenApiNode<ServerNode>($id);
 }

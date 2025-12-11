@@ -15,10 +15,10 @@ class ParameterNode extends OpenApiNode {
   }
 
   bool _structureValidated = false;
-  bool _contentValidated = false;
+  bool _contentCreated = false;
 
   bool get structureValidated => _structureValidated;
-  bool get contentValidated => _contentValidated;
+  bool get contentCreated => _contentCreated;
 
   late final SchemaNode? schemaNode;
   late final Map<String, ExampleNode>? examplesNodes;
@@ -61,7 +61,7 @@ class Parameter {
   final bool allowReserved;
   EffectiveSchema? get schema => _$node.schemaNode?.effective;
   final dynamic example;
-  Map<String, Example>? get examples => _$node.examplesNodes?.map((k,v) => MapEntry(k, v.content));
+  Map<String, Example>? get examples => _$node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
   final Map<String, MediaType>? content;
   final Map<String, dynamic>? extensions;
 
@@ -79,5 +79,5 @@ class Parameter {
     this.example,
     this.content,
     this.extensions,
-  }) : _$node = OpenApiRegistry.i.getOpenApiNode<ParameterNode>($id);
+  }) : _$node = OpenApiGraph.i.getOpenApiNode<ParameterNode>($id);
 }

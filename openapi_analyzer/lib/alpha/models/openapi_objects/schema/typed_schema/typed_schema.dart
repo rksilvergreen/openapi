@@ -17,7 +17,7 @@ abstract class TypedSchema<T extends TypedSchema<T>> {
   List<T>? _$oneOf;
   List<T>? _$anyOf;
 
-  SchemaNode get _node => _$node ??= OpenApiRegistry.i.getSchemaNode($id);
+  SchemaNode get _node => _$node ??= OpenApiGraph.i.getSchemaNode($id);
   List<T> get allOf => _$allOf ??= _node.allOf.map((node) => node.typed as T).toList();
   List<T> get oneOf => _$oneOf ??= _node.oneOf.map((node) => node.typed as T).toList();
   List<T> get anyOf => _$anyOf ??= _node.anyOf.map((node) => node.typed as T).toList();

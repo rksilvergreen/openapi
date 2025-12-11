@@ -7,10 +7,10 @@ class ServerVariableNode extends OpenApiNode {
   }
 
   bool _structureValidated = false;
-  bool _contentValidated = false;
+  bool _contentCreated = false;
 
   bool get structureValidated => _structureValidated;
-  bool get contentValidated => _contentValidated;
+  bool get contentCreated => _contentCreated;
 
   late final ServerVariable content;
 
@@ -40,5 +40,5 @@ class ServerVariable {
     required this.default_,
     this.description,
     this.extensions,
-  }) : _$node = OpenApiRegistry.i.getOpenApiNode<ServerVariableNode>($id);
+  }) : _$node = OpenApiGraph.i.getOpenApiNode<ServerVariableNode>($id);
 }

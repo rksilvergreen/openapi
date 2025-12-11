@@ -1,35 +1,35 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
+import '../openapi_graph.dart';
+import 'path_item.dart';
 
-import '../openapi_object.dart';
-import 'paths.dart';
-import 'json_helpers.dart';
-
-part '_gen/callback.g.dart';
-
-/// A map of possible out-of band callbacks related to the parent operation.
-@CopyWith()
-@JsonSerializable(createFactory: false)
-class Callback implements OpenapiObject {
-  final Map<String, PathItem> expressions;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
-
-  Callback({required this.expressions, this.extensions});
-
-  factory Callback.fromJson(Map<String, dynamic> json) {
-    final extensions = extractExtensions(json);
-    final expressions = <String, PathItem>{};
-    final cleanedJson = jsonWithoutExtensions(json);
-    for (final entry in cleanedJson.entries) {
-      final key = entry.key.toString();
-      if (entry.value is Map) {
-        expressions[key] = PathItem.fromJson(Map<String, dynamic>.from(entry.value));
-      }
-    }
-    return Callback(expressions: expressions, extensions: extensions);
+class CallbackNode extends OpenApiNode {
+  CallbackNode(super.$id, super.json) {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
   }
 
-  @override
-  Map<String, dynamic> toJson() => _$CallbackToJson(this);
+  bool _structureValidated = false;
+  bool _contentCreated = false;
+
+  bool get structureValidated => _structureValidated;
+  bool get contentCreated => _contentCreated;
+
+  late final Map<String, PathItemNode> expressionsNodes;
+
+  late final Callback content;
+
+  void _validateStructure() {}
+  void _createChildNodes() {}
+  void _createContent() {
+    content = Callback._($id: $id, extensions: extractExtensions(json));
+  }
+}
+
+/// A map of possible out-of band callbacks related to the parent operation.
+class Callback {
+  final CallbackNode _$node;
+  Map<String, PathItem> get expressions => _$node.expressionsNodes.map((k, v) => MapEntry(k, v.content));
+  final Map<String, dynamic>? extensions;
+
+  Callback._({required NodeId $id, this.extensions}) : _$node = OpenApiGraph.i.getOpenApiNode<CallbackNode>($id);
 }

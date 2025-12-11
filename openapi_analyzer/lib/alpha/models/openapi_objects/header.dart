@@ -1,39 +1,65 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
-
-import '../openapi_object.dart';
+import '../openapi_graph.dart';
 import 'enums.dart';
-import '../referenceable.dart';
-import 'schema/raw_schema/raw_schema.dart';
+import 'schema/schema_node.dart';
+import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
 import 'media_type.dart';
-import 'json_helpers.dart';
 
-part '_gen/header.g.dart';
+class HeaderNode extends OpenApiNode {
+  HeaderNode(super.$id, super.json) {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
+
+  bool _structureValidated = false;
+  bool _contentCreated = false;
+
+  bool get structureValidated => _structureValidated;
+  bool get contentCreated => _contentCreated;
+
+  late final SchemaNode? schemaNode;
+  late final Map<String, ExampleNode>? examplesNodes;
+  late final Map<String, MediaTypeNode>? contentNodes;
+
+  late final Header content;
+
+  void _validateStructure() {}
+  void _createChildNodes() {}
+  void _createContent() {
+    content = Header._(
+      $id: $id,
+      description: json['description'],
+      required_: json['required'],
+      deprecated: json['deprecated'],
+      allowEmptyValue: json['allowEmptyValue'],
+      style: json['style'],
+      explode: json['explode'],
+      allowReserved: json['allowReserved'],
+      example: json['example'],
+      extensions: extractExtensions(json),
+    );
+  }
+}
 
 /// Header Object follows the structure of the Parameter Object.
-@CopyWith()
-@JsonSerializable()
-class Header implements OpenapiObject {
+class Header {
+  final HeaderNode _$node;
   final String? description;
-  @JsonKey(name: 'required')
   final bool required_;
   final bool deprecated;
   final bool allowEmptyValue;
   final ParameterStyle? style;
   final bool? explode;
   final bool allowReserved;
-  // @JsonKey(fromJson: _schemaFromJson, toJson: _schemaToJson)
-  // @JsonKey(fromJson: Referenceable.fromJson<SchemaObject>, toJson: _schemaToJson)
-  final Referenceable<SchemaObject>? schema;
+  EffectiveSchema? get schema => _$node.schemaNode?.effective;
   final dynamic example;
-  // @JsonKey(fromJson: _examplesFromJson, toJson: _examplesToJson)
-  final Map<String, Referenceable<Example>>? examples;
-  final Map<String, MediaType>? content;
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, Example>? get examples => _$node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, MediaType>? get content => _$node.contentNodes?.map((k, v) => MapEntry(k, v.content));
   final Map<String, dynamic>? extensions;
 
-  Header({
+  Header._({
+    required NodeId $id,
     this.description,
     this.required_ = false,
     this.deprecated = false,
@@ -41,48 +67,7 @@ class Header implements OpenapiObject {
     this.style,
     this.explode,
     this.allowReserved = false,
-    this.schema,
     this.example,
-    this.examples,
-    this.content,
     this.extensions,
-  });
-
-  factory Header.fromJson(Map<String, dynamic> json) {
-    final extensions = extractExtensions(json);
-    final header = _$HeaderFromJson(jsonWithoutExtensions(json));
-    return header.copyWith(extensions: extensions);
-  }
-
-  @override
-  Map<String, dynamic> toJson() => _$HeaderToJson(this);
+  }) : _$node = OpenApiGraph.i.getOpenApiNode<HeaderNode>($id);
 }
-
-// Referenceable<SchemaObject>? _schemaFromJson(dynamic json) =>
-//     Referenceable.fromJson<SchemaObject>(json, SchemaObject.fromJson);
-
-// dynamic _schemaToJson(Referenceable<SchemaObject>? schema) {
-//   if (schema == null) return null;
-//   if (schema.isReference()) return schema.asReference();
-//   return schema.asValue()?.toJson();
-// }
-
-// Map<String, Referenceable<Example>>? _examplesFromJson(dynamic json) {
-//   if (json == null) return null;
-//   if (json is! Map) return null;
-//   final result = <String, Referenceable<Example>>{};
-//   for (final entry in json.entries) {
-//     final value = Referenceable.fromJson<Example>(entry.value, Example.fromJson);
-//     if (value != null) result[entry.key.toString()] = value;
-//   }
-//   return result;
-// }
-
-// Map<String, dynamic>? _examplesToJson(Map<String, Referenceable<Example>>? examples) {
-//   if (examples == null) return null;
-//   final result = <String, dynamic>{};
-//   for (final entry in examples.entries) {
-//     result[entry.key] = entry.value.isReference() ? entry.value.asReference() : entry.value.asValue()?.toJson();
-//   }
-//   return result;
-// }

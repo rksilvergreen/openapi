@@ -10,10 +10,10 @@ class InfoNode extends OpenApiNode {
   }
 
   bool _structureValidated = false;
-  bool _contentValidated = false;
+  bool _contentCreated = false;
 
   bool get structureValidated => _structureValidated;
-  bool get contentValidated => _contentValidated;
+  bool get contentCreated => _contentCreated;
 
   late final ContactNode? contactNode;
   late final LicenseNode? licenseNode;
@@ -53,5 +53,5 @@ class Info {
     this.termsOfService,
     required this.version,
     this.extensions,
-  }) : _$node = OpenApiRegistry.i.getOpenApiNode<InfoNode>($id);
+  }) : _$node = OpenApiGraph.i.getOpenApiNode<InfoNode>($id);
 }

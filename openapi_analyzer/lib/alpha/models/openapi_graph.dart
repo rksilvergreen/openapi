@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:yaml/yaml.dart';
+import 'package:openapi_analyzer/alpha/models/openapi_objects/openapi_document.dart';
 import 'openapi_objects/schema/schema_node.dart';
 
 abstract class Node {
@@ -6,14 +9,14 @@ abstract class Node {
   Node(this.$id, this.json);
 
   Map<String, dynamic>? extractExtensions(Map<String, dynamic> json) {
-  final extensions = <String, dynamic>{};
-  for (final entry in json.entries) {
-    if (entry.key.startsWith('x-')) {
-      extensions[entry.key] = entry.value;
+    final extensions = <String, dynamic>{};
+    for (final entry in json.entries) {
+      if (entry.key.startsWith('x-')) {
+        extensions[entry.key] = entry.value;
+      }
     }
+    return extensions.isEmpty ? null : extensions;
   }
-  return extensions.isEmpty ? null : extensions;
-}
 }
 
 class NodeId {
@@ -21,20 +24,46 @@ class NodeId {
   final String relativePath;
   final String absolutePath;
 
-  const NodeId(this.document, this.relativePath, this.absolutePath);
+  const NodeId(this.document, this.relativePath) : absolutePath = '$document$relativePath';
 }
 
 abstract class OpenApiNode extends Node {
   OpenApiNode(super.$id, super.json);
-  
+
   bool get structureValidated;
-  bool get contentValidated;
+  bool get contentCreated;
 }
 
-class OpenApiRegistry {
-  static final OpenApiRegistry i = OpenApiRegistry._();
+class OpenApiGraph {
+  static late final OpenApiGraph i;
 
-  OpenApiRegistry._();
+  final File file;
+
+  OpenApiGraph(this.file) {
+    i = this;
+  }
+
+  late final OpenApiDocument root;
+
+  OpenApiDocument create() {
+    if (!file.existsSync()) {
+      print('Error: File not found: ${file.path}');
+      exit(1);
+    }
+
+    String yamlContent;
+    try {
+      yamlContent = file.readAsStringSync();
+    } catch (e) {
+      print('Error: Failed to read file: $e');
+      exit(1);
+    }
+    final yamlDoc = loadYaml(yamlContent);
+
+    final rootId = NodeId(file.uri.pathSegments.last, '/');
+    final rootNode = OpenApiDocumentNode(rootId, yamlDoc);
+    return root = rootNode.content;
+  }
 
   final Map<String, OpenApiNode> openApiNodes = {};
   final Map<String, SchemaNode> schemaNodes = {};
@@ -94,8 +123,8 @@ class OpenApiEdge extends Edge {
 
   late OpenApiNode? _$from;
   late Node? _$to;
-  OpenApiNode get from => _$from ??= OpenApiRegistry.i.openApiNodes[_from]!;
-  Node get to => _$to ??= OpenApiRegistry.i.openApiNodes[_to] ?? OpenApiRegistry.i.schemaNodes[_to]!;
+  OpenApiNode get from => _$from ??= OpenApiGraph.i.openApiNodes[_from]!;
+  Node get to => _$to ??= OpenApiGraph.i.openApiNodes[_to] ?? OpenApiGraph.i.schemaNodes[_to]!;
 }
 
 abstract class SchemaEdge extends Edge {
@@ -105,8 +134,8 @@ abstract class SchemaEdge extends Edge {
 abstract class StructuralEdge extends SchemaEdge {
   late Node? _$from;
   late SchemaNode? _$to;
-  Node get from => _$from ??= OpenApiRegistry.i.schemaNodes[_from] ?? OpenApiRegistry.i.openApiNodes[_from]!;
-  SchemaNode get to => _$to ??= OpenApiRegistry.i.schemaNodes[_to]!;
+  Node get from => _$from ??= OpenApiGraph.i.schemaNodes[_from] ?? OpenApiGraph.i.openApiNodes[_from]!;
+  SchemaNode get to => _$to ??= OpenApiGraph.i.schemaNodes[_to]!;
   StructuralEdge(super.from, super.to, super.via);
 }
 
@@ -129,8 +158,8 @@ class ItemsEdge extends StructuralEdge {
 abstract class ApplicatorEdge extends SchemaEdge {
   late SchemaNode? _$from;
   late SchemaNode? _$to;
-  SchemaNode get from => _$from ??= OpenApiRegistry.i.schemaNodes[_from]!;
-  SchemaNode get to => _$to ??= OpenApiRegistry.i.schemaNodes[_to]!;
+  SchemaNode get from => _$from ??= OpenApiGraph.i.schemaNodes[_from]!;
+  SchemaNode get to => _$to ??= OpenApiGraph.i.schemaNodes[_to]!;
   ApplicatorEdge(super.from, super.to, super.via);
 }
 

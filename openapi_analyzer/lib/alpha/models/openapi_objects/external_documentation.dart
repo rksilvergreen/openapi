@@ -7,10 +7,10 @@ class ExternalDocumentationNode extends OpenApiNode {
   }
 
   bool _structureValidated = false;
-  bool _contentValidated = false;
+  bool _contentCreated = false;
 
   bool get structureValidated => _structureValidated;
-  bool get contentValidated => _contentValidated;
+  bool get contentCreated => _contentCreated;
 
   late final ExternalDocumentation content;
 
@@ -33,5 +33,5 @@ class ExternalDocumentation {
   final Map<String, dynamic>? extensions;
 
   ExternalDocumentation._({required NodeId $id, this.description, required this.url, this.extensions})
-    : _$node = OpenApiRegistry.i.getOpenApiNode<ExternalDocumentationNode>($id);
+    : _$node = OpenApiGraph.i.getOpenApiNode<ExternalDocumentationNode>($id);
 }

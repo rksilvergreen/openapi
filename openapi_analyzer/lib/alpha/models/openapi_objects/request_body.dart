@@ -1,31 +1,43 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
-
-import '../openapi_object.dart';
+import '../openapi_graph.dart';
 import 'media_type.dart';
-import 'json_helpers.dart';
 
-part '_gen/request_body.g.dart';
-
-/// Describes a single request body.
-@CopyWith()
-@JsonSerializable()
-class RequestBody implements OpenapiObject {
-  final String? description;
-  final Map<String, MediaType> content;
-  @JsonKey(name: 'required')
-  final bool required_;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
-
-  RequestBody({this.description, required this.content, this.required_ = false, this.extensions});
-
-  factory RequestBody.fromJson(Map<String, dynamic> json) {
-    final extensions = extractExtensions(json);
-    final requestBody = _$RequestBodyFromJson(jsonWithoutExtensions(json));
-    return requestBody.copyWith(extensions: extensions);
+class RequestBodyNode extends OpenApiNode {
+  RequestBodyNode(super.$id, super.json) {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
   }
 
-  @override
-  Map<String, dynamic> toJson() => _$RequestBodyToJson(this);
+  bool _structureValidated = false;
+  bool _contentCreated = false;
+
+  bool get structureValidated => _structureValidated;
+  bool get contentCreated => _contentCreated;
+
+  late final Map<String, MediaTypeNode> contentNodes;
+
+  late final RequestBody content;
+
+  void _validateStructure() {}
+  void _createChildNodes() {}
+  void _createContent() {
+    content = RequestBody._(
+      $id: $id,
+      description: json['description'],
+      required_: json['required'],
+      extensions: extractExtensions(json),
+    );
+  }
+}
+
+/// Describes a single request body.
+class RequestBody {
+  final RequestBodyNode _$node;
+  final String? description;
+  Map<String, MediaType> get content => _$node.contentNodes.map((k, v) => MapEntry(k, v.content));
+  final bool required_;
+  final Map<String, dynamic>? extensions;
+
+  RequestBody._({required NodeId $id, this.description, this.required_ = false, this.extensions})
+    : _$node = OpenApiGraph.i.getOpenApiNode<RequestBodyNode>($id);
 }

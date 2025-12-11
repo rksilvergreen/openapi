@@ -10,10 +10,10 @@ class EncodingNode extends OpenApiNode {
   }
 
   bool _structureValidated = false;
-  bool _contentValidated = false;
+  bool _contentCreated = false;
 
   bool get structureValidated => _structureValidated;
-  bool get contentValidated => _contentValidated;
+  bool get contentCreated => _contentCreated;
 
   late final Map<String, HeaderNode>? headersNodes;
 
@@ -50,5 +50,5 @@ class Encoding {
     this.explode,
     this.allowReserved = false,
     this.extensions,
-  }) : _$node = OpenApiRegistry.i.getOpenApiNode<EncodingNode>($id);
+  }) : _$node = OpenApiGraph.i.getOpenApiNode<EncodingNode>($id);
 }
