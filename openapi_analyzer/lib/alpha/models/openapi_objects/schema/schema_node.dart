@@ -2,30 +2,17 @@ import '../../openapi_graph.dart';
 import 'raw_schema/raw_schema.dart';
 import 'typed_schema/typed_schema.dart';
 import 'effective_schema/effective_schema.dart';
+import '../external_documentation.dart';
+import '../xml.dart';
 
 class SchemaNode extends Node {
-  SchemaNode(super.$id, super.json);
-
-  late final RawSchema raw;
-  late final TypedSchema typed;
-  late final EffectiveSchema effective;
-
-  List<SchemaNode>? _$allOf;
-  List<SchemaNode>? _$oneOf;
-  List<SchemaNode>? _$anyOf;
-  List<SchemaNode>? _$properties;
-  List<SchemaNode>? _$additionalProperties;
-  List<SchemaNode>? _$items;
-
-  List<SchemaNode> get allOf => _$allOf ??= OpenApiGraph.i.getSchemaNodeApplicatorChildren<AllOfEdge>(this);
-  List<SchemaNode> get oneOf => _$oneOf ??= OpenApiGraph.i.getSchemaNodeApplicatorChildren<OneOfEdge>(this);
-  List<SchemaNode> get anyOf => _$anyOf ??= OpenApiGraph.i.getSchemaNodeApplicatorChildren<AnyOfEdge>(this);
-
-  List<SchemaNode> get properties =>
-      _$properties ??= OpenApiGraph.i.getSchemaNodeStructuralChildren<PropertiesEdge>(this);
-  List<SchemaNode> get additionalProperties =>
-      _$additionalProperties ??= OpenApiGraph.i.getSchemaNodeStructuralChildren<AdditionalPropertiesEdge>(this);
-  List<SchemaNode> get items => _$items ??= OpenApiGraph.i.getSchemaNodeStructuralChildren<ItemsEdge>(this);
+  SchemaNode(super.$id, super.json) {
+    _validateStructure();
+    _createRaw();
+    _createTyped();
+    _createChildNodes();
+    _createEffective();
+  }
 
   bool _isStructuralValidationPassed = false;
   bool _isRawSet = false;
@@ -37,43 +24,23 @@ class SchemaNode extends Node {
   bool get isTypedSchemaSet => isTypedSet;
   bool get isEffectiveSchemaSet => isEffectiveSet;
 
-  void setStructuralValidated() {
-    if (_isStructuralValidationPassed) {
-      throw Exception('Structural validation must be set only once');
-    }
-    _isStructuralValidationPassed = true;
-  }
+  late final List<SchemaNode>? allOfNodes;
+  late final List<SchemaNode>? oneOfNodes;
+  late final List<SchemaNode>? anyOfNodes;
+  late final Map<String, SchemaNode>? propertiesNodes;
+  late final SchemaNode? additionalPropertiesNode;
+  late final SchemaNode? itemsNode;
 
-  void setRawSchema(RawSchema raw) {
-    if (!_isStructuralValidationPassed) {
-      throw Exception('Structural validation must be set before raw schema');
-    }
-    if (_isRawSet) {
-      throw Exception('Raw schema must be set only once');
-    }
-    this.raw = raw;
-    _isRawSet = true;
-  }
+  late final ExternalDocumentationNode? externalDocsNode;
+  late final XMLNode? xmlNode;
 
-  void setTypedSchema(TypedSchema typed) {
-    if (!_isRawSet) {
-      throw Exception('Raw schema must be set before typed schema');
-    }
-    if (isTypedSet) {
-      throw Exception('Typed schema must be set only once');
-    }
-    this.typed = typed;
-    isTypedSet = true;
-  }
+  late final RawSchema raw;
+  late final TypedSchema typed;
+  late final EffectiveSchema effective;
 
-  void setEffectiveSchema(EffectiveSchema effective) {
-    if (!isTypedSet) {
-      throw Exception('Typed schema must be set before effective schema');
-    }
-    if (isEffectiveSet) {
-      throw Exception('Effective schema must be set only once');
-    }
-    this.effective = effective;
-    isEffectiveSet = true;
-  }
+  void _validateStructure() {}
+  void _createChildNodes() {}
+  void _createRaw() {}
+  void _createTyped() {}
+  void _createEffective() {}
 }

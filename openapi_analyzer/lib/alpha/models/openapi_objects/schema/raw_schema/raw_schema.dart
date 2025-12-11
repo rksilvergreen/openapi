@@ -1,10 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
-import '../../../openapi_object.dart';
-import '../../../openapi_graph.dart';
-import '../schema_node.dart';
-import '../typed_schema/typed_schema.dart';
-import '../effective_schema/effective_schema.dart';
 
 part '_gen/raw_schema.g.dart';
 
@@ -12,7 +7,6 @@ part '_gen/raw_schema.g.dart';
 @CopyWith()
 @JsonSerializable()
 class RawSchema {
-  final ReferencableId $id;
   // JSON Schema Core keywords
   final String? title;
   final String? description;
@@ -73,7 +67,6 @@ class RawSchema {
   final Map<String, dynamic>? extensions;
 
   RawSchema({
-    required this.$id,
     this.title,
     this.description,
     this.default_,
@@ -119,9 +112,5 @@ class RawSchema {
     return schema.copyWith(extensions: extensions);
   }
 
-  @override
   Map<String, dynamic> toJson() => _$RawSchemaToJson(this);
-
-  TypedSchema get $typedSchema => (referenceGraph[$id] as Schema).typed;
-  EffectiveSchema get $effectiveSchema => (referenceGraph[$id] as Schema).effective;
 }

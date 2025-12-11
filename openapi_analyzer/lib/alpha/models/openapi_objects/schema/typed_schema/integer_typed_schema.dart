@@ -1,9 +1,9 @@
 import 'package:openapi_analyzer/alpha/models/openapi_objects/schema/schema_node.dart';
+import 'package:openapi_analyzer/alpha/models/openapi_objects/schema/schema_type.dart';
 
 import 'typed_schema.dart';
 
-class IntegerTypedSchema extends TypedSchema<int, IntegerTypedSchema> {
-  final SchemaType type = SchemaType.integer;
+class IntegerTypedSchema extends SingleTypeTypedSchema<int, IntegerTypedSchema> {
   final double? multipleOf;
   final int? maximum;
   final int? exclusiveMaximum;
@@ -12,22 +12,31 @@ class IntegerTypedSchema extends TypedSchema<int, IntegerTypedSchema> {
   final String? format;
 
   IntegerTypedSchema({
-    required super.$id,
-    super.description,
-    super.nullable,
-    super.readOnly,
-    super.writeOnly,
-    super.xml,
-    super.externalDocs,
-    super.example,
-    super.deprecated,
-    super.enumValues,
-    super.defaultValue,
+    required SchemaNode $node,
+    required String description,
+    required bool readOnly,
+    required bool writeOnly,
+    required Map<String, dynamic>? example,
+    required bool deprecated,
+    required bool nullable,
+    required int? defaultValue,
+    required List<int> enumValues,
     this.multipleOf,
     this.maximum,
     this.exclusiveMaximum,
     this.minimum,
     this.exclusiveMinimum,
     this.format,
-  });
+  }) : super(
+         $node,
+         SchemaType.integer,
+         description,
+         readOnly,
+         writeOnly,
+         example,
+         deprecated,
+         nullable,
+         defaultValue,
+         enumValues,
+       );
 }
