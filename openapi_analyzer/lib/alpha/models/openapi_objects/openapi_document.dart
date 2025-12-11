@@ -1,7 +1,3 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
-
-import '../openapi_object.dart';
 import '../openapi_graph.dart';
 import 'info.dart';
 import 'server.dart';
@@ -11,80 +7,50 @@ import 'security.dart';
 import 'tag.dart';
 import 'external_documentation.dart';
 
-part '_gen/openapi_document.g.dart';
-
-class OpenApiDocumentNode implements OpenApiNode {
-  final NodeId $id;
-  OpenApiDocumentNode({required this.$id});
-
- 
-
-  validate(Map<String, dynamic> json) {} // not recursive
-
-
-  void createChildNodes(Map<String, dynamic> json) {
+class OpenApiDocumentNode extends OpenApiNode {
+  OpenApiDocumentNode(super.$id, super.json) {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
   }
 
-  late InfoNode info;
+  bool _structureValidated = false;
+  bool _contentValidated = false;
 
-  createContent(Map<String, dynamic> json) {
-    
+  bool get structureValidated => _structureValidated;
+  bool get contentValidated => _contentValidated;
+
+  late final InfoNode infoNode;
+  late final List<ServerNode>? serversNode;
+  late final PathsNode pathsNode;
+  late final ComponentsNode componentsNode;
+  late final List<SecurityRequirementNode>? securityNode;
+  late final List<TagNode>? tagsNode;
+  late final ExternalDocumentationNode? externalDocsNode;
+
+  late final OpenApiDocument content;
+
+  void _validateStructure() {}
+  void _createChildNodes() {}
+  void _createContent() {
+    content = OpenApiDocument._($id: $id, openapi: json['openapi'], extensions: extractExtensions(json));
   }
-
-   OpenApiDocument content;
 }
 
 /// Root document object of the OpenAPI document.
-@CopyWith()
-@JsonSerializable()
 class OpenApiDocument {
-  final NodeId $id;
-  OpenApiDocumentNode? _$node;
-  OpenApiDocumentNode get _node => _$node ??= OpenApiRegistry.i.openApiNodes[$id.absolutePath]! as OpenApiDocumentNode;
+  final OpenApiDocumentNode _$node;
+
   final String openapi;
-  Info get info => _node.info.content;
-  // final Info info;
-  final List<Server>? servers;
-  final Paths paths;
-  final Components? components;
-  final List<SecurityRequirement>? security;
-  final List<Tag>? tags;
-  final ExternalDocumentation? externalDocs;
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  Info get info => _$node.infoNode.content;
+  List<Server>? get servers => _$node.serversNode?.map((server) => server.content).toList();
+  Paths get paths => _$node.pathsNode.content;
+  Components? get components => _$node.componentsNode.content;
+  List<SecurityRequirement>? get security => _$node.securityNode?.map((security) => security.content).toList();
+  List<Tag>? get tags => _$node.tagsNode?.map((tag) => tag.content).toList();
+  ExternalDocumentation? get externalDocs => _$node.externalDocsNode?.content;
   final Map<String, dynamic>? extensions;
 
-  OpenApiDocument({
-    required this.$id,
-    required this.openapi,
-    required this.info,
-    this.servers,
-    required this.paths,
-    this.components,
-    this.security,
-    this.tags,
-    this.externalDocs,
-    this.extensions,
-  });
-
-  factory OpenApiDocument.fromJson(Map<String, dynamic> json) {
-    validate(json);
-    Info info = Info.fromJson(json['info']);
-    
-    // final extensions = OpenapiObject.extractExtensions(json);
-    // final doc = _$OpenApiDocumentFromJson(OpenapiObject.jsonWithoutExtensions(json));
-    // return doc.copyWith(extensions: extensions);
-  }
-
-  static validate(Map<String, dynamic> json) {}
-
-  static createChildNodes(Map<String, dynamic> json) {}
-
-
-
-  static _createInfo(Map<String, dynamic> json) {
-    OpenApiRegistry.i.addOpenApiNode(Info.fromJson(json));
-  }
-
-  @override
-  Map<String, dynamic> toJson() => _$OpenApiDocumentToJson(this);
+  OpenApiDocument._({required NodeId $id, required this.openapi, this.extensions})
+    : _$node = OpenApiRegistry.i.getOpenApiNode<OpenApiDocumentNode>($id);
 }

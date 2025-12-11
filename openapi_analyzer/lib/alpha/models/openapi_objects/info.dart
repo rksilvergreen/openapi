@@ -1,92 +1,57 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
-
-import '../openapi_object.dart';
 import '../openapi_graph.dart';
+import 'contact.dart';
+import 'license.dart';
 
-part '_gen/info.g.dart';
-
-/// Contact information for the exposed API.
-@CopyWith()
-@JsonSerializable()
-class Contact implements OpenApiNode {
-  final NodeId $id;
-  final String? name;
-  final String? url;
-  final String? email;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
-
-  Contact({required this.$id, this.name, this.url, this.email, this.extensions});
-
-  factory Contact.fromJson(Map<String, dynamic> json) {
-    final extensions = OpenapiObject.extractExtensions(json);
-    final contact = _$ContactFromJson(OpenapiObject.jsonWithoutExtensions(json));
-    return contact.copyWith(extensions: extensions);
+class InfoNode extends OpenApiNode {
+  InfoNode(super.$id, super.json) {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
   }
 
-  @override
-  Map<String, dynamic> toJson() => _$ContactToJson(this);
-}
+  bool _structureValidated = false;
+  bool _contentValidated = false;
 
-/// License information for the exposed API.
-@CopyWith()
-@JsonSerializable()
-class License implements OpenapiObject {
-  final String name;
-  final String? url;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  bool get structureValidated => _structureValidated;
+  bool get contentValidated => _contentValidated;
 
-  License({required this.name, this.url, this.extensions});
+  late final ContactNode? contactNode;
+  late final LicenseNode? licenseNode;
 
-  factory License.fromJson(Map<String, dynamic> json) {
-    final extensions = extractExtensions(json);
-    final license = _$LicenseFromJson(jsonWithoutExtensions(json));
-    return license.copyWith(extensions: extensions);
+  late final Info content;
+
+  void _validateStructure() {}
+  void _createChildNodes() {}
+  void _createContent() {
+    content = Info._(
+      $id: $id,
+      title: json['title'],
+      description: json['description'],
+      termsOfService: json['termsOfService'],
+      version: json['version'],
+      extensions: extractExtensions(json),
+    );
   }
-
-  @override
-  Map<String, dynamic> toJson() => _$LicenseToJson(this);
-}
-
-class InfoNode implements OpenApiNode {
-  Info content;
 }
 
 /// Metadata about the API.
-@CopyWith()
-@JsonSerializable()
-class Info implements OpenApiNode {
-  final NodeId $id;
+class Info {
+  final InfoNode _$node;
+
   final String title;
   final String? description;
   final String? termsOfService;
-  final Contact? contact;
-  final License? license;
+  Contact? get contact => _$node.contactNode?.content;
+  License? get license => _$node.licenseNode?.content;
   final String version;
-  @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
 
-  Info({
-    required this.$id,
+  Info._({
+    required NodeId $id,
     required this.title,
     this.description,
     this.termsOfService,
-    this.contact,
-    this.license,
     required this.version,
     this.extensions,
-  });
-
-  factory Info.fromJson(Map<String, dynamic> json) {
-    final extensions = OpenapiObject.extractExtensions(json);
-    final info = _$InfoFromJson(OpenapiObject.jsonWithoutExtensions(json));
-    return info.copyWith(extensions: extensions);
-  }
-
-  static validate(Map<String, dynamic> data) {}
-
-  @override
-  Map<String, dynamic> toJson() => _$InfoToJson(this);
+  }) : _$node = OpenApiRegistry.i.getOpenApiNode<InfoNode>($id);
 }

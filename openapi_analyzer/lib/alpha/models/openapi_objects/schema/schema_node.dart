@@ -3,10 +3,9 @@ import 'raw_schema/raw_schema.dart';
 import 'typed_schema/typed_schema.dart';
 import 'effective_schema/effective_schema.dart';
 
-class SchemaNode implements Node {
-  final NodeId $id;
+class SchemaNode extends Node {
 
-  SchemaNode(this.$id);
+  SchemaNode(super.$id, super.json);
 
   late final RawSchema raw;
   late final TypedSchema typed;

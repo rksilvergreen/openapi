@@ -1,40 +1,72 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
-
-import '../openapi_object.dart';
 import '../openapi_graph.dart';
 import 'enums.dart';
-import 'schema/raw_schema/raw_schema.dart';
+import 'schema/schema_node.dart';
+import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
 import 'media_type.dart';
 
 part '_gen/parameter.g.dart';
 
+class ParameterNode extends OpenApiNode {
+  ParameterNode(super.$id, super.json) {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
+
+  bool _structureValidated = false;
+  bool _contentValidated = false;
+
+  bool get structureValidated => _structureValidated;
+  bool get contentValidated => _contentValidated;
+
+  late final SchemaNode? schemaNode;
+  late final Map<String, ExampleNode>? examplesNodes;
+  late final Map<String, MediaTypeNode>? contentNodes;
+
+  late final Parameter content;
+
+  void _validateStructure() {}
+  void _createChildNodes() {}
+  void _createContent() {
+    content = Parameter._(
+      $id: $id,
+      name: json['name'],
+      in_: json['in'],
+      description: json['description'],
+      required_: json['required'],
+      deprecated: json['deprecated'],
+      allowEmptyValue: json['allowEmptyValue'],
+      style: json['style'],
+      explode: json['explode'],
+      allowReserved: json['allowReserved'],
+      example: json['example'],
+      content: json['content'],
+      extensions: extractExtensions(json),
+    );
+  }
+}
+
 /// Describes a single operation parameter.
-@CopyWith()
-@JsonSerializable()
-class Parameter implements Referencable {
-  final ReferencableId $id;
+class Parameter {
+  final ParameterNode _$node;
   final String name;
-  @JsonKey(name: 'in')
   final ParameterLocation in_;
   final String? description;
-  @JsonKey(name: 'required')
   final bool required_;
   final bool deprecated;
   final bool allowEmptyValue;
   final ParameterStyle? style;
   final bool? explode;
   final bool allowReserved;
-  final Referenceable<SchemaObject>? schema;
+  EffectiveSchema? get schema => _$node.schemaNode?.effective;
   final dynamic example;
-  final Map<String, Referenceable<Example>>? examples;
+  Map<String, Example>? get examples => _$node.examplesNodes?.map((k,v) => MapEntry(k, v.content));
   final Map<String, MediaType>? content;
-  @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
 
-  Parameter({
-    required this.$id,
+  Parameter._({
+    required NodeId $id,
     required this.name,
     required this.in_,
     this.description,
@@ -44,21 +76,8 @@ class Parameter implements Referencable {
     this.style,
     this.explode,
     this.allowReserved = false,
-    this.schema,
     this.example,
-    this.examples,
     this.content,
     this.extensions,
-  });
-
-  factory Parameter.fromJson(Map<String, dynamic> json) {
-    final extensions = OpenapiObject.extractExtensions(json);
-    final parameter = _$ParameterFromJson(OpenapiObject.jsonWithoutExtensions(json));
-    // Handle required_ based on in_ location
-    final required_ = parameter.in_ == ParameterLocation.path ? true : parameter.required_;
-    return parameter.copyWith(required_: required_, extensions: extensions);
-  }
-
-  @override
-  Map<String, dynamic> toJson() => _$ParameterToJson(this);
+  }) : _$node = OpenApiRegistry.i.getOpenApiNode<ParameterNode>($id);
 }

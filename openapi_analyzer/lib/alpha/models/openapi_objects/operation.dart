@@ -1,106 +1,66 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:copy_with_extension/copy_with_extension.dart';
 
-import '../openapi_object.dart';
-import '../referenceable.dart';
+
+import '../openapi_graph.dart';
+import 'external_documentation.dart';
 import 'parameter.dart';
 import 'request_body.dart';
 import 'response.dart';
 import 'callback.dart';
-import 'security.dart';
+import 'security_requirement.dart';
 import 'server.dart';
-import 'external_documentation.dart';
-import 'json_helpers.dart';
 
-part '_gen/operation.g.dart';
+class OperationNode extends OpenApiNode {
+  OperationNode(super.$id, super.json) {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
 
+  bool _structureValidated = false;
+  bool _contentValidated = false;
+
+  bool get structureValidated => _structureValidated;
+  bool get contentValidated => _contentValidated;
+
+  late final ExternalDocumentationNode? externalDocsNode;
+  late final List<ParameterNode>? parametersNodes;
+  late final RequestBodyNode? requestBodyNode;
+  late final Map<String, ResponseNode> responseNodes;
+  late final Map<String, CallbackNode>? callbackNodes;
+  late final List<SecurityRequirementNode>? securityRequirementNodes;
+  late final List<ServerNode>? serverNodes;
+
+  late final Operation content;
+
+  void _validateStructure() {}
+  void _createChildNodes() {}
+  void _createContent() {
+    content = Operation._(
+      $id: $id,
+      tags: json['tags'],
+      summary: json['summary'],
+      description: json['description'],
+      operationId: json['operationId'],
+      extensions: extractExtensions(json),
+    );
+  }
+}
 /// Describes a single API operation on a path.
-@CopyWith()
-@JsonSerializable()
-class Operation implements OpenapiObject {
+class Operation  {
+  final OperationNode _$node;
   final List<String>? tags;
   final String? summary;
   final String? description;
-  final ExternalDocumentation? externalDocs;
+  ExternalDocumentation? get externalDocs => _$node.externalDocsNode.content;
   final String? operationId;
-  // @JsonKey(fromJson: _parametersFromJson, toJson: _parametersToJson)
-  final List<Referenceable<Parameter>>? parameters;
-  // @JsonKey(fromJson: _requestBodyFromJson, toJson: _requestBodyToJson)
-  final Referenceable<RequestBody>? requestBody;
-  final Map<String, Referenceable<Response>> responses;
-  // @JsonKey(fromJson: _callbacksFromJson, toJson: _callbacksToJson)
-  final Map<String, Referenceable<Callback>>? callbacks;
-  final bool deprecated;
-  final List<SecurityRequirement>? security;
-  final List<Server>? servers;
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<Parameter>? get parameters => _$node.parametersNodes?.map((parameter) => parameter.content).toList();
+  RequestBody? get requestBody => _$node.requestBodyNode?.content;
+  Map<String, Response> get responses => _$node.responseNodes.map((k,v) => MapEntry(k, v.content));
+  Map<String, Callback>? get callbacks => _$node.callbackNodes?.map((k,v) => MapEntry(k, v.content));
+  List<SecurityRequirement>? get security => _$node.securityRequirementNodes?.map((securityRequirement) => securityRequirement.content).toList();
+  List<Server>? get servers => _$node.serverNodes?.map((server) => server.content).toList();
   final Map<String, dynamic>? extensions;
 
-  Operation({
-    this.tags,
-    this.summary,
-    this.description,
-    this.externalDocs,
-    this.operationId,
-    this.parameters,
-    this.requestBody,
-    required this.responses,
-    this.callbacks,
-    this.deprecated = false,
-    this.security,
-    this.servers,
-    this.extensions,
-  });
-
-  factory Operation.fromJson(Map<String, dynamic> json) {
-    final extensions = extractExtensions(json);
-    final operation = _$OperationFromJson(jsonWithoutExtensions(json));
-    return operation.copyWith(extensions: extensions);
+  Operation._({required NodeId $id, this.tags, this.summary, this.description, this.operationId, this.extensions})
+    : _$node = OpenApiRegistry.i.getOpenApiNode<OperationNode>($id);
   }
-
-  @override
-  Map<String, dynamic> toJson() => _$OperationToJson(this);
-}
-
-// List<Referenceable<Parameter>>? _parametersFromJson(dynamic json) {
-//   if (json == null) return null;
-//   if (json is! List) return null;
-//   return json.map((item) => Referenceable.fromJson<Parameter>(item, Parameter.fromJson)).whereType<Referenceable<Parameter>>().toList();
-// }
-
-// Referenceable<RequestBody>? _requestBodyFromJson(dynamic json) =>
-//     Referenceable.fromJson<RequestBody>(json, RequestBody.fromJson);
-
-// Map<String, Referenceable<Callback>>? _callbacksFromJson(dynamic json) {
-//   if (json == null) return null;
-//   if (json is! Map) return null;
-//   final result = <String, Referenceable<Callback>>{};
-//   for (final entry in json.entries) {
-//     final value = Referenceable.fromJson<Callback>(entry.value, Callback.fromJson);
-//     if (value != null) result[entry.key.toString()] = value;
-//   }
-//   return result;
-// }
-
-// List<dynamic>? _parametersToJson(List<Referenceable<Parameter>>? parameters) {
-//   if (parameters == null) return null;
-//   return parameters.map((p) {
-//     if (p.isReference()) return p.asReference();
-//     return p.asValue()?.toJson();
-//   }).toList();
-// }
-
-// dynamic _requestBodyToJson(Referenceable<RequestBody>? requestBody) {
-//   if (requestBody == null) return null;
-//   if (requestBody.isReference()) return requestBody.asReference();
-//   return requestBody.asValue()?.toJson();
-// }
-
-// Map<String, dynamic>? _callbacksToJson(Map<String, Referenceable<Callback>>? callbacks) {
-//   if (callbacks == null) return null;
-//   final result = <String, dynamic>{};
-//   for (final entry in callbacks.entries) {
-//     result[entry.key] = entry.value.isReference() ? entry.value.asReference() : entry.value.asValue()?.toJson();
-//   }
-//   return result;
-// }

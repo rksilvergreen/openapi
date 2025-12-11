@@ -1,7 +1,19 @@
 import 'openapi_objects/schema/schema_node.dart';
 
 abstract class Node {
-  NodeId get $id;
+  final NodeId $id;
+  final Map<String, dynamic> json;
+  Node(this.$id, this.json);
+
+  Map<String, dynamic>? extractExtensions(Map<String, dynamic> json) {
+  final extensions = <String, dynamic>{};
+  for (final entry in json.entries) {
+    if (entry.key.startsWith('x-')) {
+      extensions[entry.key] = entry.value;
+    }
+  }
+  return extensions.isEmpty ? null : extensions;
+}
 }
 
 class NodeId {
@@ -12,8 +24,11 @@ class NodeId {
   const NodeId(this.document, this.relativePath, this.absolutePath);
 }
 
-abstract class OpenApiNode implements Node {
-  NodeId get $id;
+abstract class OpenApiNode extends Node {
+  OpenApiNode(super.$id, super.json);
+  
+  bool get structureValidated;
+  bool get contentValidated;
 }
 
 class OpenApiRegistry {
@@ -37,11 +52,15 @@ class OpenApiRegistry {
 
   void addSchemaApplicatorEdge(ApplicatorEdge edge) => schemaApplicatorEdges.add(edge);
 
+  T getOpenApiNode<T extends OpenApiNode>(NodeId id) => openApiNodes[id.absolutePath]! as T;
+
   List<OpenApiNode> getOpenApiNodeParents(OpenApiNode node) =>
       openApiEdges.where((edge) => edge.to == node).map((edge) => edge.from).toList();
 
   List<Node> getOpenApiNodeChildren(OpenApiNode node) =>
       openApiEdges.where((edge) => edge.from == node).map((edge) => edge.to).toList();
+
+  SchemaNode getSchemaNode(NodeId id) => schemaNodes[id.absolutePath]!;
 
   List<Node> getSchemaNodeStructuralParents<T extends StructuralEdge>(SchemaNode node) =>
       schemaStructuralEdges.where((edge) => edge is T && edge.to == node).map((edge) => edge.from).toList();
