@@ -4,9 +4,9 @@ import 'effective_schema.dart';
 
 class ObjectEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, dynamic>, ObjectEffectiveSchema>
     with ObjectEffectiveSchemaVariant {
-  Map<String, EffectiveSchema>? get properties => $node.propertiesNodes?.map((k, v) => MapEntry(k, v.effective));
+  final Map<String, EffectiveSchema>? properties;
   final bool additionalPropertiesAllowed;
-  EffectiveSchema? get additionalProperties => $node.additionalPropertiesNode?.effective;
+  final EffectiveSchema? additionalProperties;
   final int? maxProperties;
   final int? minProperties;
   final List<String>? required;

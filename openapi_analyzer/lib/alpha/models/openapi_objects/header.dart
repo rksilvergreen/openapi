@@ -33,7 +33,9 @@ class HeaderNode extends OpenApiNode {
       required_: json['required'],
       deprecated: json['deprecated'],
       allowEmptyValue: json['allowEmptyValue'],
-      style: json['style'],
+      style: json['style'] != null
+          ? ParameterStyle.values.firstWhere((e) => e.value == json['style'])
+          : null,
       explode: json['explode'],
       allowReserved: json['allowReserved'],
       example: json['example'],

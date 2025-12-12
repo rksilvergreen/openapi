@@ -13,7 +13,7 @@ import 'openapi_objects/parameter.dart';
 import 'openapi_objects/paths.dart';
 import 'openapi_objects/request_body.dart';
 import 'openapi_objects/response.dart';
-import 'openapi_objects/schema/raw_schema/raw_schema.dart';
+import 'openapi_objects/schema/raw_schema.dart';
 import 'openapi_objects/security.dart';
 import 'openapi_objects/server.dart';
 import 'openapi_objects/tag.dart';

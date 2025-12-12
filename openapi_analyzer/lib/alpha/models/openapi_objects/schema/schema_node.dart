@@ -1,5 +1,5 @@
 import '../../openapi_graph.dart';
-import 'raw_schema/raw_schema.dart';
+import 'raw_schema.dart';
 import 'typed_schema/typed_schema.dart';
 import 'effective_schema/effective_schema.dart';
 import '../external_documentation.dart';

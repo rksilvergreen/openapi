@@ -1,12 +1,8 @@
-import 'package:copy_with_extension/copy_with_extension.dart';
-import 'package:json_annotation/json_annotation.dart';
 import '../schema_node.dart';
 import '../schema_type.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 
-@CopyWith()
-@JsonSerializable()
 abstract class TypedSchema<T extends TypedSchema<T>> {
   final SchemaNode $node;
   final SchemaType type;
@@ -51,4 +47,30 @@ abstract class SingleTypeTypedSchema<T, S extends SingleTypeTypedSchema<T, S>> e
     this.defaultValue,
     this.enumValues,
   );
+}
+
+class MultiTypeTypedSchema<T, S extends MultiTypeTypedSchema<T, S>> extends TypedSchema<S> {
+  final List<S> variants;
+  MultiTypeTypedSchema({
+    required SchemaNode $node,
+    String? description,
+    bool readOnly = false,
+    bool writeOnly = false,
+    Map<String, dynamic>? example,
+    bool deprecated = false,
+    bool nullable = false,
+    required this.variants,
+  }) : super($node, SchemaType.multiType, description, readOnly, writeOnly, example, deprecated, nullable);
+}
+
+class UnknownTypedSchema<T, S extends UnknownTypedSchema<T, S>> extends TypedSchema<S> {
+  UnknownTypedSchema({
+    required SchemaNode $node,
+    String? description,
+    bool readOnly = false,
+    bool writeOnly = false,
+    Map<String, dynamic>? example,
+    bool deprecated = false,
+    bool nullable = false,
+  }) : super($node, SchemaType.unknown, description, readOnly, writeOnly, example, deprecated, nullable);
 }

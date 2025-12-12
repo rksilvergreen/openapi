@@ -1,7 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
 
-part '_gen/raw_schema.g.dart';
+part 'raw_schema/_gen/raw_schema.g.dart';
 
 /// Schema Object - an extended subset of JSON Schema.
 @CopyWith()

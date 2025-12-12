@@ -25,7 +25,7 @@ class EncodingNode extends OpenApiNode {
     content = Encoding._(
       $id: $id,
       contentType: json['contentType'],
-      style: json['style'],
+      style: json['style'] != null ? ParameterStyle.values.firstWhere((e) => e.value == json['style']) : null,
       explode: json['explode'],
       allowReserved: json['allowReserved'] ?? false,
       extensions: extractExtensions(json),

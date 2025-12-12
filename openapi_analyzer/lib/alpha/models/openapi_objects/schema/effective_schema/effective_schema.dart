@@ -17,7 +17,7 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
 
   EffectiveSchema(
     this.$node,
-    this.type, 
+    this.type,
     this.description,
     this.readOnly,
     this.writeOnly,
@@ -25,10 +25,6 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
     this.deprecated,
     this.nullable,
   );
-
-  List<T>? get allOf => $node.allOfNodes?.map((node) => node.typed as T).toList();
-  List<T>? get oneOf => $node.oneOfNodes?.map((node) => node.typed as T).toList();
-  List<T>? get anyOf => $node.anyOfNodes?.map((node) => node.typed as T).toList();
 }
 
 abstract class SingleTypeEffectiveSchema<T, S extends SingleTypeEffectiveSchema<T, S>> extends EffectiveSchema<S> {
@@ -38,7 +34,7 @@ abstract class SingleTypeEffectiveSchema<T, S extends SingleTypeEffectiveSchema<
   SingleTypeEffectiveSchema(
     super.$node,
     super.type,
-    super.description, 
+    super.description,
     super.readOnly,
     super.writeOnly,
     super.example,
@@ -47,4 +43,30 @@ abstract class SingleTypeEffectiveSchema<T, S extends SingleTypeEffectiveSchema<
     this.defaultValue,
     this.enumValues,
   );
+}
+
+class MultiTypeUnionEffectiveSchema extends EffectiveSchema<MultiTypeUnionEffectiveSchema> {
+  final List<EffectiveSchema> variants;
+  MultiTypeUnionEffectiveSchema({
+    required SchemaNode $node,
+    String? description,
+    bool readOnly = false,
+    bool writeOnly = false,
+    Map<String, dynamic>? example,
+    bool deprecated = false,
+    bool nullable = false,
+    required this.variants,
+  }) : super($node, SchemaType.multiType, description, readOnly, writeOnly, example, deprecated, nullable);
+}
+
+class UnknownEffectiveSchema extends EffectiveSchema<UnknownEffectiveSchema> {
+  UnknownEffectiveSchema({
+    required SchemaNode $node,
+    String? description,
+    bool readOnly = false,
+    bool writeOnly = false,
+    Map<String, dynamic>? example,
+    bool deprecated = false,
+    bool nullable = false,
+  }) : super($node, SchemaType.unknown, description, readOnly, writeOnly, example, deprecated, nullable);
 }

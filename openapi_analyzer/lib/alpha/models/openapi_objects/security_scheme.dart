@@ -24,10 +24,10 @@ class SecuritySchemeNode extends OpenApiNode {
   void _createContent() {
     content = SecurityScheme._(
       $id: $id,
-      type: json['type'],
+      type: SecuritySchemeType.values.firstWhere((e) => e.value == json['type']),
       description: json['description'],
       name: json['name'],
-      in_: json['in'],
+      in_: json['in'] != null ? SecuritySchemeIn.values.firstWhere((e) => e.value == json['in']) : null,
       scheme: json['scheme'],
       bearerFormat: json['bearerFormat'],
       openIdConnectUrl: json['openIdConnectUrl'],
