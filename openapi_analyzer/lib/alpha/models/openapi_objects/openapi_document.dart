@@ -33,24 +33,23 @@ class OpenApiDocumentNode extends OpenApiNode {
   void _validateStructure() {}
   void _createChildNodes() {}
   void _createContent() {
-    content = OpenApiDocument._($id: $id, openapi: json['openapi'], extensions: extractExtensions(json));
+    content = OpenApiDocument._($node: this, openapi: json['openapi'], extensions: extractExtensions(json));
   }
 }
 
 /// Root document object of the OpenAPI document.
 class OpenApiDocument {
-  final OpenApiDocumentNode _$node;
+  final OpenApiDocumentNode $node;
 
   final String openapi;
-  Info get info => _$node.infoNode.content;
-  List<Server>? get servers => _$node.serversNode?.map((server) => server.content).toList();
-  Paths get paths => _$node.pathsNode.content;
-  Components? get components => _$node.componentsNode.content;
-  List<SecurityRequirement>? get security => _$node.securityNode?.map((security) => security.content).toList();
-  List<Tag>? get tags => _$node.tagsNode?.map((tag) => tag.content).toList();
-  ExternalDocumentation? get externalDocs => _$node.externalDocsNode?.content;
+  Info get info => $node.infoNode.content;
+  List<Server>? get servers => $node.serversNode?.map((server) => server.content).toList();
+  Paths get paths => $node.pathsNode.content;
+  Components? get components => $node.componentsNode.content;
+  List<SecurityRequirement>? get security => $node.securityNode?.map((security) => security.content).toList();
+  List<Tag>? get tags => $node.tagsNode?.map((tag) => tag.content).toList();
+  ExternalDocumentation? get externalDocs => $node.externalDocsNode?.content;
   final Map<String, dynamic>? extensions;
 
-  OpenApiDocument._({required NodeId $id, required this.openapi, this.extensions})
-    : _$node = OpenApiGraph.i.getOpenApiNode<OpenApiDocumentNode>($id);
+  OpenApiDocument._({required this.$node, required this.openapi, this.extensions});
 }

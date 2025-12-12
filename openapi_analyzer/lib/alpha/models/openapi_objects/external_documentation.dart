@@ -17,7 +17,7 @@ class ExternalDocumentationNode extends OpenApiNode {
   void _validateStructure() {}
   void _createContent() {
     content = ExternalDocumentation._(
-      $id: $id,
+      $node: this,
       description: json['description'],
       url: json['url'],
       extensions: extractExtensions(json),
@@ -27,11 +27,10 @@ class ExternalDocumentationNode extends OpenApiNode {
 
 /// Additional external documentation.
 class ExternalDocumentation {
-  final ExternalDocumentationNode _$node;
+  final ExternalDocumentationNode $node;
   final String? description;
   final String url;
   final Map<String, dynamic>? extensions;
 
-  ExternalDocumentation._({required NodeId $id, this.description, required this.url, this.extensions})
-    : _$node = OpenApiGraph.i.getOpenApiNode<ExternalDocumentationNode>($id);
+  ExternalDocumentation._({required this.$node, this.description, required this.url, this.extensions});
 }

@@ -28,7 +28,7 @@ class ParameterNode extends OpenApiNode {
   void _createChildNodes() {}
   void _createContent() {
     content = Parameter._(
-      $id: $id,
+      $node: this,
       name: json['name'],
       in_: ParameterLocation.values.firstWhere((e) => e.value == json['in']),
       description: json['description'],
@@ -49,7 +49,7 @@ class ParameterNode extends OpenApiNode {
 
 /// Describes a single operation parameter.
 class Parameter {
-  final ParameterNode _$node;
+  final ParameterNode $node;
   final String name;
   final ParameterLocation in_;
   final String? description;
@@ -59,14 +59,14 @@ class Parameter {
   final ParameterStyle? style;
   final bool? explode;
   final bool allowReserved;
-  EffectiveSchema? get schema => _$node.schemaNode?.effective;
+  EffectiveSchema? get schema => $node.schemaNode?.effective;
   final dynamic example;
-  Map<String, Example>? get examples => _$node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, Example>? get examples => $node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
   final Map<String, MediaType>? content;
   final Map<String, dynamic>? extensions;
 
   Parameter._({
-    required NodeId $id,
+    required this.$node,
     required this.name,
     required this.in_,
     this.description,
@@ -79,5 +79,5 @@ class Parameter {
     this.example,
     this.content,
     this.extensions,
-  }) : _$node = OpenApiGraph.i.getOpenApiNode<ParameterNode>($id);
+  });
 }

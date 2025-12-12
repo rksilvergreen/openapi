@@ -6,6 +6,8 @@ import 'response.dart';
 import 'callback.dart';
 import 'security_requirement.dart';
 import 'server.dart';
+// import 'path_item.dart';
+// import 'paths.dart';
 
 class OperationNode extends OpenApiNode {
   OperationNode(super.$id, super.json) {
@@ -34,7 +36,7 @@ class OperationNode extends OpenApiNode {
   void _createChildNodes() {}
   void _createContent() {
     content = Operation._(
-      $id: $id,
+      $node: this,
       tags: json['tags'],
       summary: json['summary'],
       description: json['description'],
@@ -46,21 +48,48 @@ class OperationNode extends OpenApiNode {
 
 /// Describes a single API operation on a path.
 class Operation {
-  final OperationNode _$node;
+  final OperationNode $node;
   final List<String>? tags;
   final String? summary;
   final String? description;
-  ExternalDocumentation? get externalDocs => _$node.externalDocsNode?.content;
+  ExternalDocumentation? get externalDocs => $node.externalDocsNode?.content;
   final String? operationId;
-  List<Parameter>? get parameters => _$node.parametersNodes?.map((parameter) => parameter.content).toList();
-  RequestBody? get requestBody => _$node.requestBodyNode?.content;
-  Map<String, Response> get responses => _$node.responseNodes.map((k, v) => MapEntry(k, v.content));
-  Map<String, Callback>? get callbacks => _$node.callbackNodes?.map((k, v) => MapEntry(k, v.content));
+  List<Parameter>? get parameters => $node.parametersNodes?.map((parameter) => parameter.content).toList();
+  RequestBody? get requestBody => $node.requestBodyNode?.content;
+  Map<String, Response> get responses => $node.responseNodes.map((k, v) => MapEntry(k, v.content));
+  Map<String, Callback>? get callbacks => $node.callbackNodes?.map((k, v) => MapEntry(k, v.content));
   List<SecurityRequirement>? get security =>
-      _$node.securityRequirementNodes?.map((securityRequirement) => securityRequirement.content).toList();
-  List<Server>? get servers => _$node.serverNodes?.map((server) => server.content).toList();
+      $node.securityRequirementNodes?.map((securityRequirement) => securityRequirement.content).toList();
+  List<Server>? get servers => $node.serverNodes?.map((server) => server.content).toList();
   final Map<String, dynamic>? extensions;
 
-  Operation._({required NodeId $id, this.tags, this.summary, this.description, this.operationId, this.extensions})
-    : _$node = OpenApiGraph.i.getOpenApiNode<OperationNode>($id);
+  Operation._({required this.$node, this.tags, this.summary, this.description, this.operationId, this.extensions});
+
+  String get $name {
+    return '';
+    // if (operationId != null) return operationId!;
+    // final pathItem = OpenApiGraph.i.getOpenApiNodeParents($node).first as PathItemNode;
+    // String verb = pathItem.getNode == $node
+    //     ? 'get'
+    //     : pathItem.putNode == $node
+    //     ? 'put'
+    //     : pathItem.postNode == $node
+    //     ? 'post'
+    //     : pathItem.deleteNode == $node
+    //     ? 'delete'
+    //     : pathItem.optionsNode == $node
+    //     ? 'options'
+    //     : pathItem.headNode == $node
+    //     ? 'head'
+    //     : pathItem.patchNode == $node
+    //     ? 'patch'
+    //     : pathItem.traceNode == $node
+    //     ? 'trace'
+    //     : '';
+    // ;
+
+    // final paths = OpenApiGraph.i.getOpenApiNodeParents(pathItem).first as PathsNode;
+    // String path = paths.content.paths.entries.firstWhere((entry) => entry.value == pathItem).key;
+    // return path.split('/').last;
+  }
 }

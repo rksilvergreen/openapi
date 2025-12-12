@@ -25,19 +25,18 @@ class ResponseNode extends OpenApiNode {
   void _validateStructure() {}
   void _createChildNodes() {}
   void _createContent() {
-    content = Response._($id: $id, description: json['description'], extensions: extractExtensions(json));
+    content = Response._($node: this, description: json['description'], extensions: extractExtensions(json));
   }
 }
 
 /// Describes a single response from an API Operation.
 class Response {
-  final ResponseNode _$node;
+  final ResponseNode $node;
   final String description;
-  Map<String, Header>? get headers => _$node.headersNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, MediaType>? get content => _$node.contentNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, Link>? get links => _$node.linksNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, Header>? get headers => $node.headersNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, MediaType>? get content => $node.contentNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, Link>? get links => $node.linksNodes?.map((k, v) => MapEntry(k, v.content));
   final Map<String, dynamic>? extensions;
 
-  Response._({required NodeId $id, required this.description, this.extensions})
-    : _$node = OpenApiGraph.i.getOpenApiNode<ResponseNode>($id);
+  Response._({required this.$node, required this.description, this.extensions});
 }

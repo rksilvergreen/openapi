@@ -37,29 +37,23 @@ class ComponentsNode extends OpenApiNode {
   void _validateStructure() {}
   void _createChildNodes() {}
   void _createContent() {
-    content = Components._(
-      $id: $id,
-      extensions: extractExtensions(json),
-    );
+    content = Components._($node: this, extensions: extractExtensions(json));
   }
 }
 
 /// Holds a set of reusable objects for different aspects of the OAS.
 class Components {
-  final ComponentsNode _$node;
-  Map<String, SchemaNode>? get schemas => _$node.schemasNodes;
-  Map<String, Response>? get responses => _$node.responsesNodes?.map((k,v) => MapEntry(k, v.content));
-  Map<String, Parameter>? get parameters => _$node.parametersNodes?.map((k,v) => MapEntry(k, v.content));
-  Map<String, Example>? get examples => _$node.examplesNodes?.map((k,v) => MapEntry(k, v.content));
-  Map<String, RequestBody>? get requestBodies => _$node.requestBodiesNodes?.map((k,v) => MapEntry(k, v.content));
-  Map<String, Header>? get headers => _$node.headersNodes?.map((k,v) => MapEntry(k, v.content));
-  Map<String, SecurityScheme>? get securitySchemes => _$node.securitySchemesNodes?.map((k,v) => MapEntry(k, v.content));
-  Map<String, Link>? get links => _$node.linksNodes?.map((k,v) => MapEntry(k, v.content));
-  Map<String, Callback>? get callbacks => _$node.callbacksNodes?.map((k,v) => MapEntry(k, v.content));
+  final ComponentsNode $node;
+  Map<String, SchemaNode>? get schemas => $node.schemasNodes;
+  Map<String, Response>? get responses => $node.responsesNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, Parameter>? get parameters => $node.parametersNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, Example>? get examples => $node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, RequestBody>? get requestBodies => $node.requestBodiesNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, Header>? get headers => $node.headersNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, SecurityScheme>? get securitySchemes => $node.securitySchemesNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, Link>? get links => $node.linksNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, Callback>? get callbacks => $node.callbacksNodes?.map((k, v) => MapEntry(k, v.content));
   final Map<String, dynamic>? extensions;
 
-  Components._({
-    required NodeId $id,
-    this.extensions,
-  }) : _$node = OpenApiGraph.i.getOpenApiNode<ComponentsNode>($id);
+  Components._({required this.$node, this.extensions});
 }

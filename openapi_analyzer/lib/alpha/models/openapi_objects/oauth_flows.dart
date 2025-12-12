@@ -24,18 +24,18 @@ class OAuthFlowsNode extends OpenApiNode {
   void _validateStructure() {}
   void _createChildNodes() {}
   void _createContent() {
-    content = OAuthFlows._($id: $id, extensions: extractExtensions(json));
+    content = OAuthFlows._($node: this, extensions: extractExtensions(json));
   }
 }
 
 /// Allows configuration of the supported OAuth Flows.
 class OAuthFlows {
-  final OAuthFlowsNode _$node;
-  OAuthFlow? get implicit => _$node.implicitNode?.content;
-  OAuthFlow? get password => _$node.passwordNode?.content;
-  OAuthFlow? get clientCredentials => _$node.clientCredentialsNode?.content;
-  OAuthFlow? get authorizationCode => _$node.authorizationCodeNode?.content;
+  final OAuthFlowsNode $node;
+  OAuthFlow? get implicit => $node.implicitNode?.content;
+  OAuthFlow? get password => $node.passwordNode?.content;
+  OAuthFlow? get clientCredentials => $node.clientCredentialsNode?.content;
+  OAuthFlow? get authorizationCode => $node.authorizationCodeNode?.content;
   final Map<String, dynamic>? extensions;
 
-  OAuthFlows._({required NodeId $id, this.extensions}) : _$node = OpenApiGraph.i.getOpenApiNode<OAuthFlowsNode>($id);
+  OAuthFlows._({required this.$node, this.extensions});
 }

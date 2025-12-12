@@ -26,19 +26,18 @@ class MediaTypeNode extends OpenApiNode {
   void _validateStructure() {}
   void _createChildNodes() {}
   void _createContent() {
-    content = MediaType._($id: $id, example: json['example'], extensions: extractExtensions(json));
+    content = MediaType._($node: this, example: json['example'], extensions: extractExtensions(json));
   }
 }
 
 /// Each Media Type Object provides schema and examples for the media type.
 class MediaType {
-  final MediaTypeNode _$node;
-  EffectiveSchema? get schema => _$node.schemaNode?.effective;
+  final MediaTypeNode $node;
+  EffectiveSchema? get schema => $node.schemaNode?.effective;
   final dynamic example;
-  Map<String, Example>? get examples => _$node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, Encoding>? get encoding => _$node.encodingNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, Example>? get examples => $node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, Encoding>? get encoding => $node.encodingNodes?.map((k, v) => MapEntry(k, v.content));
   final Map<String, dynamic>? extensions;
 
-  MediaType._({required NodeId $id, this.example, this.extensions})
-    : _$node = OpenApiGraph.i.getOpenApiNode<MediaTypeNode>($id);
+  MediaType._({required this.$node, this.example, this.extensions});
 }

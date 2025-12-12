@@ -23,7 +23,7 @@ class SecuritySchemeNode extends OpenApiNode {
   void _createChildNodes() {}
   void _createContent() {
     content = SecurityScheme._(
-      $id: $id,
+      $node: this,
       type: SecuritySchemeType.values.firstWhere((e) => e.value == json['type']),
       description: json['description'],
       name: json['name'],
@@ -38,19 +38,19 @@ class SecuritySchemeNode extends OpenApiNode {
 
 /// Defines a security scheme that can be used by the operations.
 class SecurityScheme {
-  final SecuritySchemeNode _$node;
+  final SecuritySchemeNode $node;
   final SecuritySchemeType type;
   final String? description;
   final String? name;
   final SecuritySchemeIn? in_;
   final String? scheme;
   final String? bearerFormat;
-  OAuthFlows? get flows => _$node.flowsNode?.content;
+  OAuthFlows? get flows => $node.flowsNode?.content;
   final String? openIdConnectUrl;
   final Map<String, dynamic>? extensions;
 
   SecurityScheme._({
-    required NodeId $id,
+    required this.$node,
     required this.type,
     this.description,
     this.name,
@@ -59,5 +59,5 @@ class SecurityScheme {
     this.bearerFormat,
     this.openIdConnectUrl,
     this.extensions,
-  }) : _$node = OpenApiGraph.i.getOpenApiNode<SecuritySchemeNode>($id);
+  });
 }

@@ -23,7 +23,7 @@ class EncodingNode extends OpenApiNode {
   void _createChildNodes() {}
   void _createContent() {
     content = Encoding._(
-      $id: $id,
+      $node: this,
       contentType: json['contentType'],
       style: json['style'] != null ? ParameterStyle.values.firstWhere((e) => e.value == json['style']) : null,
       explode: json['explode'],
@@ -35,20 +35,20 @@ class EncodingNode extends OpenApiNode {
 
 /// A single encoding definition applied to a single schema property.
 class Encoding {
-  final EncodingNode _$node;
+  final EncodingNode $node;
   final String? contentType;
-  Map<String, Header>? get headers => _$node.headersNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, Header>? get headers => $node.headersNodes?.map((k, v) => MapEntry(k, v.content));
   final ParameterStyle? style;
   final bool? explode;
   final bool allowReserved;
   final Map<String, dynamic>? extensions;
 
   Encoding._({
-    required NodeId $id,
+    required this.$node,
     this.contentType,
     this.style,
     this.explode,
     this.allowReserved = false,
     this.extensions,
-  }) : _$node = OpenApiGraph.i.getOpenApiNode<EncodingNode>($id);
+  });
 }

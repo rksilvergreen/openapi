@@ -22,7 +22,7 @@ class TagNode extends OpenApiNode {
   void _createChildNodes() {}
   void _createContent() {
     content = Tag._(
-      $id: $id,
+      $node: this,
       name: json['name'],
       description: json['description'],
       extensions: extractExtensions(json),
@@ -32,12 +32,11 @@ class TagNode extends OpenApiNode {
 
 /// Adds metadata to a single tag that is used by the Operation Object.
 class Tag {
-  final TagNode _$node;
+  final TagNode $node;
   final String name;
   final String? description;
-  ExternalDocumentation? get externalDocs => _$node.externalDocsNode?.content;
+  ExternalDocumentation? get externalDocs => $node.externalDocsNode?.content;
   final Map<String, dynamic>? extensions;
 
-  Tag._({required NodeId $id, required this.name, this.description, this.extensions})
-    : _$node = OpenApiGraph.i.getOpenApiNode<TagNode>($id);
+  Tag._({required this.$node, required this.name, this.description, this.extensions});
 }

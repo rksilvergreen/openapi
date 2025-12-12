@@ -28,7 +28,7 @@ class HeaderNode extends OpenApiNode {
   void _createChildNodes() {}
   void _createContent() {
     content = Header._(
-      $id: $id,
+      $node: this,
       description: json['description'],
       required_: json['required'],
       deprecated: json['deprecated'],
@@ -46,7 +46,7 @@ class HeaderNode extends OpenApiNode {
 
 /// Header Object follows the structure of the Parameter Object.
 class Header {
-  final HeaderNode _$node;
+  final HeaderNode $node;
   final String? description;
   final bool required_;
   final bool deprecated;
@@ -54,14 +54,14 @@ class Header {
   final ParameterStyle? style;
   final bool? explode;
   final bool allowReserved;
-  EffectiveSchema? get schema => _$node.schemaNode?.effective;
+  EffectiveSchema? get schema => $node.schemaNode?.effective;
   final dynamic example;
-  Map<String, Example>? get examples => _$node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, MediaType>? get content => _$node.contentNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, Example>? get examples => $node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
+  Map<String, MediaType>? get content => $node.contentNodes?.map((k, v) => MapEntry(k, v.content));
   final Map<String, dynamic>? extensions;
 
   Header._({
-    required NodeId $id,
+    required this.$node,
     this.description,
     this.required_ = false,
     this.deprecated = false,
@@ -71,5 +71,5 @@ class Header {
     this.allowReserved = false,
     this.example,
     this.extensions,
-  }) : _$node = OpenApiGraph.i.getOpenApiNode<HeaderNode>($id);
+  });
 }

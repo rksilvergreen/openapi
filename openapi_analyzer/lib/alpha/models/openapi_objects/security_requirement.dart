@@ -25,15 +25,14 @@ class SecurityRequirementNode extends OpenApiNode {
         requirements[key] = [];
       }
     }
-    content = SecurityRequirement._($id: $id, requirements: requirements);
+    content = SecurityRequirement._($node: this, requirements: requirements);
   }
 }
 
 /// Lists the required security schemes to execute an operation.
 class SecurityRequirement {
-  final SecurityRequirementNode _$node;
+  final SecurityRequirementNode $node;
   final Map<String, List<String>> requirements;
 
-  SecurityRequirement._({required NodeId $id, required this.requirements})
-    : _$node = OpenApiGraph.i.getOpenApiNode<SecurityRequirementNode>($id);
+  SecurityRequirement._({required this.$node, required this.requirements});
 }

@@ -17,7 +17,7 @@ class ContactNode extends OpenApiNode {
   void _validateStructure() {}
   void _createContent() {
     content = Contact._(
-      $id: $id,
+      $node: this,
       name: json['name'],
       url: json['url'],
       email: json['email'],
@@ -28,12 +28,11 @@ class ContactNode extends OpenApiNode {
 
 /// Contact information for the exposed API.
 class Contact {
-  final ContactNode _$node;
+  final ContactNode $node;
   final String? name;
   final String? url;
   final String? email;
   final Map<String, dynamic>? extensions;
 
-  Contact._({required NodeId $id, required this.name, this.url, this.email, this.extensions})
-    : _$node = OpenApiGraph.i.getOpenApiNode<ContactNode>($id);
+  Contact._({required this.$node, required this.name, this.url, this.email, this.extensions});
 }

@@ -17,7 +17,7 @@ class DiscriminatorNode extends OpenApiNode {
   void _validateStructure() {}
   void _createContent() {
     content = Discriminator._(
-      $id: $id,
+      $node: this,
       propertyName: json['propertyName'],
       mapping: json['mapping'] != null ? Map<String, String>.from(json['mapping']) : null,
       extensions: extractExtensions(json),
@@ -27,11 +27,10 @@ class DiscriminatorNode extends OpenApiNode {
 
 /// Discriminator object for polymorphism support.
 class Discriminator {
-  final DiscriminatorNode _$node;
+  final DiscriminatorNode $node;
   final String propertyName;
   final Map<String, String>? mapping;
   final Map<String, dynamic>? extensions;
 
-  Discriminator._({required NodeId $id, required this.propertyName, this.mapping, this.extensions})
-    : _$node = OpenApiGraph.i.getOpenApiNode<DiscriminatorNode>($id);
+  Discriminator._({required this.$node, required this.propertyName, this.mapping, this.extensions});
 }

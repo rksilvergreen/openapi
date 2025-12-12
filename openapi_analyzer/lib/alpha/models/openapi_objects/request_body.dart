@@ -22,7 +22,7 @@ class RequestBodyNode extends OpenApiNode {
   void _createChildNodes() {}
   void _createContent() {
     content = RequestBody._(
-      $id: $id,
+      $node: this,
       description: json['description'],
       required_: json['required'],
       extensions: extractExtensions(json),
@@ -32,12 +32,11 @@ class RequestBodyNode extends OpenApiNode {
 
 /// Describes a single request body.
 class RequestBody {
-  final RequestBodyNode _$node;
+  final RequestBodyNode $node;
   final String? description;
-  Map<String, MediaType> get content => _$node.contentNodes.map((k, v) => MapEntry(k, v.content));
+  Map<String, MediaType> get content => $node.contentNodes.map((k, v) => MapEntry(k, v.content));
   final bool required_;
   final Map<String, dynamic>? extensions;
 
-  RequestBody._({required NodeId $id, this.description, this.required_ = false, this.extensions})
-    : _$node = OpenApiGraph.i.getOpenApiNode<RequestBodyNode>($id);
+  RequestBody._({required this.$node, this.description, this.required_ = false, this.extensions});
 }

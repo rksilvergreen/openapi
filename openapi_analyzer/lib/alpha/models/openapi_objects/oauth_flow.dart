@@ -17,7 +17,7 @@ class OAuthFlowNode extends OpenApiNode {
   void _validateStructure() {}
   void _createContent() {
     content = OAuthFlow._(
-      $id: $id,
+      $node: this,
       authorizationUrl: json['authorizationUrl'],
       tokenUrl: json['tokenUrl'],
       refreshUrl: json['refreshUrl'],
@@ -29,7 +29,7 @@ class OAuthFlowNode extends OpenApiNode {
 
 /// Configuration details for a supported OAuth Flow.
 class OAuthFlow {
-  final OAuthFlowNode _$node;
+  final OAuthFlowNode $node;
   final String? authorizationUrl;
   final String? tokenUrl;
   final String? refreshUrl;
@@ -37,11 +37,11 @@ class OAuthFlow {
   final Map<String, dynamic>? extensions;
 
   OAuthFlow._({
-    required NodeId $id,
+    required this.$node,
     this.authorizationUrl,
     this.tokenUrl,
     this.refreshUrl,
     required this.scopes,
     this.extensions,
-  }) : _$node = OpenApiGraph.i.getOpenApiNode<OAuthFlowNode>($id);
+  });
 }

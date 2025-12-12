@@ -16,18 +16,17 @@ class LicenseNode extends OpenApiNode {
 
   void _validateStructure() {}
   void _createContent() {
-    content = License._($id: $id, name: json['name'], url: json['url'], extensions: extractExtensions(json));
+    content = License._($node: this, name: json['name'], url: json['url'], extensions: extractExtensions(json));
   }
 }
 
 /// License information for the exposed API.
 class License {
-  final LicenseNode _$node;
+  final LicenseNode $node;
 
   final String name;
   final String? url;
   final Map<String, dynamic>? extensions;
 
-  License._({required NodeId $id, required this.name, this.url, this.extensions})
-    : _$node = OpenApiGraph.i.getOpenApiNode<LicenseNode>($id);
+  License._({required this.$node, required this.name, this.url, this.extensions});
 }

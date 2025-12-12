@@ -24,7 +24,7 @@ class InfoNode extends OpenApiNode {
   void _createChildNodes() {}
   void _createContent() {
     content = Info._(
-      $id: $id,
+      $node: this,
       title: json['title'],
       description: json['description'],
       termsOfService: json['termsOfService'],
@@ -36,22 +36,22 @@ class InfoNode extends OpenApiNode {
 
 /// Metadata about the API.
 class Info {
-  final InfoNode _$node;
+  final InfoNode $node;
 
   final String title;
   final String? description;
   final String? termsOfService;
-  Contact? get contact => _$node.contactNode?.content;
-  License? get license => _$node.licenseNode?.content;
+  Contact? get contact => $node.contactNode?.content;
+  License? get license => $node.licenseNode?.content;
   final String version;
   final Map<String, dynamic>? extensions;
 
   Info._({
-    required NodeId $id,
+    required this.$node,
     required this.title,
     this.description,
     this.termsOfService,
     required this.version,
     this.extensions,
-  }) : _$node = OpenApiGraph.i.getOpenApiNode<InfoNode>($id);
+  });
 }

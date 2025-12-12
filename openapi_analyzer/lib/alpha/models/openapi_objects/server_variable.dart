@@ -17,7 +17,7 @@ class ServerVariableNode extends OpenApiNode {
   void _validateStructure() {}
   void _createContent() {
     content = ServerVariable._(
-      $id: $id,
+      $node: this,
       enum_: json['enum'],
       default_: json['default'],
       description: json['description'],
@@ -28,17 +28,17 @@ class ServerVariableNode extends OpenApiNode {
 
 /// Server Variable for server URL template substitution.
 class ServerVariable {
-  final ServerVariableNode _$node;
+  final ServerVariableNode $node;
   final List<String>? enum_;
   final String default_;
   final String? description;
   final Map<String, dynamic>? extensions;
 
   ServerVariable._({
-    required NodeId $id,
+    required this.$node,
     required this.enum_,
     required this.default_,
     this.description,
     this.extensions,
-  }) : _$node = OpenApiGraph.i.getOpenApiNode<ServerVariableNode>($id);
+  });
 }

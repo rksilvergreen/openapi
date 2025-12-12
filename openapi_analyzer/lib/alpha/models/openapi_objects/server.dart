@@ -24,7 +24,7 @@ class ServerNode extends OpenApiNode {
 
   void _createContent() {
     content = Server._(
-      $id: $id,
+      $node: this,
       url: json['url'],
       description: json['description'],
       variables: json['variables'],
@@ -35,12 +35,11 @@ class ServerNode extends OpenApiNode {
 
 /// Server object representing a server.
 class Server {
-  final ServerNode _$node;
+  final ServerNode $node;
   final String url;
   final String? description;
   final Map<String, ServerVariable>? variables;
   final Map<String, dynamic>? extensions;
 
-  Server._({required NodeId $id, required this.url, this.description, this.variables, this.extensions})
-    : _$node = OpenApiGraph.i.getOpenApiNode<ServerNode>($id);
+  Server._({required this.$node, required this.url, this.description, this.variables, this.extensions});
 }

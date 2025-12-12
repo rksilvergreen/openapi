@@ -21,14 +21,14 @@ class PathsNode extends OpenApiNode {
   void _validateStructure() {}
   void _createChildNodes() {}
   void _createContent() {
-    content = Paths._($id: $id, extensions: extractExtensions(json));
+    content = Paths._($node: this, extensions: extractExtensions(json));
   }
 }
 
 class Paths {
-  final PathsNode _$node;
+  final PathsNode $node;
 
-  Map<String, PathItem> get paths => _$node.pathItemNodes.map((k, v) => MapEntry(k, v.content));
+  Map<String, PathItem> get paths => $node.pathItemNodes.map((k, v) => MapEntry(k, v.content));
   final Map<String, dynamic>? extensions;
-  Paths._({required NodeId $id, this.extensions}) : _$node = OpenApiGraph.i.getOpenApiNode<PathsNode>($id);
+  Paths._({required this.$node, this.extensions});
 }

@@ -17,7 +17,7 @@ class ExampleNode extends OpenApiNode {
   void _validateStructure() {}
   void _createContent() {
     content = Example._(
-      $id: $id,
+      $node: this,
       summary: json['summary'],
       description: json['description'],
       value: json['value'],
@@ -29,13 +29,12 @@ class ExampleNode extends OpenApiNode {
 
 /// Example object for media type examples.
 class Example {
-  final ExampleNode _$node;
+  final ExampleNode $node;
   final String? summary;
   final String? description;
   final dynamic value;
   final String? externalValue;
   final Map<String, dynamic>? extensions;
 
-  Example._({required NodeId $id, this.summary, this.description, this.value, this.externalValue, this.extensions})
-    : _$node = OpenApiGraph.i.getOpenApiNode<ExampleNode>($id);
+  Example._({required this.$node, this.summary, this.description, this.value, this.externalValue, this.extensions});
 }

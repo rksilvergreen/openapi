@@ -33,7 +33,7 @@ class PathItemNode extends OpenApiNode {
   void _createChildNodes() {}
   void _createContent() {
     content = PathItem._(
-      $id: $id,
+      $node: this,
       summary: json['summary'],
       description: json['description'],
       extensions: extractExtensions(json),
@@ -43,21 +43,20 @@ class PathItemNode extends OpenApiNode {
 
 /// Describes the operations available on a single path.
 class PathItem {
-  final PathItemNode _$node;
+  final PathItemNode $node;
   final String? summary;
   final String? description;
-  Operation? get get_ => _$node.getNode?.content;
-  Operation? get put => _$node.putNode?.content;
-  Operation? get post => _$node.postNode?.content;
-  Operation? get delete => _$node.deleteNode?.content;
-  Operation? get options => _$node.optionsNode?.content;
-  Operation? get head => _$node.headNode?.content;
-  Operation? get patch => _$node.patchNode?.content;
-  Operation? get trace => _$node.traceNode?.content;
-  List<Server>? get servers => _$node.serversNodes?.map((server) => server.content).toList();
-  List<Parameter>? get parameters => _$node.parametersNodes?.map((parameter) => parameter.content).toList();
+  Operation? get get_ => $node.getNode?.content;
+  Operation? get put => $node.putNode?.content;
+  Operation? get post => $node.postNode?.content;
+  Operation? get delete => $node.deleteNode?.content;
+  Operation? get options => $node.optionsNode?.content;
+  Operation? get head => $node.headNode?.content;
+  Operation? get patch => $node.patchNode?.content;
+  Operation? get trace => $node.traceNode?.content;
+  List<Server>? get servers => $node.serversNodes?.map((server) => server.content).toList();
+  List<Parameter>? get parameters => $node.parametersNodes?.map((parameter) => parameter.content).toList();
   final Map<String, dynamic>? extensions;
 
-  PathItem._({required NodeId $id, this.summary, this.description, this.extensions})
-    : _$node = OpenApiGraph.i.getOpenApiNode<PathItemNode>($id);
+  PathItem._({required this.$node, this.summary, this.description, this.extensions});
 }

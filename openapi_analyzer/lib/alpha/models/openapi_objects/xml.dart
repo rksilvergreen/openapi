@@ -17,7 +17,7 @@ class XMLNode extends OpenApiNode {
   void _validateStructure() {}
   void _createContent() {
     content = XML._(
-      $id: $id,
+      $node: this,
       name: json['name'],
       namespace: json['namespace'],
       prefix: json['prefix'],
@@ -30,7 +30,7 @@ class XMLNode extends OpenApiNode {
 
 /// XML object for XML representation metadata.
 class XML {
-  final XMLNode _$node;
+  final XMLNode $node;
   final String? name;
   final String? namespace;
   final String? prefix;
@@ -39,12 +39,12 @@ class XML {
   final Map<String, dynamic>? extensions;
 
   XML._({
-    required NodeId $id,
+    required this.$node,
     this.name,
     this.namespace,
     this.prefix,
     this.attribute = false,
     this.wrapped = false,
     this.extensions,
-  }) : _$node = OpenApiGraph.i.getOpenApiNode<XMLNode>($id);
+  });
 }
