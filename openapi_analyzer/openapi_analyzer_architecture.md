@@ -1,37 +1,347 @@
-# OpenAPI 3.0.0 – Schema Graph, Composition Resolution, and Effective Schema Model
+# OpenAPI 3.0.0 – Unified Graph Model and Processing Pipeline
 
 This document describes the architecture and processing pipeline of the OpenAPI Analyzer.
 
-The analyzer converts OpenAPI 3.0.0 documents into a graph-based semantic model, producing an `AnalysisResult` that includes:
+The analyzer converts OpenAPI 3.0.0 documents into a unified graph-based model using `OpenApiGraph`. The graph contains two types of nodes:
 
-- The full OpenAPI object tree (`OpenApiDocument`, `Paths`, `Components`, `Operation`, `RequestBody`, `MediaType`, etc.)
-- A graph of typed `SchemaNode`s representing all Schema Objects
-- Structural and applicator graphs describing relationships between SchemaNodes
-- A fully reference-resolved schema graph (internal and external `$ref`)
-- An effective schema graph: `EffectiveSchemaNode`s with resolved constraints and composition semantics
-- Variant information (node-backed and branch-only)
-- Duplicate and subsumed variant analysis for variants
+- **OpenApiNodes** — represent OpenAPI document structure (`OpenApiDocument`, `Operation`, `PathItem`, `Info`, `License`, etc.)
+- **SchemaNodes** — represent Schema Objects with progressively resolved semantics
 
-This representation is intended to support downstream tooling such as code generators, linters, documentation generators, or higher-level analyzers.
+All nodes in the graph are processed through three stages: structural validation (Stage A), child node creation (Stage B), and content creation (Stage C). The final result is a unified graph that supports downstream tooling such as code generators, linters, documentation generators, or higher-level analyzers.
+
+---
+
+# Unified Graph Model
+
+The `OpenApiGraph` is a single graph structure containing:
+
+- **OpenApiNodes**: Maps of node IDs to `OpenApiNode` instances
+- **SchemaNodes**: Maps of node IDs to `SchemaNode` instances
+- **OpenApiEdges**: Edges connecting OpenAPI nodes to their child nodes (OpenAPI nodes or Schema nodes)
+- **StructuralEdges**: Edges representing structural containment relationships between Schema nodes (properties, items, additionalProperties)
+- **ApplicatorEdges**: Edges representing composition relationships between Schema nodes (allOf, oneOf, anyOf)
+
+Each node has a unique `NodeId` composed of:
+- `document`: The document URI/path
+- `relativePath`: The JSON Pointer path within that document
+- `absolutePath`: The concatenation of both (unique identifier)
+
+The graph structure allows nodes to reference each other through edges, creating a complete representation of both the OpenAPI document structure and all schema relationships.
 
 ---
 
 # Processing Pipeline Overview
 
-The analyzer executes **four stages**, each building upon the previous.  
-The output of all stages is the unified `AnalysisResult`.
+Every node in the graph (OpenAPI or Schema) undergoes **three stages** of processing:
 
 ```text
-Stage A → Stage B → Stage C → Stage D → AnalysisResult
+Stage A (Structural Validation) → Stage B (Create Child Nodes) → Stage C (Create Content)
 ```
 
-There is no instance-validation stage.
+**Processing Order:**
+- **Stage A** and **Stage B** proceed **top-down** (root to leaves) — structural validation and child node creation happen from the root document downward
+- **Stage C** proceeds **bottom-up** (leaves to root) — content creation is recursive, with leaf nodes being created first and the root node created last
+
+This ensures that:
+- Structural validation catches issues early before graph construction
+- All child nodes exist before parent nodes attempt to create their content
+- Child node content is fully resolved before parent node content depends on it
+
+---
+
+# Stage A — Structural Validation
+
+Stage A validates the structure of each node *before* any child nodes are created or content is built.
+
+## Objectives
+
+1. Ensure the node's JSON/YAML structure matches the expected shape for its type
+2. Validate that all required fields are present
+3. Validate that field types are correct (strings, numbers, arrays, objects, etc.)
+4. Validate that no unallowed fields and field names are present 
+5. For Schema nodes: validate schema keywords are valid and compatible
+6. Produce early diagnostics to prevent cascading errors
+
+## Processing Order
+
+Structural validation proceeds **top-down** from the root document:
+
+1. Validate the root `OpenApiDocument` node
+2. Validate child nodes as they are encountered during traversal
+3. When external `$ref` are encountered, load and validate those documents recursively
+
+For each node:
+- Validate its JSON structure matches the expected schema
+- Validate keyword types and structures (e.g., `properties` must be an object, `allOf` must be an array)
+- Collect validation exceptions for later reporting
+
+## Scope
+
+- Stage A validates the **structural shape** of nodes (syntax-level validation)
+- Stage A does **not** validate semantic relationships or constraint satisfiability
+- External documents are validated on-demand when `$ref` are encountered
+
+---
+
+# Stage B — Create Child Nodes
+
+Stage B creates all child nodes for each node in the graph. This happens **top-down** after structural validation.
+
+## For OpenAPI Nodes
+
+OpenAPI nodes create their designated child nodes according to the OpenAPI 3.0.0 specification:
+
+- `OpenApiDocument` → creates `Info`, `Paths`, `Components`, `Server[]`, etc.
+- `Operation` → creates `Parameter[]`, `RequestBody`, `Response{}`, `Callback{}`, etc.
+- `PathItem` → creates `Operation` nodes for each HTTP method
+- `MediaType` → creates `SchemaNode` for its schema
+- `Components` → creates child nodes for each component type (schemas, responses, etc.)
+
+Edges are created between parent and child nodes using `OpenApiEdge`.
+
+## For Schema Nodes
+
+Schema nodes create two types of child nodes:
+
+### Structural Children
+
+Structural edges represent containment relationships:
+- **PropertiesEdge**: Object schema → property schemas (from `properties`)
+- **ItemsEdge**: Array schema → items schema (from `items`)
+- **AdditionalPropertiesEdge**: Object schema → additionalProperties schema
+
+These edges are stored as `StructuralEdge` instances in the graph.
+
+### Applicator Children
+
+Applicator edges represent composition relationships:
+- **AllOfEdge**: Schema → schemas in `allOf` array
+- **OneOfEdge**: Schema → schemas in `oneOf` array
+- **AnyOfEdge**: Schema → schemas in `anyOf` array
+
+These edges are stored as `ApplicatorEdge` instances in the graph.
+
+### Reference Resolution
+
+When `$ref` is encountered during child node creation:
+
+1. **Internal `$ref`** (e.g., `#/components/schemas/User`):
+   - Resolve the JSON Pointer within the current document
+   - Create the referenced SchemaNode if it doesn't exist (recursively applying Stage A and Stage B)
+   - Create an edge to the referenced node (structural or applicator, as appropriate)
+
+2. **External `$ref`** (e.g., `common.yaml#/components/schemas/Base`):
+   - Check if the external document has already been processed
+   - If not, load the document and recursively apply Stage A and Stage B to it
+   - Create edges to the referenced nodes from the external document
+   - Merge nodes and edges into the unified graph
+
+Note: `$ref` does not create special edge types; references are resolved into normal structural or applicator edges.
+
+## Processing Order
+
+Child node creation proceeds top-down:
+1. Root node creates its children
+2. Each child node creates its children
+3. This continues until all nodes in the graph have been created
+
+At the end of Stage B:
+- All nodes exist in the graph
+- All edges between nodes are established
+- The complete graph structure is in place
+- No node content has been created yet
+
+---
+
+# Stage C — Create Content
+
+Stage C creates the actual content for each node. This happens **bottom-up** (recursively, leaves first, root last).
+
+## For OpenAPI Nodes
+
+For OpenAPI nodes, Stage C creates the corresponding OpenAPI object:
+
+- `OpenApiDocumentNode` → creates `OpenApiDocument`
+- `OperationNode` → creates `Operation`
+- `InfoNode` → creates `Info`
+- `PathItemNode` → creates `PathItem`
+- etc.
+
+The OpenAPI object holds references back to its node and accesses child node content via getters. For example, `Operation.parameters` gets the content from `$node.parametersNodes`.
+
+**After Stage C, OpenAPI nodes are complete** — their content is fully created and the node processing is finished.
+
+## For Schema Nodes
+
+For Schema nodes, Stage C involves **three sub-stages** that progressively build the schema semantics:
+
+### Stage C.I — Raw Schema
+
+Creates a `RawSchema` object containing the raw schema data with primitive types (strings, numbers, lists, maps).
+
+The `RawSchema` is a direct mapping of the JSON Schema structure:
+- Raw constraint values (`minimum`, `maximum`, `minLength`, etc.)
+- Raw composition arrays (`allOf`, `oneOf`, `anyOf` as lists of maps)
+- Raw structural data (`properties` as a map, `items` as a map)
+- No type resolution or constraint merging has occurred yet
+
+This provides a foundation for the next stages.
+
+### Stage C.II — Typed Schema
+
+Creates a `TypedSchema` object by determining the schema type and validating atomic constraints. **No composition resolution occurs in this stage** — compositions are resolved in Stage C.III (Effective Schema).
+
+#### Type Classification
+
+Determines the base type(s) of the schema based on the `type` property and type-specific keywords:
+
+- Single types: `IntegerTypedSchema`, `NumberTypedSchema`, `StringTypedSchema`, `ObjectTypedSchema`, `ArrayTypedSchema`, `BooleanTypedSchema`
+- Multi-type: `MultiTypeTypedSchema` (only when composition branches in Effective Schema span different base types — determined later)
+
+The type classification establishes the fundamental type category for constraint validation.
+
+#### Atomic Constraint Validation
+
+Validates that all atomic constraints are internally consistent and compatible with the determined type:
+
+- **Numeric constraints**: `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`
+  - Validates that `minimum <= maximum` (or strict inequality with exclusivity flags)
+  - Validates that `multipleOf > 0`
+  
+- **String constraints**: `minLength`, `maxLength`, `pattern`, `format`
+  - Validates that `minLength <= maxLength`
+  
+- **Array constraints**: `minItems`, `maxItems`, `uniqueItems`
+  - Validates that `minItems <= maxItems`
+  
+- **Object constraints**: `required`, `minProperties`, `maxProperties`
+  - Validates that `minProperties <= maxProperties`
+  - Validates that `required` properties exist in `properties`
+  
+- **Value constraints**: `enum`, `const`, `default`
+  - Validates that `default` value is compatible with type constraints
+  - Validates that `enum` values are compatible with type
+
+This validation ensures each atomic schema is internally consistent before composition resolution occurs in the next stage.
+
+The typed schema represents the schema with its type established and atomic constraints validated, but **without composition resolution** — compositions (`allOf`, `oneOf`, `anyOf`) remain unresolved at this stage.
+
+### Stage C.III — Effective Schema
+
+Creates an `EffectiveSchema` object with fully resolved semantics, including composition resolution and variant analysis.
+
+#### Composition Resolution
+
+Resolves `allOf`, `oneOf`, and `anyOf` by analyzing the applicator graph.
+
+**Branch Enumeration**
+
+For each `SchemaNode S`, traverse its applicator edges and enumerate branches:
+
+- `allOf` adds schemas into a branch (intersection of constraints)
+- `oneOf` and `anyOf` introduce branching:
+  - each element in `oneOf` / `anyOf` may itself contain compositions and contribute one or more sub-branches
+- Nested combinations produce deeper branching trees
+
+A **branch** is a path through this structure, represented as a sequence of SchemaNodes whose constraints are intended to hold together.
+
+**Branch Validation**
+
+Each branch is checked for:
+
+- **Type consistency**: all schemas on the branch must be compatible at the base-type level
+- **Constraint compatibility**: 
+  - numeric ranges that do not contradict
+  - object constraints that do not contradict
+  - array and string constraints that can coexist
+- **Overall satisfiability**: the branch must represent a non-empty set of valid instances
+
+Branches that fail these checks are discarded as unsatisfiable.
+
+**Pure oneOf Case**
+
+If a SchemaNode:
+- has only `oneOf` (no atomic constraints, no `allOf`), and
+- all branches associated with a single `oneOf[i]` validate,
+
+then that `oneOf[i]` can be treated as a coherent unit whose semantics are captured by a single effective variant.
+
+**oneOf with Inherited Constraints / Multiple oneOfs**
+
+If a SchemaNode has:
+- atomic constraints, or
+- `allOf`, or
+- multiple `oneOf` occurrences in its applicator graph,
+
+then:
+- each validated branch produces a **branch-only schema** (a merged constraint view)
+- these branch-only schemas do not correspond to new SchemaNodes
+- they are used to inform the semantic interpretation of the original node
+
+**MultiType vs Single-Type**
+
+A SchemaNode is considered **MultiType** only when validated branches span different base types (e.g. integer and string).
+
+- If all valid branches are integer-based → the node remains `IntegerTypedSchema`
+- If all valid branches are number-based → the node remains `NumberTypedSchema`
+- If all valid branches are string-based → the node remains `StringTypedSchema`
+- `MultiTypeTypedSchema` is reserved for mixed-type unions
+
+Multiple `oneOf`s alone do not imply MultiType.
+
+**Branch Merging**
+
+Merge validated branches into the effective schema constraints, incorporating the branch analysis results.
+
+#### Constraint Resolution
+
+Resolves all constraints by:
+- Merging atomic constraints with inherited constraints from `allOf`
+- Applying branch-level semantics from `oneOf` and `anyOf`
+- Establishing the final constraint set for the schema
+
+#### Variant Analysis
+
+Identifies and analyzes variants:
+
+1. **Node-Backed Variants**: Variants that correspond exactly to a specific SchemaNode in the graph
+
+2. **Branch-Only Variants**: Variants that arise from branch enumeration where no single SchemaNode corresponds to that branch (anonymous merged constraints)
+
+3. **Discriminator Variant Priority**:
+   - **Primary**: If `oneOf` exists, variants come from the `oneOf` array
+   - **Secondary**: If no `oneOf` exists, variants come from schemas that inherit via `allOf`
+   - oneOf variants take absolute precedence
+
+4. **Duplicate Detection**: Identifies variants with identical constraint profiles within the same base type
+
+5. **Subsumption Analysis**: Identifies variants where one's constraints are strictly narrower than another's
+
+The effective schema provides the final, semantically resolved representation used by downstream tools.
+
+## Processing Order
+
+Content creation proceeds **bottom-up** (recursively):
+
+1. Leaf nodes (nodes with no children) create their content first
+2. Parent nodes wait for all child nodes to complete Stage C
+3. Parent nodes then create their content, which may depend on child content
+4. This continues recursively until the root node creates its content
+
+For Schema nodes specifically:
+- When a SchemaNode's `_createContent()` is called, it:
+  1. Recursively ensures all child SchemaNodes have completed their Stage C
+  2. Creates `RawSchema` (Stage C.I)
+  3. Creates `TypedSchema` (Stage C.II) — determines type and validates atomic constraints (no composition resolution)
+  4. Creates `EffectiveSchema` (Stage C.III) — resolves compositions, merges constraints, and analyzes variants (depends on child effective schemas for composition resolution)
+
+This bottom-up approach ensures that child semantics are fully resolved before parent semantics depend on them.
 
 ---
 
 # Naming Conventions
 
-Every operation and schema in the analyzer must have a name. Names follow **PascalCase** conventions and are assigned during Stage B (Object Modeling + Schema Graph Construction).
+Every operation and schema in the analyzer must have a name. Names follow **PascalCase** conventions and are assigned during Stage C (content creation).
 
 ## Operation Naming
 
@@ -61,461 +371,19 @@ Every `SchemaNode` must have a name. The naming follows this priority order:
 
 3. **Operation context**: If the schema is associated with an operation:
    - **Request body schema**: `{{operation name}}Request`
-     - Example: Operation `V2OauthTokenPost` → `V2OauthTokenPostRequest`
    - **Response schema**: `{{operation name}}{{status code}}Response`
-     - Example: Operation `V2OauthTokenPost` with status `200` → `V2OauthTokenPost200Response`
-     - Example: Operation `GetUser` with status `404` → `GetUser404Response`
 
 4. **Structural embedding**: If the schema is structurally embedded within a parent schema:
    - **Property schema** (from `properties`): `{{parent name}}{{property name}}`
-     - Example: Parent `User` with property `email` → `UserEmail`
-   - **Field schema** (from `items`, `additionalProperties`, or other structural fields): `{{parent name}}{{field name}}`
-     - Example: Parent `UserList` with `items` → `UserListItems`
-     - Example: Parent `User` with `additionalProperties` → `UserAdditionalProperties`
+   - **Field schema** (from `items`, `additionalProperties`, etc.): `{{parent name}}{{field name}}`
 
-**Examples:**
-- Schema in `components.schemas.User` → name: `User`
-- Schema with `title: "EmailAddress"` → name: `EmailAddress`
-- Request body schema for operation `CreateUser` → name: `CreateUserRequest`
-- Response schema for operation `GetUser` with status `200` → name: `GetUser200Response`
-- Property `address` of schema `User` → name: `UserAddress`
-- `items` schema of array schema `UserList` → name: `UserListItems`
-
-The name is stored as a property of the `SchemaNode` and is used by downstream tools (code generators, documentation tools, etc.) to generate appropriate identifiers.
-
----
-
-# Stage A — Structural Validation (Syntax-Level)
-
-Stage A validates the OpenAPI document *before* modeling or graph construction.
-
-## Objectives
-
-1. Ensure the input is a **structurally valid OpenAPI 3.0.0 document**.
-2. Ensure all Schema Objects have a **valid shape**, including:
-   - Allowed keywords
-   - Correct keyword types
-   - Valid structure for `properties`, `items`, `allOf`, `oneOf`, `anyOf`, `not`
-3. Confirm that Schema Objects are safe for graph construction in later stages.
-4. Produce early diagnostics to prevent cascading schema errors.
-
-### Scope of Stage A
-
-- Stage A is applied to the **root OpenAPI document** when analysis begins.
-- When an **external `$ref`** is encountered later (Stage C), Stage A is then applied to that external document **on demand**, as part of recursive resolution.
-- Stage A **does not pre-scan all external documents up front**; they are validated only when actually needed during reference resolution.
-
-Structural validation walks the structural tree of the document (the raw YAML/JSON), not the SchemaNode graph.
-
----
-
-# Stage B — OpenAPI Object Modeling + Schema Graph Construction
-
-Stage B builds the OpenAPI object tree and the SchemaNode graph, and wires them together as the structural tree is traversed.
-
-## Part 1 — OpenAPI Object Model
-
-The analyzer constructs strongly typed classes for the OpenAPI document structure, such as:
-
-- `OpenApiDocument`
-- `Info`
-- `Paths`
-- `PathItem`
-- `Operation`
-- `RequestBody`
-- `MediaType`
-- `Responses`
-- `Components`
-- And the other standard OpenAPI 3.0.0 objects
-
-These classes form the OpenAPI AST.
-
-### Operation Naming
-
-When an `Operation` object is created, it is assigned a name according to the [Naming Conventions](#naming-conventions):
-
-- If the operation has an `operationId`, that value becomes the operation's name.
-- Otherwise, the name is derived from the path and HTTP verb in PascalCase.
-
-This name is stored as a property of the `Operation` object and is used throughout the analysis pipeline.
-
-Importantly, these objects **hold references to SchemaNodes** where appropriate. Examples:
-
-- `MediaType` contains a `SchemaNode` reference for its `schema`.
-- `Components` contains maps such as `Map<String, SchemaNode>` for `schemas` and other schema-bearing maps.
-
-In other words, the SchemaNode graph is not a detached parallel structure; its structural roots are reachable from the OpenAPI object model (e.g. via `Components.schemas`, `MediaType.schema`, parameters, request bodies, etc.).
-
-## Part 2 — SchemaNode Construction
-
-As Stage B traverses the structural tree of the document:
-
-- Whenever a Schema Object is encountered, a corresponding `SchemaNode` is created (if it does not already exist).
-- The traversal and node creation happen **in one pass** over the structural OpenAPI tree.
-
-For every Schema Object encountered:
-
-### 1. Type Classification (pre-node atomic validation)
-
-Determine which typed SchemaNode to create, based on `type` and type-specific keywords:
-
-- `IntegerSchemaNode`
-- `NumberSchemaNode`
-- `StringSchemaNode`
-- `ObjectSchemaNode`
-- `ArraySchemaNode`
-- `BooleanSchemaNode`
-- `MultiTypeSchemaNode` (only when valid composition branches differ in base type)
-
-### 2. SchemaNode Creation
-
-A `SchemaNode` represents the atomic, raw meaning of that schema, independent of composition.  
-Each node holds:
-
-- Its `$id`, which is the document URI + JSON Pointer / YAML path, for example:  
-  `paths/~1v2~1oauth~1token/post/requestBody/content/application~1json/schema`
-- Its **name**, assigned according to the [Naming Conventions](#naming-conventions):
-  - Uses `title` if present
-  - Otherwise uses component name, operation context, or structural parent relationship
-- Its raw schema map
-- References back into the OpenAPI object model where relevant
-
-All `SchemaNode`s are stored in `AnalysisResult.schemaNodes` as:
-
-```text
-Map<String /* id */, SchemaNode>
-```
-
-### 3. Atomic Constraint Validation (post-node validation)
-
-Once the SchemaNode is created, atomic constraints are validated, for example:
-
-- Numeric: `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`
-- String: `minLength`, `maxLength`, `pattern`, `format`
-- Object: `required`, `minProperties`, `maxProperties`
-- Array: `minItems`, `maxItems`, `uniqueItems`
-
-This ensures each atomic schema is internally consistent.  
-Type–keyword compatibility checks belong in this stage (not Stage D).
-
-## Part 3 — Structural & Applicator Graphs
-
-Stage B also constructs the structural and applicator graphs between SchemaNodes as it traverses the document.
-
-### Structural Edges
-
-Structural edges represent containment:
-
-- Object → property schema (`properties`)
-- Object → pattern-property schema (`patternProperties`)
-- Object → `additionalProperties` when it is a schema
-- Array → `items` schema
-- Array → `additionalItems` schema (if used)
-
-These edges define the **structural graph**: how schemas contain other schemas.
-
-Each structural edge stores:
-
-- `fromId` — the `$id` of the parent SchemaNode
-- `toId` — the `$id` of the child SchemaNode
-- metadata such as property name, pattern, or position
-
-All structural edges are stored in:
-
-```text
-AnalysisResult.structuralEdges : List<StructuralEdge>
-```
-
-### Applicator Edges
-
-Applicator edges represent logical combinators:
-
-- `allOf`
-- `oneOf`
-- `anyOf`
-- `not`
-
-These edges define the **applicator graph**: how schemas are combined logically.
-
-Each applicator edge stores:
-
-- `fromId` — the `$id` of the parent SchemaNode
-- `toId` — the `$id` of a schema participating in a composition
-- the applicator kind (`allOf`, `oneOf`, `anyOf`, `not`)
-- optional index information (e.g. position in the `oneOf` array)
-
-All applicator edges are stored in:
-
-```text
-AnalysisResult.applicatorEdges : List<ApplicatorEdge>
-```
-
-> `$ref` is not modeled as an edge.  
-> When Stage B encounters a `$ref`, it hands control off to Stage C, which resolves and merges references.
-
-At the end of Stage B (for a given document):
-
-- The OpenAPI object model is built for that document.
-- SchemaNodes exist for all Schema Objects in that document.
-- Structural and applicator edges exist between SchemaNodes.
-- Cross-document references may still be unresolved; these are handled in Stage C.
-
----
-
-# Stage C — Reference Resolution (Internal & External)
-
-Stage C resolves all `$ref` pointers and merges referenced graphs into a single global graph, while avoiding redundant resolution of the same external documents.
-
-The key responsibilities:
-
-- Resolve internal `$ref` to existing or newly created SchemaNodes.
-- Resolve external `$ref` recursively and merge their graphs.
-- Track which documents have already been resolved to avoid repeated work.
-
-## Internal `$ref`
-
-For internal references (e.g. `#/components/schemas/User`):
-
-1. Resolve the JSON Pointer within the **current document**.
-2. If the referenced schema **already has a SchemaNode** in `AnalysisResult.schemaNodes`, reuse that node.
-3. If it does not yet have a SchemaNode, create one as in Stage B and add it to the graph.
-4. Link that SchemaNode into the structural/applicator graph at the point where the `$ref` was found.
-5. Recursively process any `$ref` within the referenced schema as needed.
-
-The same SchemaNode may appear in multiple locations in the graph; node identity is preserved.
-
-## External `$ref`
-
-For external references (e.g. another file or URL):
-
-1. Normalize the URI and check whether the target document has already been resolved.
-   - If **yes**, treat the reference as an internal `$ref` into that already-resolved document:
-     - Reuse its SchemaNodes and edges as needed.
-   - If **no**, proceed:
-
-2. Load the referenced document from its URI.
-
-3. Apply the pipeline **recursively** to the external document:
-   - Stage A — structural validation of the external document
-   - Stage B — object modeling + schema graph construction for that document
-   - Stage C — reference resolution inside that document
-
-4. Record that this document has now been resolved, so subsequent references to the same URI will not repeat Stage A/B/C.
-
-5. Merge the resulting SchemaNodes, structural edges, and applicator edges into the global `AnalysisResult` graph.
-
-### No `$ref` Edges
-
-There are no dedicated `$ref` edges in the final model.  
-The outcome of Stage C is:
-
-- A larger unified graph composed of all SchemaNodes and edges from all resolved documents.
-- An internal record (not specified here) of which documents/URIs have already been processed.
-
----
-
-# Stage D — Composition Resolution & Effective Schema Graph
-
-Stage D computes the semantic meaning of each SchemaNode by analyzing `allOf`, `oneOf`, and `anyOf` in the applicator graph and by building a parallel **effective schema graph**.
-
-It proceeds **from structural roots downward** and resolves compositions recursively so that the semantics of child nodes are established before parents.
-
-## Structural Schema Roots
-
-Composition resolution begins from **structural schema roots**, which typically are:
-
-- Schemas referenced from `Components.schemas`
-- Schemas attached to request/response bodies (`MediaType.schema`)
-- Other schema entry points reachable from the OpenAPI object model
-
-From each structural root, Stage D traverses the applicator graph and resolves compositions in a depth-first manner.
-
-## Recursive Resolution Order
-
-When traversing the applicator graph for a SchemaNode `S`:
-
-- The analyzer first performs composition resolution for its **children** (the schemas pointed to by applicator edges) before resolving `S` itself.
-- This “bottom-up” strategy ensures that:
-  - All composition semantics for child schemas are known,
-  - Then those results “bubble up” through the applicator graph to the parent,
-  - Eventually producing resolved semantics for the root node.
-
-In other words, composition resolution proceeds recursively until it converges at each applicator graph root.
-
-## Step 1 — Branch Enumeration
-
-For each `SchemaNode S`, traverse its applicator edges and enumerate branches:
-
-- `allOf` adds schemas into a branch (intersection of constraints).
-- `oneOf` and `anyOf` introduce branching:
-  - each element in `oneOf` / `anyOf` may itself contain compositions and contribute one or more sub-branches.
-- Nested combinations produce deeper branching trees.
-
-A **branch** is a path through this structure, represented as a sequence of SchemaNodes whose constraints are intended to hold together.
-
-## Step 2 — Branch Validation
-
-Each branch is checked for:
-
-- Type consistency:
-  - all schemas on the branch must be compatible at the base-type level.
-- Constraint compatibility:
-  - numeric ranges that do not contradict,
-  - object constraints that do not contradict,
-  - array and string constraints that can coexist.
-- Overall satisfiability.
-
-Branches that fail these checks are discarded as unsatisfiable.
-
-### Pure oneOf Case
-
-If a SchemaNode:
-
-- has only `oneOf` (no atomic constraints, no `allOf`), and
-- all branches associated with a single `oneOf[i]` validate,
-
-then that `oneOf[i]` can be treated as a coherent unit whose semantics are captured by a single effective variant.
-
-### oneOf with Inherited Constraints / Multiple oneOfs
-
-If a SchemaNode has:
-
-- atomic constraints, or
-- `allOf`, or
-- multiple `oneOf` occurrences in its applicator graph,
-
-then:
-
-- each validated branch produces a **branch-only schema** (a merged constraint view),
-- these branch-only schemas do not correspond to new SchemaNodes,
-- they are used to inform the semantic interpretation of the original node.
-
-### MultiType vs Single-Type
-
-A SchemaNode is considered **MultiType** only when validated branches span different base types (e.g. integer and string).
-
-- If all valid branches are integer-based → the node remains `IntegerSchemaNode`.
-- If all valid branches are number-based → the node remains `NumberSchemaNode`.
-- If all valid branches are string-based → the node remains `StringSchemaNode`.
-- MultiTypeSchemaNode is reserved for mixed-type unions.
-
-Multiple `oneOf`s alone do not imply MultiType.
-
-## Step 3 — EffectiveSchemaNode Construction
-
-For every SchemaNode, an `EffectiveSchemaNode` is created.  
-This node:
-
-- has the same `$id` as its corresponding SchemaNode,
-- is typed in parallel to the SchemaNode:
-  - `IntegerEffectiveSchemaNode`
-  - `NumberEffectiveSchemaNode`
-  - `StringEffectiveSchemaNode`
-  - `ObjectEffectiveSchemaNode`
-  - `ArrayEffectiveSchemaNode`
-  - `BooleanEffectiveSchemaNode`
-  - `MultiTypeEffectiveSchemaNode` (for mixed-type unions),
-- and contains resolved constraints derived from:
-  - the node’s own atomic constraints,
-  - inherited constraints via `allOf`,
-  - applicable branch-level semantics from `oneOf` and `anyOf`.
-
-Every SchemaNode has exactly one corresponding EffectiveSchemaNode.  
-EffectiveSchemaNodes are not copies of SchemaNodes; they are the semantic resolution of those nodes.
-
-## Effective Graph Structure
-
-The effective schema graph mirrors the original graph at the level of node identity but uses its own edge sets:
-
-- `AnalysisResult.effectiveSchemaNodes : Map<String, EffectiveSchemaNode>`
-- `AnalysisResult.effectiveStructuralEdges : List<EffectiveStructuralEdge>`
-- `AnalysisResult.effectiveApplicatorEdges : List<EffectiveApplicatorEdge>`
-
-Effective structural edges relate EffectiveSchemaNodes in ways that reflect resolved structural semantics.  
-Effective applicator edges represent composition relationships between EffectiveSchemaNodes after resolution.
-
-The original structural and applicator edges remain intact for reference to the syntactic structure.
-
-## Step 4 — Variant Analysis: Node-Backed and Branch-Only Variants
-
-Each SchemaNode's semantics may involve **variants**:
-
-- **Node-backed variants** — variants whose semantics correspond exactly to a specific SchemaNode in the original graph.  
-  These may be represented directly by EffectiveSchemaNodes.
-
-- **Branch-only variants** — variants that arise from branch enumeration where no single SchemaNode corresponds exactly to that branch.  
-  These remain anonymous schema summaries (merged constraints), not nodes, and are tracked only as semantic structures.
-
-Variants are grouped by base type for analysis.
-
-### Discriminator Variant Priority Logic
-
-For object type schemas with a `discriminator` property, the discriminator determines how to discriminate between variants. The variants can come from two sources, with a clear priority order:
-
-**Primary Priority: oneOf Variants**
-
-If an effective schema has a `oneOf` property, the schemas referenced in that `oneOf` are the variants that the discriminator discriminates between. This takes precedence over all other variant sources.
-
-**Example:**
-- Schema with `oneOf: [Cat, Dog]` and `discriminator: { propertyName: "petType" }`
-- Variants: Cat and Dog (from oneOf)
-- The discriminator discriminates between these oneOf variants
-
-**Secondary Priority: Inheritance Variants (allOf)**
-
-Only if there are **no oneOfs** in the effective schema, then:
-- If an object type schema has a discriminator
-- AND there is at least one other schema node that inherits from it (via `allOf`)
-- THEN those inheriting schemas are the variants of the discriminator schema
-
-**Example:**
-- Base schema with `discriminator: { propertyName: "type" }` but no oneOf
-- Child schemas that use `allOf: [{ $ref: "#/Base" }]`
-- Variants: All child schemas that inherit from the base
-- The discriminator discriminates between these inheritance-based variants
-
-**Priority Rule:** oneOf variants take absolute precedence. If a discriminator exists and oneOfs are present, those are the variants. Inheritance-based variants are only considered when there are no oneOfs.
-
-## Step 5 — Duplicate and Subsumed Variants
-
-Variants within the same base-type group are compared to identify:
-
-### Duplicates
-
-Two variants are considered duplicates when:
-
-- they share the same base type, and
-- they have effectively identical constraint profiles, for example:
-  - same numeric interval (`minimum`, `maximum`, exclusivity flags),
-  - same required properties set and property schemas,
-  - same enums and formats for strings,
-  - same array bounds and item semantics.
-
-Duplicate variants can be merged conceptually and reported as such for diagnostic or generator simplification purposes.
-
-### Subsumed Variants
-
-Variant A is subsumed by Variant B when:
-
-- A’s constraints are strictly narrower or equal to B’s, such that:
-  - any instance valid for A is also valid for B.
-
-Examples of subsumption:
-
-- Numeric:
-  - `[0, 5]` is subsumed by `[0, 10]`.
-- Object:
-  - if `required_A` is a superset of `required_B`,
-  - and each property in A is at least as strict as in B.
-
-Subsumption is used to identify redundant or overly constrained variants that do not add expressive power.  
-This information is recorded for diagnostics and may be used by code generators to avoid modeling redundant variants.
+The name is stored as a property of the schema and is used by downstream tools to generate appropriate identifiers.
 
 ---
 
 # Schema Validation and Error Reporting
 
-Throughout the analysis pipeline, validation exceptions are collected as schemas are processed. The validation system uses severity levels to categorize errors and strictness levels to control which errors cause validation to fail.
+Throughout the analysis pipeline, validation exceptions are collected as nodes are processed. The validation system uses severity levels to categorize errors and strictness levels to control which errors cause validation to fail.
 
 ## Severity Levels
 
@@ -532,7 +400,7 @@ Three severity levels categorize validation errors:
 These errors indicate that a schema is fundamentally invalid:
 
 - **Type Compatibility**: Incompatible explicit types across schemas, type mismatches with properties, or conflicting inferred types
-- **Constraint Conflicts**: Numeric, string, array, or object constraints that are impossible to satisfy (e.g., `minimum > maximum`, `minLength > maxLength`)
+- **Constraint Conflicts**: Numeric, string, array, or object constraints that are impossible to satisfy
 - **Reference Issues**: Circular references, missing references, or duplicate references in composition arrays
 - **Value Constraints**: Multiple different `const` values, enum constraints with no common values, or default values not in enum
 - **Path Issues**: Duplicate templated paths
@@ -549,7 +417,7 @@ These errors indicate schemas that only allow trivial instances:
 These errors indicate technically valid but not recommended patterns:
 
 - **Type Declaration Issues**: Schema missing explicit `type` property, or empty schema with no type-specific properties
-- **Property-Type Mismatches**: Schema has explicit type but contains properties from other types (e.g., string type with number properties, array type with object properties)
+- **Property-Type Mismatches**: Schema has explicit type but contains properties from other types
 
 ## Strictness Levels
 
@@ -565,364 +433,49 @@ The validation system collects exceptions during validation and processes them a
 
 ---
 
-# Worked Example — Walking One Schema Through Stages A → B → C → D
+# Final Output — OpenApiGraph
 
-This section shows a small but realistic example of how a single schema flows through the pipeline, including:
+After all three stages complete, the analyzer produces a single `OpenApiGraph` that contains:
 
-- `allOf` (intersection / inheritance),
-- `oneOf` (variants),
-- an **external** `$ref`.
+## Graph Structure
 
-## Example Setup
-
-**File 1 – `main.yaml`**
-
-```yaml
-openapi: 3.0.0
-info:
-  title: Example API
-  version: 1.0.0
-
-paths:
-  /animals:
-    get:
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Animal'
-
-components:
-  schemas:
-    Animal:
-      allOf:
-        - $ref: 'common.yaml#/components/schemas/EntityBase'
-        - type: object
-          required: [kind]
-          properties:
-            kind:
-              type: string
-              enum: [cat, dog]
-        - oneOf:
-          - $ref: '#/components/schemas/Cat'
-          - $ref: '#/components/schemas/Dog'
-
-    Cat:
-      type: object
-      required: [kind, name]
-      properties:
-        kind:
-          type: string
-          enum: [cat]
-        name:
-          type: string
-
-    Dog:
-      type: object
-      required: [kind, name]
-      properties:
-        kind:
-          type: string
-          enum: [dog]
-        name:
-          type: string
-```
-
-**File 2 – `common.yaml`**
-
-```yaml
-openapi: 3.0.0
-info:
-  title: Common Schemas
-  version: 1.0.0
-
-components:
-  schemas:
-    EntityBase:
-      type: object
-      properties:
-        id:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-```
-
-The “interesting” schema we will follow is `#/components/schemas/Animal` in `main.yaml`.
-
----
-
-## Stage A — Structural Validation
-
-For `main.yaml`:
-
-- Validate that `components.schemas.Animal` is a syntactically valid Schema Object:
-  - `allOf` is an array of schemas,
-  - `oneOf` is an array of schemas,
-  - `type: object` and `properties`, `required`, and `enum` are of the correct shapes.
-- Validate that `Cat` and `Dog` are valid Schema Objects.
-- At this point, the external `$ref` to `common.yaml` is **not yet loaded**; it is only checked for basic shape (`$ref` is a string).
-
-For `common.yaml`:
-
-- Stage A runs **later**, when the external `$ref` is first resolved during Stage C.
-- `EntityBase` is validated in the same way: correct keywords, correct types, etc.
-
-If any of these structural checks fail, diagnostics are produced and graph construction for those schemas is blocked.
-
----
-
-## Stage B — Object Model + Schema Graph
-
-While traversing `main.yaml`, Stage B:
-
-1. Builds the OpenAPI object model:
-   - `OpenApiDocument` for `main.yaml`,
-   - `Paths`, `Operation`, `Responses`, `MediaType`, etc.
-   - The `get` operation at `/animals` is assigned a name: `AnimalsGet` (derived from path + verb)
-2. Encounters schema-bearing locations and creates `SchemaNode`s.
-
-Key steps for our example:
-
-- A `SchemaNode` is created for `Animal` with:
-  - `$id`: `main.yaml#/components/schemas/Animal`
-  - `name`: `Animal` (from component name)
-
-- `SchemaNode`s are also created for:
-  - `Cat` with `name`: `Cat` (from component name)
-  - `Dog` with `name`: `Dog` (from component name)
-  - Any nested inline schemas (e.g. property schemas, if not re-used):
-    - Property `kind` of `Cat` → name: `CatKind`
-    - Property `name` of `Cat` → name: `CatName`
-    - Property `kind` of `Dog` → name: `DogKind`
-    - Property `name` of `Dog` → name: `DogName`
-
-- The response schema at `/animals` GET `200` would be named:
-  - `AnimalsGet200Response` (from operation name + status code)
-
-### Structural Edges
-
-Examples of structural edges:
-
-- From `Animal` to the inline `object` fragment that defines `kind` (depending on your modeling, this may be a single node or merged into the `Animal` node).
-- From `Cat` to its `kind` and `name` property schemas.
-- From `Dog` to its `kind` and `name` property schemas.
-
-These edges are recorded in `AnalysisResult.structuralEdges`.
-
-### Applicator Edges
-
-Applicator edges created for `Animal`:
-
-- One `allOf` edge from `Animal` to:
-  - The external `$ref` target (`EntityBase` in `common.yaml`) – resolved later.
-  - The inline `object` schema with `kind` and its `enum`.
-- One `oneOf` edge from `Animal` to `Cat`.
-- One `oneOf` edge from `Animal` to `Dog`.
-
-These edges are recorded in `AnalysisResult.applicatorEdges`.
-
-At this point, `EntityBase` might not yet have a `SchemaNode` if the external document has not been processed; Stage C takes care of that.
-
----
-
-## Stage C — Reference Resolution
-
-When the `$ref` inside `Animal` is processed:
-
-```yaml
-$ref: 'common.yaml#/components/schemas/EntityBase'
-```
-
-Stage C:
-
-1. Normalizes `common.yaml` into a URI and checks if it has been resolved before.
-2. Loads `common.yaml` (if not already loaded).
-3. Runs Stage A + Stage B + Stage C recursively on `common.yaml`:
-   - Builds an `OpenApiDocument` for `common.yaml`.
-   - Creates a `SchemaNode` for `EntityBase` with an `$id` like:
-
-     ```text
-     common.yaml#/components/schemas/EntityBase
-     ```
-
-   - Adds the structural edges for `id` and `createdAt` properties.
-4. Merges `EntityBase`’s SchemaNode and edges into the global `AnalysisResult`.
-5. Replaces the “unresolved `$ref` placeholder” in `Animal`’s `allOf` with a real edge to the `EntityBase` SchemaNode.
-
-Now the unified graph contains:
-
-- `Animal`, `Cat`, `Dog`, and `EntityBase` SchemaNodes,
-- structural edges for all properties,
-- applicator edges for `Animal`’s `allOf` + `oneOf`.
-
-There are still **no explicit `$ref` edges**; resolution is expressed as normal structural/applicator edges referencing the resolved nodes.
-
----
-
-## Stage D — Composition Resolution & Effective SchemaNodes
-
-Stage D now computes the **semantic meaning** of `Animal` using the applicator graph.
-
-### Step 1 — Branch Enumeration
-
-For `Animal`, Stage D constructs branches combining:
-
-- `EntityBase` (via `allOf`),
-- The inline “kind” constraints (`kind` is `string`, enum `[cat, dog]`),
-- Each `oneOf` variant (`Cat` or `Dog`).
-
-This yields two main branches:
-
-1. **Branch A – Cat branch**
-
-   - `EntityBase`
-   - Inline `kind` constraints (`kind ∈ {cat, dog}`)
-   - `Cat` object constraints (`kind ∈ {cat}`, `name` required, `kind` and `name` properties)
-
-2. **Branch B – Dog branch**
-
-   - `EntityBase`
-   - Inline `kind` constraints (`kind ∈ {cat, dog}`)
-   - `Dog` object constraints (`kind ∈ {dog}`, `name` required, `kind` and `name` properties)
-
-### Step 2 — Branch Validation
-
-Each branch is validated for:
-
-- **Base type compatibility**:
-  - All three components (`EntityBase`, inline object, `Cat`/`Dog`) are `type: object` → OK.
-- **Constraint compatibility**:
-  - For the Cat branch:
-    - `kind ∈ {cat, dog}` (from inline object) intersected with `kind ∈ {cat}` (from `Cat`) simplifies to `kind = cat`.
-  - For the Dog branch:
-    - `kind ∈ {cat, dog}` intersected with `kind ∈ {dog}` simplifies to `kind = dog`.
-  - No contradictory `required` sets, numeric ranges, etc.
-- **Overall satisfiability**:
-  - Both branches are satisfiable; there exist valid instances (e.g. a Cat with an `id`, `createdAt`, `kind: "cat"`, and `name`).
-
-No branches are discarded.
-
-### Step 3 — EffectiveSchemaNode for `Animal`
-
-Stage D then builds the `EffectiveSchemaNode` for `Animal`:
-
-- Base type: `object`.
-- Inherited properties:
-  - From `EntityBase`: `id`, `createdAt` (optional in this example).
-  - From inline object: `kind` with `enum: [cat, dog]`.
-- Branch semantics from `oneOf`:
-  - Introduces variants for:
-    - **Cat-like Animal**:
-      - `kind = "cat"`,
-      - `name` required,
-      - includes `EntityBase` fields.
-    - **Dog-like Animal**:
-      - `kind = "dog"`,
-      - `name` required,
-      - includes `EntityBase` fields.
-
-The `EffectiveSchemaNode` for `Animal` captures:
-
-- “Always true” constraints (e.g. the object-ness, existence of `kind`, allowed enum values).
-- A variant set (Cat-branch and Dog-branch) describing mutually exclusive, more specific shapes.
-
-Similarly, `EffectiveSchemaNode`s are created for `Cat`, `Dog`, and `EntityBase`:
-
-- `Cat` and `Dog` effective nodes mainly reflect their own constraints.
-- `EntityBase`’s effective node reflects `id` and `createdAt`.
-
-### Step 4 — Variants, Duplicates, and Subsumption
-
-For the `Animal` base type group (`object`):
-
-- Variants:
-  - Variant 1: Cat-branch effective constraints.
-  - Variant 2: Dog-branch effective constraints.
-- **Duplicates**:
-  - No duplicates: Cat-branch and Dog-branch differ in `kind`’s enum and in the semantic meaning.
-- **Subsumption**:
-  - Neither variant subsumes the other: a Cat-like instance is not valid as Dog-like, and vice versa.
-
-The effective graph now provides a clear, semantically resolved view:
-
-- A single `EffectiveSchemaNode` for `Animal` with:
-  - Object-level constraints (including inherited ones),
-  - A compact representation of the Cat vs. Dog variants.
-
-This is the representation consumed by downstream tools such as code generators or linters.
-
----
-
-# Final Output — `AnalysisResult`
-
-After all four stages, the analyzer produces a single `AnalysisResult` that contains:
+- **OpenApiNodes**: Map of all OpenAPI nodes (document, paths, operations, etc.)
+- **SchemaNodes**: Map of all schema nodes
+- **OpenApiEdges**: Edges connecting OpenAPI nodes
+- **StructuralEdges**: Edges representing schema structural relationships
+- **ApplicatorEdges**: Edges representing schema composition relationships
 
 ## OpenAPI Object Model
 
-- The fully modeled OpenAPI object tree:
+- Fully created OpenAPI objects accessible via node content:
   - `OpenApiDocument`
-  - `Paths`
-  - `PathItem`
-  - `Operation`
-  - `RequestBody`
-  - `MediaType`
-  - `Responses`
-  - `Components`
-  - and all other OpenAPI objects.
+  - `Paths`, `PathItem`, `Operation`
+  - `Info`, `License`, `Contact`
+  - `Components` with all component types
+  - All other OpenAPI 3.0.0 objects
 
-These objects contain references to SchemaNodes where schemas are used.
+These objects hold references to their nodes and access child content through node references.
 
-## Schema Graph
+## Schema Model
 
-- A typed `SchemaNode` for every Schema Object in all involved documents, stored as:
+Each SchemaNode contains:
 
-  ```text
-  AnalysisResult.schemaNodes : Map<String /* id */, SchemaNode>
-  ```
+- **RawSchema**: Raw schema data with primitive types
+- **TypedSchema**: Schema with resolved types and compositions
+- **EffectiveSchema**: Schema with fully resolved semantics, variants, and constraints
 
-  where each id is the YAML/JSON path of that node (e.g.  
-  `paths/~1v2~1oauth~1token/post/requestBody/content/application~1json/schema`).
+All schema relationships are represented through edges in the graph, allowing traversal of structural and composition relationships.
 
-- Structural edges representing containment relationships:
+## Complete Semantic Model
 
-  ```text
-  AnalysisResult.structuralEdges : List<StructuralEdge>
-  ```
+The unified graph provides:
 
-- Applicator edges representing composition relationships:
-
-  ```text
-  AnalysisResult.applicatorEdges : List<ApplicatorEdge>
-  ```
-
-## Reference-Resolved Global Graph
-
-- All internal and external `$ref` resolved.
-- All SchemaNodes from all referenced documents merged into one global graph.
-- An internal record of which external documents/URIs have already been resolved to avoid redundant work.
-
-## Effective Schema Graph
-
-- An `EffectiveSchemaNode` for every `SchemaNode`, stored as:
-
-  ```text
-  AnalysisResult.effectiveSchemaNodes : Map<String /* id */, EffectiveSchemaNode>
-  ```
-
-- Effective structural and applicator edges:
-
-  ```text
-  AnalysisResult.effectiveStructuralEdges : List<EffectiveStructuralEdge>
-  AnalysisResult.effectiveApplicatorEdges : List<EffectiveApplicatorEdge>
-  ```
-
-- Fully resolved constraints for each node.
-- Variant structures for node-backed and branch-only variants.
-- Duplicate variant detection.
-- Subsumed variant detection.
+- Complete OpenAPI document structure
+- All schema definitions with resolved references
+- Fully resolved schema semantics (typed and effective)
+- Variant information (node-backed and branch-only)
+- Duplicate and subsumed variant analysis
+- Validation exceptions categorized by severity
 
 This unified model serves as the semantic foundation for:
 

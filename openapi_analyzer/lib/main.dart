@@ -13,9 +13,9 @@
 /// for backward compatibility.
 library;
 
-export 'v3_0_0/openapi_validator_v3_0_0.dart';
-export 'v3_0_0/structural_validator/structural_validator.dart';
-export 'v3_0_0/semantic_validator/semantic_validator.dart';
-export 'v3_0_0/parser/openapi_parser.dart';
-export 'v3_0_0/validator/openapi_validator.dart' hide OpenApiValidationException; // Legacy validator
+export 'v3_0_0_legacy/openapi_validator_v3_0_0.dart';
+export 'v3_0_0_legacy/structural_validator/structural_validator.dart';
+export 'v3_0_0_legacy/semantic_validator/semantic_validator.dart';
+export 'v3_0_0_legacy/parser/openapi_parser.dart';
+export 'v3_0_0_legacy/validator/openapi_validator.dart' hide OpenApiValidationException; // Legacy validator
 export 'validation_exception.dart';

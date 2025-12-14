@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:yaml/yaml.dart';
-import 'package:openapi_analyzer/alpha/models/openapi_objects/openapi_document.dart';
+import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/openapi_document.dart';
 import 'openapi_objects/schema/schema_node.dart';
 
 abstract class Node {

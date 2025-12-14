@@ -1,5 +1,5 @@
-import 'package:openapi_analyzer/alpha/models/openapi_objects/schema/schema_node.dart';
-import 'package:openapi_analyzer/alpha/models/openapi_objects/schema/schema_type.dart';
+import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_node.dart';
+import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
 import 'effective_schema.dart';
 
 class ArrayEffectiveSchema extends SingleTypeEffectiveSchema<List<dynamic>, ArrayEffectiveSchema>

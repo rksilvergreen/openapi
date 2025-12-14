@@ -8,10 +8,8 @@ import '../xml.dart';
 class SchemaNode extends Node {
   SchemaNode(super.$id, super.json) {
     _validateStructure();
-    _createRaw();
-    _createTyped();
     _createChildNodes();
-    _createEffective();
+    _createContent();
   }
 
   bool _isStructuralValidationPassed = false;
@@ -40,6 +38,12 @@ class SchemaNode extends Node {
 
   void _validateStructure() {}
   void _createChildNodes() {}
+  void _createContent() {
+    _createRaw();
+    _createTyped();
+    _createEffective();
+  }
+
   void _createRaw() {}
   void _createTyped() {}
   void _createEffective() {}
