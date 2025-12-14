@@ -2,10 +2,7 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
 class ServerVariableNode extends OpenApiNode {
-  ServerVariableNode(super.$id, super.json) {
-    _validateStructure();
-    _createContent();
-  }
+  ServerVariableNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -14,6 +11,11 @@ class ServerVariableNode extends OpenApiNode {
   bool get contentCreated => _contentCreated;
 
   late final ServerVariable content;
+
+  void create() {
+    _validateStructure();
+    _createContent();
+  }
 
   void _validateStructure() {
     _structureValidated = true;
@@ -52,6 +54,7 @@ class ServerVariableNode extends OpenApiNode {
       description: json['description'],
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 

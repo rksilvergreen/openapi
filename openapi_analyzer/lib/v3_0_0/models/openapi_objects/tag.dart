@@ -3,11 +3,7 @@ import '../../validation/validation_utils.dart';
 import 'external_documentation.dart';
 
 class TagNode extends OpenApiNode {
-  TagNode(super.$id, super.json) {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
+  TagNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -18,6 +14,12 @@ class TagNode extends OpenApiNode {
   late final ExternalDocumentationNode? externalDocsNode;
 
   late final Tag content;
+
+  void create() {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
 
   void _validateStructure() {
     _structureValidated = true;
@@ -45,7 +47,20 @@ class TagNode extends OpenApiNode {
       'Tag Object',
     );
   }
-  void _createChildNodes() {}
+  void _createChildNodes() {
+    // Create ExternalDocs node
+    if (json.containsKey('externalDocs')) {
+      final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
+      externalDocsNode = ExternalDocumentationNode(
+        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'externalDocs')),
+        externalDocsJson,
+      );
+      OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, externalDocsNode!.$id.absolutePath, 'externalDocs'));
+      externalDocsNode!.create();
+    }
+  }
+
   void _createContent() {
     content = Tag._(
       $node: this,
@@ -53,6 +68,7 @@ class TagNode extends OpenApiNode {
       description: json['description'],
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 

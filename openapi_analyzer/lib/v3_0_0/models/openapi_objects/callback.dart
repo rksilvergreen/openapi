@@ -1,12 +1,9 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
 import 'path_item.dart';
 
 class CallbackNode extends OpenApiNode {
-  CallbackNode(super.$id, super.json) {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
+  CallbackNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -18,10 +15,51 @@ class CallbackNode extends OpenApiNode {
 
   late final Callback content;
 
-  void _validateStructure() {}
-  void _createChildNodes() {}
+  void create() {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
+
+  void _validateStructure() {
+    final path = $id.relativePath;
+
+    // Callback is a map of runtime expressions to PathItem objects
+    // All fields should be runtime expressions or extension fields
+    for (final key in json.keys) {
+      final keyStr = key.toString();
+      if (!keyStr.startsWith('x-')) {
+        // Runtime expression validation (should be a valid expression or path)
+        // For now, just ensure the value is a map
+        ValidationUtils.requireMap(json[key], ValidationUtils.buildPath(path, keyStr));
+      }
+    }
+
+    _structureValidated = true;
+  }
+
+  void _createChildNodes() {
+    expressionsNodes = {};
+
+    for (final entry in json.entries) {
+      final expression = entry.key.toString();
+      if (expression.startsWith('x-')) continue; // Skip extensions
+
+      final pathItemJson = entry.value as Map<String, dynamic>;
+      final pathItemNode = PathItemNode(
+        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, expression)),
+        pathItemJson,
+      );
+      expressionsNodes[expression] = pathItemNode;
+      OpenApiGraph.i.addOpenApiNode(pathItemNode);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, pathItemNode.$id.absolutePath, expression));
+      pathItemNode.create();
+    }
+  }
+
   void _createContent() {
     content = Callback._($node: this, extensions: extractExtensions(json));
+    _contentCreated = true;
   }
 }
 

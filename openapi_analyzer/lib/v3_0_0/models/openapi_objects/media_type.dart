@@ -7,7 +7,9 @@ import 'example.dart';
 import 'encoding.dart';
 
 class MediaTypeNode extends OpenApiNode {
-  MediaTypeNode(super.$id, super.json) {
+  MediaTypeNode(super.$id, super.json);
+
+  void create() {
     _validateStructure();
     _createChildNodes();
     _createContent();
@@ -75,6 +77,7 @@ class MediaTypeNode extends OpenApiNode {
       OpenApiGraph.i.addSchemaNode(schemaNode!);
       // Use RootEdge to mark this as a schema root
       OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePath, schemaNode!.$id.absolutePath));
+      schemaNode!.create();
     }
 
     // Create Example nodes
@@ -88,11 +91,12 @@ class MediaTypeNode extends OpenApiNode {
         final exampleJson = entry.value as Map<String, dynamic>;
         final exampleNode = ExampleNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'examples'), exampleName)),
-          exampleJson
+          exampleJson,
         );
         examplesNodes![exampleName] = exampleNode;
         OpenApiGraph.i.addOpenApiNode(exampleNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, exampleNode.$id.absolutePath, 'examples/$exampleName'));
+        exampleNode.create();
       }
     }
 
@@ -107,16 +111,19 @@ class MediaTypeNode extends OpenApiNode {
         final encodingJson = entry.value as Map<String, dynamic>;
         final encodingNode = EncodingNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'encoding'), propertyName)),
-          encodingJson
+          encodingJson,
         );
         encodingNodes![propertyName] = encodingNode;
         OpenApiGraph.i.addOpenApiNode(encodingNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, encodingNode.$id.absolutePath, 'encoding/$propertyName'));
+        encodingNode.create();
       }
     }
   }
+
   void _createContent() {
     content = MediaType._($node: this, example: json['example'], extensions: extractExtensions(json));
+    _contentCreated = true;
   }
 }
 

@@ -4,11 +4,7 @@ import 'enums.dart';
 import 'oauth_flows.dart';
 
 class SecuritySchemeNode extends OpenApiNode {
-  SecuritySchemeNode(super.$id, super.json) {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
+  SecuritySchemeNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -19,6 +15,12 @@ class SecuritySchemeNode extends OpenApiNode {
   late final OAuthFlowsNode? flowsNode;
 
   late final SecurityScheme content;
+
+  void create() {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
 
   void _validateStructure() {
     _structureValidated = true;
@@ -71,7 +73,17 @@ class SecuritySchemeNode extends OpenApiNode {
     );
   }
 
-  void _createChildNodes() {}
+  void _createChildNodes() {
+    // Create OAuthFlows node
+    if (json.containsKey('flows')) {
+      final flowsJson = json['flows'] as Map<String, dynamic>;
+      flowsNode = OAuthFlowsNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'flows')), flowsJson);
+      OpenApiGraph.i.addOpenApiNode(flowsNode!);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, flowsNode!.$id.absolutePath, 'flows'));
+      flowsNode!.create();
+    }
+  }
+
   void _createContent() {
     content = SecurityScheme._(
       $node: this,
@@ -84,6 +96,7 @@ class SecuritySchemeNode extends OpenApiNode {
       openIdConnectUrl: json['openIdConnectUrl'],
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 

@@ -5,11 +5,7 @@ import 'server.dart';
 import 'parameter.dart';
 
 class PathItemNode extends OpenApiNode {
-  PathItemNode(super.$id, super.json) {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
+  PathItemNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -29,6 +25,12 @@ class PathItemNode extends OpenApiNode {
   late final List<ParameterNode>? parametersNodes;
 
   late final PathItem content;
+
+  void create() {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
 
   void _validateStructure() {
     _structureValidated = true;
@@ -112,6 +114,7 @@ class PathItemNode extends OpenApiNode {
         
         OpenApiGraph.i.addOpenApiNode(operationNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, operationNode.$id.absolutePath, method));
+        operationNode.create();
       }
     }
 
@@ -123,11 +126,12 @@ class PathItemNode extends OpenApiNode {
         final serverJson = serversList[i] as Map<String, dynamic>;
         final serverNode = ServerNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'servers'), '[$i]')),
-          serverJson
+          serverJson,
         );
         serversNodes!.add(serverNode);
         OpenApiGraph.i.addOpenApiNode(serverNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, serverNode.$id.absolutePath, 'servers'));
+        serverNode.create();
       }
     }
 
@@ -139,14 +143,16 @@ class PathItemNode extends OpenApiNode {
         final parameterJson = parametersList[i] as Map<String, dynamic>;
         final parameterNode = ParameterNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'parameters'), '[$i]')),
-          parameterJson
+          parameterJson,
         );
         parametersNodes!.add(parameterNode);
         OpenApiGraph.i.addOpenApiNode(parameterNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, parameterNode.$id.absolutePath, 'parameters'));
+        parameterNode.create();
       }
     }
   }
+
   void _createContent() {
     content = PathItem._(
       $node: this,
@@ -154,6 +160,7 @@ class PathItemNode extends OpenApiNode {
       description: json['description'],
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 

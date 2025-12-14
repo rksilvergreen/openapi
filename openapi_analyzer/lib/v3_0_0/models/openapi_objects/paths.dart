@@ -4,11 +4,7 @@ import '../../../validation_exception.dart';
 import 'path_item.dart';
 
 class PathsNode extends OpenApiNode {
-  PathsNode(super.$id, super.json) {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
+  PathsNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -19,6 +15,12 @@ class PathsNode extends OpenApiNode {
   late final Map<String, PathItemNode> pathItemNodes;
 
   late final Paths content;
+
+  void create() {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
 
   void _validateStructure() {
     _structureValidated = true;
@@ -62,15 +64,18 @@ class PathsNode extends OpenApiNode {
       final pathItemJson = entry.value as Map<String, dynamic>;
       final pathItemNode = PathItemNode(
         NodeId($id.document, ValidationUtils.buildPath($id.relativePath, key)),
-        pathItemJson
+        pathItemJson,
       );
       pathItemNodes[key] = pathItemNode;
       OpenApiGraph.i.addOpenApiNode(pathItemNode);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, pathItemNode.$id.absolutePath, key));
+      pathItemNode.create();
     }
   }
+
   void _createContent() {
     content = Paths._($node: this, extensions: extractExtensions(json));
+    _contentCreated = true;
   }
 }
 

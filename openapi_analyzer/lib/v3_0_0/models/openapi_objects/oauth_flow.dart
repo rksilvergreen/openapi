@@ -1,10 +1,8 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
 
 class OAuthFlowNode extends OpenApiNode {
-  OAuthFlowNode(super.$id, super.json) {
-    _validateStructure();
-    _createContent();
-  }
+  OAuthFlowNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -14,7 +12,50 @@ class OAuthFlowNode extends OpenApiNode {
 
   late final OAuthFlow content;
 
-  void _validateStructure() {}
+  void create() {
+    _validateStructure();
+    _createContent();
+  }
+
+  void _validateStructure() {
+    final path = $id.relativePath;
+
+    // Validate required: scopes
+    final scopes = ValidationUtils.requireField(json, 'scopes', path);
+    final scopesMap = ValidationUtils.requireMap(scopes, ValidationUtils.buildPath(path, 'scopes'));
+    
+    // Validate scopes values are strings
+    for (final entry in scopesMap.entries) {
+      ValidationUtils.requireString(
+        entry.value,
+        ValidationUtils.buildPath(ValidationUtils.buildPath(path, 'scopes'), entry.key.toString()),
+      );
+    }
+
+    // Validate optional fields
+    if (json.containsKey('authorizationUrl')) {
+      ValidationUtils.requireString(json['authorizationUrl'], ValidationUtils.buildPath(path, 'authorizationUrl'));
+    }
+
+    if (json.containsKey('tokenUrl')) {
+      ValidationUtils.requireString(json['tokenUrl'], ValidationUtils.buildPath(path, 'tokenUrl'));
+    }
+
+    if (json.containsKey('refreshUrl')) {
+      ValidationUtils.requireString(json['refreshUrl'], ValidationUtils.buildPath(path, 'refreshUrl'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'authorizationUrl', 'tokenUrl', 'refreshUrl', 'scopes'},
+      path,
+      'OAuth Flow Object',
+    );
+
+    _structureValidated = true;
+  }
+
   void _createContent() {
     content = OAuthFlow._(
       $node: this,
@@ -24,6 +65,7 @@ class OAuthFlowNode extends OpenApiNode {
       scopes: json['scopes'] != null ? Map<String, String>.from(json['scopes']) : {},
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 

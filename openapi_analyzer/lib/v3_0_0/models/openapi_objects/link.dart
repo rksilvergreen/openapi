@@ -1,12 +1,10 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
+import '../../../validation_exception.dart';
 import 'server.dart';
 
 class LinkNode extends OpenApiNode {
-  LinkNode(super.$id, super.json) {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
+  LinkNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -18,8 +16,70 @@ class LinkNode extends OpenApiNode {
 
   late final Link content;
 
-  void _validateStructure() {}
-  void _createChildNodes() {}
+  void create() {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
+
+  void _validateStructure() {
+    final path = $id.relativePath;
+
+    // All fields are optional
+    if (json.containsKey('operationRef')) {
+      ValidationUtils.requireString(json['operationRef'], ValidationUtils.buildPath(path, 'operationRef'));
+    }
+
+    if (json.containsKey('operationId')) {
+      ValidationUtils.requireString(json['operationId'], ValidationUtils.buildPath(path, 'operationId'));
+    }
+
+    // Validate mutual exclusivity: operationRef and operationId cannot both be present
+    if (json.containsKey('operationRef') && json.containsKey('operationId')) {
+      OpenApiGraph.i.validationContext.addException(
+        OpenApiValidationException(
+          path,
+          'Link Object cannot have both "operationRef" and "operationId"',
+          specReference: 'OpenAPI 3.0.0 - Link Object',
+          severity: ValidationSeverity.critical,
+        ),
+      );
+    }
+
+    if (json.containsKey('parameters')) {
+      ValidationUtils.requireMap(json['parameters'], ValidationUtils.buildPath(path, 'parameters'));
+    }
+
+    if (json.containsKey('description')) {
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+    }
+
+    if (json.containsKey('server')) {
+      ValidationUtils.requireMap(json['server'], ValidationUtils.buildPath(path, 'server'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'operationRef', 'operationId', 'parameters', 'requestBody', 'description', 'server'},
+      path,
+      'Link Object',
+    );
+
+    _structureValidated = true;
+  }
+
+  void _createChildNodes() {
+    // Create Server node
+    if (json.containsKey('server')) {
+      final serverJson = json['server'] as Map<String, dynamic>;
+      serverNode = ServerNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'server')), serverJson);
+      OpenApiGraph.i.addOpenApiNode(serverNode!);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, serverNode!.$id.absolutePath, 'server'));
+      serverNode!.create();
+    }
+  }
+
   void _createContent() {
     content = Link._(
       $node: this,
@@ -30,6 +90,7 @@ class LinkNode extends OpenApiNode {
       description: json['description'],
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 

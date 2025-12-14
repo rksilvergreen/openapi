@@ -1,13 +1,10 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
 import 'enums.dart';
 import 'header.dart';
 
 class EncodingNode extends OpenApiNode {
-  EncodingNode(super.$id, super.json) {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
+  EncodingNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -19,8 +16,78 @@ class EncodingNode extends OpenApiNode {
 
   late final Encoding content;
 
-  void _validateStructure() {}
-  void _createChildNodes() {}
+  void create() {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
+
+  void _validateStructure() {
+    final path = $id.relativePath;
+
+    // All fields are optional
+    if (json.containsKey('contentType')) {
+      ValidationUtils.requireString(json['contentType'], ValidationUtils.buildPath(path, 'contentType'));
+    }
+
+    if (json.containsKey('headers')) {
+      ValidationUtils.requireMap(json['headers'], ValidationUtils.buildPath(path, 'headers'));
+    }
+
+    if (json.containsKey('style')) {
+      ValidationUtils.validateEnum(
+        ValidationUtils.requireString(json['style'], ValidationUtils.buildPath(path, 'style')),
+        ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'],
+        ValidationUtils.buildPath(path, 'style'),
+      );
+    }
+
+    if (json.containsKey('explode')) {
+      ValidationUtils.requireBool(json['explode'], ValidationUtils.buildPath(path, 'explode'));
+    }
+
+    if (json.containsKey('allowReserved')) {
+      ValidationUtils.requireBool(json['allowReserved'], ValidationUtils.buildPath(path, 'allowReserved'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'contentType', 'headers', 'style', 'explode', 'allowReserved'},
+      path,
+      'Encoding Object',
+    );
+
+    _structureValidated = true;
+  }
+
+  void _createChildNodes() {
+    // Create Header nodes
+    if (json.containsKey('headers')) {
+      final headersMap = json['headers'] as Map<String, dynamic>;
+      headersNodes = {};
+      for (final entry in headersMap.entries) {
+        final headerName = entry.key.toString();
+        if (headerName.startsWith('x-')) continue;
+
+        final headerJson = entry.value as Map<String, dynamic>;
+        final headerNode = HeaderNode(
+          NodeId(
+            $id.document,
+            ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'headers'), headerName),
+          ),
+          headerJson,
+        );
+        headersNodes![headerName] = headerNode;
+        OpenApiGraph.i.addOpenApiNode(headerNode);
+        OpenApiGraph.i.addOpenApiEdge(
+          OpenApiEdge($id.absolutePath, headerNode.$id.absolutePath, 'headers/$headerName'),
+        );
+        headerNode.create();
+      }
+    }
+  }
+
   void _createContent() {
     content = Encoding._(
       $node: this,
@@ -30,6 +97,7 @@ class EncodingNode extends OpenApiNode {
       allowReserved: json['allowReserved'] ?? false,
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 

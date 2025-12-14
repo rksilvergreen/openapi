@@ -3,11 +3,7 @@ import '../../validation/validation_utils.dart';
 import 'server_variable.dart';
 
 class ServerNode extends OpenApiNode {
-  ServerNode(super.$id, super.json) {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
+  ServerNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -15,9 +11,15 @@ class ServerNode extends OpenApiNode {
   bool get structureValidated => _structureValidated;
   bool get contentCreated => _contentCreated;
 
-  late final List<ServerVariableNode>? variableNodes;
+  late final Map<String, ServerVariableNode>? variablesNodes;
 
   late final Server content;
+
+  void create() {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
 
   void _validateStructure() {
     _structureValidated = true;
@@ -46,16 +48,36 @@ class ServerNode extends OpenApiNode {
     );
   }
 
-  void _createChildNodes() {}
+  void _createChildNodes() {
+    // Create ServerVariable nodes
+    if (json.containsKey('variables')) {
+      final variablesMap = json['variables'] as Map<String, dynamic>;
+      variablesNodes = {};
+      for (final entry in variablesMap.entries) {
+        final variableName = entry.key.toString();
+        if (variableName.startsWith('x-')) continue;
+
+        final variableJson = entry.value as Map<String, dynamic>;
+        final variableNode = ServerVariableNode(
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'variables'), variableName)),
+          variableJson,
+        );
+        variablesNodes![variableName] = variableNode;
+        OpenApiGraph.i.addOpenApiNode(variableNode);
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, variableNode.$id.absolutePath, 'variables/$variableName'));
+        variableNode.create();
+      }
+    }
+  }
 
   void _createContent() {
     content = Server._(
       $node: this,
       url: json['url'],
       description: json['description'],
-      variables: json['variables'],
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 
@@ -64,8 +86,8 @@ class Server {
   final ServerNode $node;
   final String url;
   final String? description;
-  final Map<String, ServerVariable>? variables;
+  Map<String, ServerVariable>? get variables => $node.variablesNodes?.map((k, v) => MapEntry(k, v.content));
   final Map<String, dynamic>? extensions;
 
-  Server._({required this.$node, required this.url, this.description, this.variables, this.extensions});
+  Server._({required this.$node, required this.url, this.description, this.extensions});
 }

@@ -10,7 +10,9 @@ import '../external_documentation.dart';
 import '../xml.dart';
 
 class SchemaNode extends Node {
-  SchemaNode(super.$id, super.json) {
+  SchemaNode(super.$id, super.json);
+
+  void create() {
     _validateStructure();
     _createChildNodes();
     _createContent();
@@ -275,6 +277,7 @@ class SchemaNode extends Node {
         // Create the referenced schema node recursively
         targetNode = SchemaNode(targetNodeId, targetJson as Map<String, dynamic>);
         OpenApiGraph.i.addSchemaNode(targetNode);
+        targetNode.create();
       }
 
       // Note: $ref doesn't create a special edge type - the reference is resolved
@@ -302,6 +305,7 @@ class SchemaNode extends Node {
         propertiesNodes![propertyName] = propertyNode;
         OpenApiGraph.i.addSchemaNode(propertyNode);
         OpenApiGraph.i.addSchemaStructuralEdge(PropertiesEdge($id.absolutePath, propertyNode.$id.absolutePath));
+        propertyNode.create();
       }
     }
 
@@ -315,6 +319,7 @@ class SchemaNode extends Node {
         );
         OpenApiGraph.i.addSchemaNode(itemsNode!);
         OpenApiGraph.i.addSchemaStructuralEdge(ItemsEdge($id.absolutePath, itemsNode!.$id.absolutePath));
+        itemsNode!.create();
       }
       // If items is boolean, no child node is created
     }
@@ -331,6 +336,7 @@ class SchemaNode extends Node {
         OpenApiGraph.i.addSchemaStructuralEdge(
           AdditionalPropertiesEdge($id.absolutePath, additionalPropertiesNode!.$id.absolutePath),
         );
+        additionalPropertiesNode!.create();
       }
       // If additionalProperties is boolean, no child node is created
     }
@@ -350,6 +356,7 @@ class SchemaNode extends Node {
         allOfNodes!.add(allOfNode);
         OpenApiGraph.i.addSchemaNode(allOfNode);
         OpenApiGraph.i.addSchemaApplicatorEdge(AllOfEdge($id.absolutePath, allOfNode.$id.absolutePath));
+        allOfNode.create();
       }
     }
 
@@ -366,6 +373,7 @@ class SchemaNode extends Node {
         oneOfNodes!.add(oneOfNode);
         OpenApiGraph.i.addSchemaNode(oneOfNode);
         OpenApiGraph.i.addSchemaApplicatorEdge(OneOfEdge($id.absolutePath, oneOfNode.$id.absolutePath));
+        oneOfNode.create();
       }
     }
 
@@ -382,6 +390,7 @@ class SchemaNode extends Node {
         anyOfNodes!.add(anyOfNode);
         OpenApiGraph.i.addSchemaNode(anyOfNode);
         OpenApiGraph.i.addSchemaApplicatorEdge(AnyOfEdge($id.absolutePath, anyOfNode.$id.absolutePath));
+        anyOfNode.create();
       }
     }
 
@@ -390,6 +399,7 @@ class SchemaNode extends Node {
       final xmlJson = json['xml'] as Map<String, dynamic>;
       xmlNode = XMLNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'xml')), xmlJson);
       OpenApiGraph.i.addOpenApiNode(xmlNode!);
+      xmlNode!.create();
       // Note: XML node is connected but not via standard edges
     }
 
@@ -400,6 +410,7 @@ class SchemaNode extends Node {
         externalDocsJson,
       );
       OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
+      externalDocsNode!.create();
       // Note: ExternalDocs node is connected but not via standard edges
     }
   }
@@ -416,46 +427,46 @@ class SchemaNode extends Node {
   }
 
   void _createTyped() {
-    // Ensure all child schemas have their typed schemas created (bottom-up)
-    allOfNodes?.forEach((n) {
-      if (!n.isTypedSet) n._createTyped();
-    });
-    oneOfNodes?.forEach((n) {
-      if (!n.isTypedSet) n._createTyped();
-    });
-    anyOfNodes?.forEach((n) {
-      if (!n.isTypedSet) n._createTyped();
-    });
-    propertiesNodes?.values.forEach((n) {
-      if (!n.isTypedSet) n._createTyped();
-    });
-    if (itemsNode != null && !itemsNode!.isTypedSet) itemsNode!._createTyped();
-    if (additionalPropertiesNode != null && !additionalPropertiesNode!.isTypedSet) {
-      additionalPropertiesNode!._createTyped();
-    }
+    // // Ensure all child schemas have their typed schemas created (bottom-up)
+    // allOfNodes?.forEach((n) {
+    //   if (!n.isTypedSet) n._createTyped();
+    // });
+    // oneOfNodes?.forEach((n) {
+    //   if (!n.isTypedSet) n._createTyped();
+    // });
+    // anyOfNodes?.forEach((n) {
+    //   if (!n.isTypedSet) n._createTyped();
+    // });
+    // propertiesNodes?.values.forEach((n) {
+    //   if (!n.isTypedSet) n._createTyped();
+    // });
+    // if (itemsNode != null && !itemsNode!.isTypedSet) itemsNode!._createTyped();
+    // if (additionalPropertiesNode != null && !additionalPropertiesNode!.isTypedSet) {
+    //   additionalPropertiesNode!._createTyped();
+    // }
 
     typed = TypedSchemaFactory.createTypedSchema(this, raw, OpenApiGraph.i.validationContext);
     isTypedSet = true;
   }
 
   void _createEffective() {
-    // Ensure all child schemas have effective schemas (bottom-up)
-    allOfNodes?.forEach((n) {
-      if (!n.isEffectiveSet) n._createEffective();
-    });
-    oneOfNodes?.forEach((n) {
-      if (!n.isEffectiveSet) n._createEffective();
-    });
-    anyOfNodes?.forEach((n) {
-      if (!n.isEffectiveSet) n._createEffective();
-    });
-    propertiesNodes?.values.forEach((n) {
-      if (!n.isEffectiveSet) n._createEffective();
-    });
-    if (itemsNode != null && !itemsNode!.isEffectiveSet) itemsNode!._createEffective();
-    if (additionalPropertiesNode != null && !additionalPropertiesNode!.isEffectiveSet) {
-      additionalPropertiesNode!._createEffective();
-    }
+    // // Ensure all child schemas have effective schemas (bottom-up)
+    // allOfNodes?.forEach((n) {
+    //   if (!n.isEffectiveSet) n._createEffective();
+    // });
+    // oneOfNodes?.forEach((n) {
+    //   if (!n.isEffectiveSet) n._createEffective();
+    // });
+    // anyOfNodes?.forEach((n) {
+    //   if (!n.isEffectiveSet) n._createEffective();
+    // });
+    // propertiesNodes?.values.forEach((n) {
+    //   if (!n.isEffectiveSet) n._createEffective();
+    // });
+    // if (itemsNode != null && !itemsNode!.isEffectiveSet) itemsNode!._createEffective();
+    // if (additionalPropertiesNode != null && !additionalPropertiesNode!.isEffectiveSet) {
+    //   additionalPropertiesNode!._createEffective();
+    // }
 
     effective = EffectiveSchemaFactory.createEffectiveSchema(this, typed, OpenApiGraph.i.validationContext);
     isEffectiveSet = true;

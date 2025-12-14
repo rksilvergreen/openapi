@@ -8,7 +8,9 @@ import 'example.dart';
 import 'media_type.dart';
 
 class ParameterNode extends OpenApiNode {
-  ParameterNode(super.$id, super.json) {
+  ParameterNode(super.$id, super.json);
+
+  void create() {
     _validateStructure();
     _createChildNodes();
     _createContent();
@@ -121,6 +123,7 @@ class ParameterNode extends OpenApiNode {
       );
       OpenApiGraph.i.addSchemaNode(schemaNode!);
       OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePath, schemaNode!.$id.absolutePath));
+      schemaNode!.create();
     }
 
     // Create Example nodes
@@ -134,11 +137,12 @@ class ParameterNode extends OpenApiNode {
         final exampleJson = entry.value as Map<String, dynamic>;
         final exampleNode = ExampleNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'examples'), exampleName)),
-          exampleJson
+          exampleJson,
         );
         examplesNodes![exampleName] = exampleNode;
         OpenApiGraph.i.addOpenApiNode(exampleNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, exampleNode.$id.absolutePath, 'examples/$exampleName'));
+        exampleNode.create();
       }
     }
 
@@ -151,14 +155,16 @@ class ParameterNode extends OpenApiNode {
         final mediaTypeJson = entry.value as Map<String, dynamic>;
         final mediaTypeNode = MediaTypeNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'content'), mediaType)),
-          mediaTypeJson
+          mediaTypeJson,
         );
         contentNodes![mediaType] = mediaTypeNode;
         OpenApiGraph.i.addOpenApiNode(mediaTypeNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, mediaTypeNode.$id.absolutePath, 'content/$mediaType'));
+        mediaTypeNode.create();
       }
     }
   }
+
   void _createContent() {
     content = Parameter._(
       $node: this,
@@ -177,6 +183,7 @@ class ParameterNode extends OpenApiNode {
       content: json['content'],
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 

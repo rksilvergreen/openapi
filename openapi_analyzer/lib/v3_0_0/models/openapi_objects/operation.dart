@@ -11,7 +11,9 @@ import 'server.dart';
 // import 'paths.dart';
 
 class OperationNode extends OpenApiNode {
-  OperationNode(super.$id, super.json) {
+  OperationNode(super.$id, super.json);
+
+  void create() {
     _validateStructure();
     _createChildNodes();
     _createContent();
@@ -135,6 +137,7 @@ class OperationNode extends OpenApiNode {
       );
       OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, externalDocsNode!.$id.absolutePath, 'externalDocs'));
+      externalDocsNode!.create();
     }
 
     // Create Parameters nodes
@@ -153,6 +156,7 @@ class OperationNode extends OpenApiNode {
         parametersNodes!.add(parameterNode);
         OpenApiGraph.i.addOpenApiNode(parameterNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, parameterNode.$id.absolutePath, 'parameters'));
+        parameterNode.create();
       }
     }
 
@@ -165,6 +169,7 @@ class OperationNode extends OpenApiNode {
       );
       OpenApiGraph.i.addOpenApiNode(requestBodyNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, requestBodyNode!.$id.absolutePath, 'requestBody'));
+      requestBodyNode!.create();
     }
 
     // Create Response nodes
@@ -187,6 +192,7 @@ class OperationNode extends OpenApiNode {
       OpenApiGraph.i.addOpenApiEdge(
         OpenApiEdge($id.absolutePath, responseNode.$id.absolutePath, 'responses/$statusCode'),
       );
+      responseNode.create();
     }
 
     // Create Callback nodes
@@ -210,6 +216,7 @@ class OperationNode extends OpenApiNode {
         OpenApiGraph.i.addOpenApiEdge(
           OpenApiEdge($id.absolutePath, callbackNode.$id.absolutePath, 'callbacks/$callbackName'),
         );
+        callbackNode.create();
       }
     }
 
@@ -229,6 +236,7 @@ class OperationNode extends OpenApiNode {
         securityRequirementNodes!.add(securityNode);
         OpenApiGraph.i.addOpenApiNode(securityNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, securityNode.$id.absolutePath, 'security'));
+        securityNode.create();
       }
     }
 
@@ -248,6 +256,7 @@ class OperationNode extends OpenApiNode {
         serverNodes!.add(serverNode);
         OpenApiGraph.i.addOpenApiNode(serverNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, serverNode.$id.absolutePath, 'servers'));
+        serverNode.create();
       }
     }
   }
@@ -261,6 +270,7 @@ class OperationNode extends OpenApiNode {
       operationId: json['operationId'],
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 

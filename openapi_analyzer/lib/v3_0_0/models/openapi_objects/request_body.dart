@@ -3,7 +3,9 @@ import '../../validation/validation_utils.dart';
 import 'media_type.dart';
 
 class RequestBodyNode extends OpenApiNode {
-  RequestBodyNode(super.$id, super.json) {
+  RequestBodyNode(super.$id, super.json);
+
+  void create() {
     _validateStructure();
     _createChildNodes();
     _createContent();
@@ -59,8 +61,10 @@ class RequestBodyNode extends OpenApiNode {
       contentNodes[mediaType] = mediaTypeNode;
       OpenApiGraph.i.addOpenApiNode(mediaTypeNode);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, mediaTypeNode.$id.absolutePath, 'content/$mediaType'));
+      mediaTypeNode.create();
     }
   }
+
   void _createContent() {
     content = RequestBody._(
       $node: this,
@@ -68,6 +72,7 @@ class RequestBodyNode extends OpenApiNode {
       required_: json['required'],
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 

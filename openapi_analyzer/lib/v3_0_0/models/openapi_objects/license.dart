@@ -2,10 +2,7 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
 class LicenseNode extends OpenApiNode {
-  LicenseNode(super.$id, super.json) {
-    _validateStructure();
-    _createContent();
-  }
+  LicenseNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -14,6 +11,11 @@ class LicenseNode extends OpenApiNode {
   bool get contentCreated => _contentCreated;
 
   late final License content;
+
+  void create() {
+    _validateStructure();
+    _createContent();
+  }
 
   void _validateStructure() {
     _structureValidated = true;
@@ -38,6 +40,7 @@ class LicenseNode extends OpenApiNode {
   }
   void _createContent() {
     content = License._($node: this, name: json['name'], url: json['url'], extensions: extractExtensions(json));
+    _contentCreated = true;
   }
 }
 

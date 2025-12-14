@@ -4,7 +4,9 @@ import 'contact.dart';
 import 'license.dart';
 
 class InfoNode extends OpenApiNode {
-  InfoNode(super.$id, super.json) {
+  InfoNode(super.$id, super.json);
+
+  void create() {
     _validateStructure();
     _createChildNodes();
     _createContent();
@@ -72,6 +74,7 @@ class InfoNode extends OpenApiNode {
       );
       OpenApiGraph.i.addOpenApiNode(contactNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, contactNode!.$id.absolutePath, 'contact'));
+      contactNode!.create();
     }
 
     // Create License node
@@ -83,6 +86,7 @@ class InfoNode extends OpenApiNode {
       );
       OpenApiGraph.i.addOpenApiNode(licenseNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, licenseNode!.$id.absolutePath, 'license'));
+      licenseNode!.create();
     }
   }
 
@@ -95,6 +99,7 @@ class InfoNode extends OpenApiNode {
       version: json['version'],
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 

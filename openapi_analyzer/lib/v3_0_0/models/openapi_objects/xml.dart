@@ -1,10 +1,8 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
 
 class XMLNode extends OpenApiNode {
-  XMLNode(super.$id, super.json) {
-    _validateStructure();
-    _createContent();
-  }
+  XMLNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -14,7 +12,46 @@ class XMLNode extends OpenApiNode {
 
   late final XML content;
 
-  void _validateStructure() {}
+  void create() {
+    _validateStructure();
+    _createContent();
+  }
+
+  void _validateStructure() {
+    final path = $id.relativePath;
+
+    // All fields are optional
+    if (json.containsKey('name')) {
+      ValidationUtils.requireString(json['name'], ValidationUtils.buildPath(path, 'name'));
+    }
+
+    if (json.containsKey('namespace')) {
+      ValidationUtils.requireString(json['namespace'], ValidationUtils.buildPath(path, 'namespace'));
+    }
+
+    if (json.containsKey('prefix')) {
+      ValidationUtils.requireString(json['prefix'], ValidationUtils.buildPath(path, 'prefix'));
+    }
+
+    if (json.containsKey('attribute')) {
+      ValidationUtils.requireBool(json['attribute'], ValidationUtils.buildPath(path, 'attribute'));
+    }
+
+    if (json.containsKey('wrapped')) {
+      ValidationUtils.requireBool(json['wrapped'], ValidationUtils.buildPath(path, 'wrapped'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'name', 'namespace', 'prefix', 'attribute', 'wrapped'},
+      path,
+      'XML Object',
+    );
+
+    _structureValidated = true;
+  }
+
   void _createContent() {
     content = XML._(
       $node: this,
@@ -25,6 +62,7 @@ class XMLNode extends OpenApiNode {
       wrapped: json['wrapped'] ?? false,
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 

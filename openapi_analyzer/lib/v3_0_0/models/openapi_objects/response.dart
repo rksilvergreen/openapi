@@ -5,7 +5,9 @@ import 'media_type.dart';
 import 'link.dart';
 
 class ResponseNode extends OpenApiNode {
-  ResponseNode(super.$id, super.json) {
+  ResponseNode(super.$id, super.json);
+
+  void create() {
     _validateStructure();
     _createChildNodes();
     _createContent();
@@ -71,6 +73,7 @@ class ResponseNode extends OpenApiNode {
         headersNodes![headerName] = headerNode;
         OpenApiGraph.i.addOpenApiNode(headerNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, headerNode.$id.absolutePath, 'headers/$headerName'));
+        headerNode.create();
       }
     }
 
@@ -83,11 +86,12 @@ class ResponseNode extends OpenApiNode {
         final mediaTypeJson = entry.value as Map<String, dynamic>;
         final mediaTypeNode = MediaTypeNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'content'), mediaType)),
-          mediaTypeJson
+          mediaTypeJson,
         );
         contentNodes![mediaType] = mediaTypeNode;
         OpenApiGraph.i.addOpenApiNode(mediaTypeNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, mediaTypeNode.$id.absolutePath, 'content/$mediaType'));
+        mediaTypeNode.create();
       }
     }
 
@@ -102,16 +106,19 @@ class ResponseNode extends OpenApiNode {
         final linkJson = entry.value as Map<String, dynamic>;
         final linkNode = LinkNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'links'), linkName)),
-          linkJson
+          linkJson,
         );
         linksNodes![linkName] = linkNode;
         OpenApiGraph.i.addOpenApiNode(linkNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, linkNode.$id.absolutePath, 'links/$linkName'));
+        linkNode.create();
       }
     }
   }
+
   void _createContent() {
     content = Response._($node: this, description: json['description'], extensions: extractExtensions(json));
+    _contentCreated = true;
   }
 }
 

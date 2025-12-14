@@ -81,9 +81,13 @@ class OpenApiGraph {
       // Store loaded root document
       loadedDocuments[file.path] = yamlDoc;
 
-      // Create root node (triggers three-stage pipeline)
+      // Create root node
       final rootId = NodeId(file.uri.pathSegments.last, '/');
       final rootNode = OpenApiDocumentNode(rootId, yamlDoc as Map<String, dynamic>);
+      addOpenApiNode(rootNode);
+
+      // Trigger three-stage pipeline
+      rootNode.create();
       root = rootNode.content;
 
       // Check for validation failures

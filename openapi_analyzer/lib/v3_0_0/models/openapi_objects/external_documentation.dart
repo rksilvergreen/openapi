@@ -2,10 +2,7 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
 class ExternalDocumentationNode extends OpenApiNode {
-  ExternalDocumentationNode(super.$id, super.json) {
-    _validateStructure();
-    _createContent();
-  }
+  ExternalDocumentationNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -14,6 +11,11 @@ class ExternalDocumentationNode extends OpenApiNode {
   bool get contentCreated => _contentCreated;
 
   late final ExternalDocumentation content;
+
+  void create() {
+    _validateStructure();
+    _createContent();
+  }
 
   void _validateStructure() {
     _structureValidated = true;
@@ -43,6 +45,7 @@ class ExternalDocumentationNode extends OpenApiNode {
       url: json['url'],
       extensions: extractExtensions(json),
     );
+    _contentCreated = true;
   }
 }
 

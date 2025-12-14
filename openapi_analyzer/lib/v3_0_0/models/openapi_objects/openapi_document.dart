@@ -9,11 +9,7 @@ import 'tag.dart';
 import 'external_documentation.dart';
 
 class OpenApiDocumentNode extends OpenApiNode {
-  OpenApiDocumentNode(super.$id, super.json) {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
+  OpenApiDocumentNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -24,12 +20,18 @@ class OpenApiDocumentNode extends OpenApiNode {
   late final InfoNode infoNode;
   late final List<ServerNode>? serversNode;
   late final PathsNode pathsNode;
-  late final ComponentsNode componentsNode;
+  late final ComponentsNode? componentsNode;
   late final List<SecurityRequirementNode>? securityNode;
   late final List<TagNode>? tagsNode;
   late final ExternalDocumentationNode? externalDocsNode;
 
   late final OpenApiDocument content;
+
+  void create() {
+    _validateStructure();
+    _createChildNodes();
+    _createContent();
+  }
 
   void _validateStructure() {
     _structureValidated = true;
@@ -86,6 +88,7 @@ class OpenApiDocumentNode extends OpenApiNode {
       'OpenAPI Object',
     );
   }
+
   void _createChildNodes() {
     // Create Info node
     if (json.containsKey('info')) {
@@ -93,6 +96,7 @@ class OpenApiDocumentNode extends OpenApiNode {
       infoNode = InfoNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'info')), infoJson);
       OpenApiGraph.i.addOpenApiNode(infoNode);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, infoNode.$id.absolutePath, 'info'));
+      infoNode.create();
     }
 
     // Create Servers nodes
@@ -102,12 +106,16 @@ class OpenApiDocumentNode extends OpenApiNode {
       for (var i = 0; i < serversList.length; i++) {
         final serverJson = serversList[i] as Map<String, dynamic>;
         final serverNodeInstance = ServerNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'servers'), '[$i]')),
-          serverJson
+          NodeId(
+            $id.document,
+            ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'servers'), '[$i]'),
+          ),
+          serverJson,
         );
         serversNode!.add(serverNodeInstance);
         OpenApiGraph.i.addOpenApiNode(serverNodeInstance);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, serverNodeInstance.$id.absolutePath, 'servers'));
+        serverNodeInstance.create();
       }
     }
 
@@ -117,14 +125,19 @@ class OpenApiDocumentNode extends OpenApiNode {
       pathsNode = PathsNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'paths')), pathsJson);
       OpenApiGraph.i.addOpenApiNode(pathsNode);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, pathsNode.$id.absolutePath, 'paths'));
+      pathsNode.create();
     }
 
     // Create Components node
     if (json.containsKey('components')) {
       final componentsJson = json['components'] as Map<String, dynamic>;
-      componentsNode = ComponentsNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'components')), componentsJson);
-      OpenApiGraph.i.addOpenApiNode(componentsNode);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, componentsNode.$id.absolutePath, 'components'));
+      componentsNode = ComponentsNode(
+        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'components')),
+        componentsJson,
+      );
+      OpenApiGraph.i.addOpenApiNode(componentsNode!);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, componentsNode!.$id.absolutePath, 'components'));
+      componentsNode!.create();
     }
 
     // Create Security nodes
@@ -134,12 +147,16 @@ class OpenApiDocumentNode extends OpenApiNode {
       for (var i = 0; i < securityList.length; i++) {
         final securityJson = securityList[i] as Map<String, dynamic>;
         final securityNodeInstance = SecurityRequirementNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'security'), '[$i]')),
-          securityJson
+          NodeId(
+            $id.document,
+            ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'security'), '[$i]'),
+          ),
+          securityJson,
         );
         securityNode!.add(securityNodeInstance);
         OpenApiGraph.i.addOpenApiNode(securityNodeInstance);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, securityNodeInstance.$id.absolutePath, 'security'));
+        securityNodeInstance.create();
       }
     }
 
@@ -151,11 +168,12 @@ class OpenApiDocumentNode extends OpenApiNode {
         final tagJson = tagsList[i] as Map<String, dynamic>;
         final tagNodeInstance = TagNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'tags'), '[$i]')),
-          tagJson
+          tagJson,
         );
         tagsNode!.add(tagNodeInstance);
         OpenApiGraph.i.addOpenApiNode(tagNodeInstance);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, tagNodeInstance.$id.absolutePath, 'tags'));
+        tagNodeInstance.create();
       }
     }
 
@@ -164,14 +182,17 @@ class OpenApiDocumentNode extends OpenApiNode {
       final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
       externalDocsNode = ExternalDocumentationNode(
         NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'externalDocs')),
-        externalDocsJson
+        externalDocsJson,
       );
       OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, externalDocsNode!.$id.absolutePath, 'externalDocs'));
+      externalDocsNode!.create();
     }
   }
+
   void _createContent() {
     content = OpenApiDocument._($node: this, openapi: json['openapi'], extensions: extractExtensions(json));
+    _contentCreated = true;
   }
 }
 
@@ -183,7 +204,7 @@ class OpenApiDocument {
   Info get info => $node.infoNode.content;
   List<Server>? get servers => $node.serversNode?.map((server) => server.content).toList();
   Paths get paths => $node.pathsNode.content;
-  Components? get components => $node.componentsNode.content;
+  Components? get components => $node.componentsNode?.content;
   List<SecurityRequirement>? get security => $node.securityNode?.map((security) => security.content).toList();
   List<Tag>? get tags => $node.tagsNode?.map((tag) => tag.content).toList();
   ExternalDocumentation? get externalDocs => $node.externalDocsNode?.content;

@@ -3,10 +3,7 @@ import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 
 class SecurityRequirementNode extends OpenApiNode {
-  SecurityRequirementNode(super.$id, super.json) {
-    _validateStructure();
-    _createContent();
-  }
+  SecurityRequirementNode(super.$id, super.json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -15,6 +12,11 @@ class SecurityRequirementNode extends OpenApiNode {
   bool get contentCreated => _contentCreated;
 
   late final SecurityRequirement content;
+
+  void create() {
+    _validateStructure();
+    _createContent();
+  }
 
   void _validateStructure() {
     _structureValidated = true;
