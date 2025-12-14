@@ -61,13 +61,14 @@ class InfoNode extends OpenApiNode {
       'Info Object',
     );
   }
+
   void _createChildNodes() {
     // Create Contact node
     if (json.containsKey('contact')) {
-      final contactJson = json['contact'] as Map;
+      final contactJson = json['contact'] as Map<String, dynamic>;
       contactNode = ContactNode(
         NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'contact')),
-        contactJson
+        contactJson,
       );
       OpenApiGraph.i.addOpenApiNode(contactNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, contactNode!.$id.absolutePath, 'contact'));
@@ -75,15 +76,16 @@ class InfoNode extends OpenApiNode {
 
     // Create License node
     if (json.containsKey('license')) {
-      final licenseJson = json['license'] as Map;
+      final licenseJson = json['license'] as Map<String, dynamic>;
       licenseNode = LicenseNode(
         NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'license')),
-        licenseJson
+        licenseJson,
       );
       OpenApiGraph.i.addOpenApiNode(licenseNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, licenseNode!.$id.absolutePath, 'license'));
     }
   }
+
   void _createContent() {
     content = Info._(
       $node: this,

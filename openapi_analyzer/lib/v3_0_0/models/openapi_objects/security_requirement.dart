@@ -1,6 +1,6 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
-import '../../validation_exception.dart';
+import '../../../validation_exception.dart';
 
 class SecurityRequirementNode extends OpenApiNode {
   SecurityRequirementNode(super.$id, super.json) {

@@ -1,6 +1,6 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
-import '../../validation_exception.dart';
+import '../../../validation_exception.dart';
 import 'schema/schema_node.dart';
 import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
@@ -67,7 +67,7 @@ class MediaTypeNode extends OpenApiNode {
   void _createChildNodes() {
     // Create Schema node (with RootEdge to mark it as a schema root)
     if (json.containsKey('schema')) {
-      final schemaJson = json['schema'] as Map;
+      final schemaJson = json['schema'] as Map<String, dynamic>;
       schemaNode = SchemaNode(
         NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'schema')),
         schemaJson
@@ -79,13 +79,13 @@ class MediaTypeNode extends OpenApiNode {
 
     // Create Example nodes
     if (json.containsKey('examples')) {
-      final examplesMap = json['examples'] as Map;
+      final examplesMap = json['examples'] as Map<String, dynamic>;
       examplesNodes = {};
       for (final entry in examplesMap.entries) {
         final exampleName = entry.key.toString();
         if (exampleName.startsWith('x-')) continue;
-        
-        final exampleJson = entry.value as Map;
+
+        final exampleJson = entry.value as Map<String, dynamic>;
         final exampleNode = ExampleNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'examples'), exampleName)),
           exampleJson
@@ -98,13 +98,13 @@ class MediaTypeNode extends OpenApiNode {
 
     // Create Encoding nodes
     if (json.containsKey('encoding')) {
-      final encodingMap = json['encoding'] as Map;
+      final encodingMap = json['encoding'] as Map<String, dynamic>;
       encodingNodes = {};
       for (final entry in encodingMap.entries) {
         final propertyName = entry.key.toString();
         if (propertyName.startsWith('x-')) continue;
-        
-        final encodingJson = entry.value as Map;
+
+        final encodingJson = entry.value as Map<String, dynamic>;
         final encodingNode = EncodingNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'encoding'), propertyName)),
           encodingJson

@@ -47,11 +47,11 @@ class RequestBodyNode extends OpenApiNode {
   }
   void _createChildNodes() {
     // Create MediaType nodes for content
-    final contentMap = json['content'] as Map;
+    final contentMap = json['content'] as Map<String, dynamic>;
     contentNodes = {};
     for (final entry in contentMap.entries) {
       final mediaType = entry.key.toString();
-      final mediaTypeJson = entry.value as Map;
+      final mediaTypeJson = entry.value as Map<String, dynamic>;
       final mediaTypeNode = MediaTypeNode(
         NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'content'), mediaType)),
         mediaTypeJson

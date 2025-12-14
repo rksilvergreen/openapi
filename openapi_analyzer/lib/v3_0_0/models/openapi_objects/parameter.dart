@@ -1,6 +1,6 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
-import '../../validation_exception.dart';
+import '../../../validation_exception.dart';
 import 'enums.dart';
 import 'schema/schema_node.dart';
 import 'schema/effective_schema/effective_schema.dart';
@@ -114,7 +114,7 @@ class ParameterNode extends OpenApiNode {
   void _createChildNodes() {
     // Create Schema node (with RootEdge)
     if (json.containsKey('schema')) {
-      final schemaJson = json['schema'] as Map;
+      final schemaJson = json['schema'] as Map<String, dynamic>;
       schemaNode = SchemaNode(
         NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'schema')),
         schemaJson
@@ -125,13 +125,13 @@ class ParameterNode extends OpenApiNode {
 
     // Create Example nodes
     if (json.containsKey('examples')) {
-      final examplesMap = json['examples'] as Map;
+      final examplesMap = json['examples'] as Map<String, dynamic>;
       examplesNodes = {};
       for (final entry in examplesMap.entries) {
         final exampleName = entry.key.toString();
         if (exampleName.startsWith('x-')) continue;
-        
-        final exampleJson = entry.value as Map;
+
+        final exampleJson = entry.value as Map<String, dynamic>;
         final exampleNode = ExampleNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'examples'), exampleName)),
           exampleJson
@@ -144,11 +144,11 @@ class ParameterNode extends OpenApiNode {
 
     // Create Content nodes (MediaType)
     if (json.containsKey('content')) {
-      final contentMap = json['content'] as Map;
+      final contentMap = json['content'] as Map<String, dynamic>;
       contentNodes = {};
       for (final entry in contentMap.entries) {
         final mediaType = entry.key.toString();
-        final mediaTypeJson = entry.value as Map;
+        final mediaTypeJson = entry.value as Map<String, dynamic>;
         final mediaTypeNode = MediaTypeNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'content'), mediaType)),
           mediaTypeJson

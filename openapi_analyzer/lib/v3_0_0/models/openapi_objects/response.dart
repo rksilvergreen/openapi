@@ -57,13 +57,13 @@ class ResponseNode extends OpenApiNode {
   void _createChildNodes() {
     // Create Header nodes
     if (json.containsKey('headers')) {
-      final headersMap = json['headers'] as Map;
+      final headersMap = json['headers'] as Map<String, dynamic>;
       headersNodes = {};
       for (final entry in headersMap.entries) {
         final headerName = entry.key.toString();
         if (headerName.startsWith('x-')) continue;
-        
-        final headerJson = entry.value as Map;
+
+        final headerJson = entry.value as Map<String, dynamic>;
         final headerNode = HeaderNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'headers'), headerName)),
           headerJson
@@ -76,11 +76,11 @@ class ResponseNode extends OpenApiNode {
 
     // Create MediaType nodes for content
     if (json.containsKey('content')) {
-      final contentMap = json['content'] as Map;
+      final contentMap = json['content'] as Map<String, dynamic>;
       contentNodes = {};
       for (final entry in contentMap.entries) {
         final mediaType = entry.key.toString();
-        final mediaTypeJson = entry.value as Map;
+        final mediaTypeJson = entry.value as Map<String, dynamic>;
         final mediaTypeNode = MediaTypeNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'content'), mediaType)),
           mediaTypeJson
@@ -93,13 +93,13 @@ class ResponseNode extends OpenApiNode {
 
     // Create Link nodes
     if (json.containsKey('links')) {
-      final linksMap = json['links'] as Map;
+      final linksMap = json['links'] as Map<String, dynamic>;
       linksNodes = {};
       for (final entry in linksMap.entries) {
         final linkName = entry.key.toString();
         if (linkName.startsWith('x-')) continue;
-        
-        final linkJson = entry.value as Map;
+
+        final linkJson = entry.value as Map<String, dynamic>;
         final linkNode = LinkNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'links'), linkName)),
           linkJson

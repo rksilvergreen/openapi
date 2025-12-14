@@ -89,7 +89,7 @@ class OpenApiDocumentNode extends OpenApiNode {
   void _createChildNodes() {
     // Create Info node
     if (json.containsKey('info')) {
-      final infoJson = json['info'] as Map;
+      final infoJson = json['info'] as Map<String, dynamic>;
       infoNode = InfoNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'info')), infoJson);
       OpenApiGraph.i.addOpenApiNode(infoNode);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, infoNode.$id.absolutePath, 'info'));
@@ -100,7 +100,7 @@ class OpenApiDocumentNode extends OpenApiNode {
       final serversList = json['servers'] as List;
       serversNode = [];
       for (var i = 0; i < serversList.length; i++) {
-        final serverJson = serversList[i] as Map;
+        final serverJson = serversList[i] as Map<String, dynamic>;
         final serverNodeInstance = ServerNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'servers'), '[$i]')),
           serverJson
@@ -113,7 +113,7 @@ class OpenApiDocumentNode extends OpenApiNode {
 
     // Create Paths node
     if (json.containsKey('paths')) {
-      final pathsJson = json['paths'] as Map;
+      final pathsJson = json['paths'] as Map<String, dynamic>;
       pathsNode = PathsNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'paths')), pathsJson);
       OpenApiGraph.i.addOpenApiNode(pathsNode);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, pathsNode.$id.absolutePath, 'paths'));
@@ -121,7 +121,7 @@ class OpenApiDocumentNode extends OpenApiNode {
 
     // Create Components node
     if (json.containsKey('components')) {
-      final componentsJson = json['components'] as Map;
+      final componentsJson = json['components'] as Map<String, dynamic>;
       componentsNode = ComponentsNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'components')), componentsJson);
       OpenApiGraph.i.addOpenApiNode(componentsNode);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, componentsNode.$id.absolutePath, 'components'));
@@ -132,7 +132,7 @@ class OpenApiDocumentNode extends OpenApiNode {
       final securityList = json['security'] as List;
       securityNode = [];
       for (var i = 0; i < securityList.length; i++) {
-        final securityJson = securityList[i] as Map;
+        final securityJson = securityList[i] as Map<String, dynamic>;
         final securityNodeInstance = SecurityRequirementNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'security'), '[$i]')),
           securityJson
@@ -148,7 +148,7 @@ class OpenApiDocumentNode extends OpenApiNode {
       final tagsList = json['tags'] as List;
       tagsNode = [];
       for (var i = 0; i < tagsList.length; i++) {
-        final tagJson = tagsList[i] as Map;
+        final tagJson = tagsList[i] as Map<String, dynamic>;
         final tagNodeInstance = TagNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'tags'), '[$i]')),
           tagJson
@@ -161,7 +161,7 @@ class OpenApiDocumentNode extends OpenApiNode {
 
     // Create ExternalDocs node
     if (json.containsKey('externalDocs')) {
-      final externalDocsJson = json['externalDocs'] as Map;
+      final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
       externalDocsNode = ExternalDocumentationNode(
         NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'externalDocs')),
         externalDocsJson

@@ -1,6 +1,6 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
-import '../../validation_exception.dart';
+import '../../../validation_exception.dart';
 import 'path_item.dart';
 
 class PathsNode extends OpenApiNode {
@@ -59,7 +59,7 @@ class PathsNode extends OpenApiNode {
       }
 
       // Create PathItem node for each path
-      final pathItemJson = entry.value as Map;
+      final pathItemJson = entry.value as Map<String, dynamic>;
       final pathItemNode = PathItemNode(
         NodeId($id.document, ValidationUtils.buildPath($id.relativePath, key)),
         pathItemJson

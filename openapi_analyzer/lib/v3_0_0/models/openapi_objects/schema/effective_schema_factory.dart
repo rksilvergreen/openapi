@@ -1,8 +1,13 @@
 import '../../../validation/validation_context.dart';
-import '../../../validation_exception.dart';
 import 'schema_node.dart';
 import 'schema_type.dart';
 import 'typed_schema/typed_schema.dart';
+import 'typed_schema/integer_typed_schema.dart';
+import 'typed_schema/number_typed_schema.dart';
+import 'typed_schema/string_typed_schema.dart';
+import 'typed_schema/boolean_typed_schema.dart';
+import 'typed_schema/array_typed_schema.dart';
+import 'typed_schema/object_typed_schema.dart';
 import 'effective_schema/effective_schema.dart';
 import 'effective_schema/integer_effective_schema.dart';
 import 'effective_schema/number_effective_schema.dart';
@@ -57,7 +62,7 @@ class EffectiveSchemaFactory {
       case SchemaType.integer:
         final intTyped = typed as IntegerTypedSchema;
         return IntegerEffectiveSchema(
-          \$node: node,
+          $node: node,
           description: intTyped.description,
           readOnly: intTyped.readOnly,
           writeOnly: intTyped.writeOnly,
@@ -77,7 +82,7 @@ class EffectiveSchemaFactory {
       case SchemaType.number:
         final numTyped = typed as NumberTypedSchema;
         return NumberEffectiveSchema(
-          \$node: node,
+          $node: node,
           description: numTyped.description,
           readOnly: numTyped.readOnly,
           writeOnly: numTyped.writeOnly,
@@ -97,7 +102,7 @@ class EffectiveSchemaFactory {
       case SchemaType.string:
         final strTyped = typed as StringTypedSchema;
         return StringEffectiveSchema(
-          \$node: node,
+          $node: node,
           description: strTyped.description,
           readOnly: strTyped.readOnly,
           writeOnly: strTyped.writeOnly,
@@ -115,7 +120,7 @@ class EffectiveSchemaFactory {
       case SchemaType.boolean:
         final boolTyped = typed as BooleanTypedSchema;
         return BooleanEffectiveSchema(
-          \$node: node,
+          $node: node,
           description: boolTyped.description,
           readOnly: boolTyped.readOnly,
           writeOnly: boolTyped.writeOnly,
@@ -128,7 +133,7 @@ class EffectiveSchemaFactory {
       case SchemaType.array:
         final arrTyped = typed as ArrayTypedSchema;
         return ArrayEffectiveSchema(
-          \$node: node,
+          $node: node,
           description: arrTyped.description,
           readOnly: arrTyped.readOnly,
           writeOnly: arrTyped.writeOnly,
@@ -143,7 +148,7 @@ class EffectiveSchemaFactory {
       case SchemaType.object:
         final objTyped = typed as ObjectTypedSchema;
         return ObjectEffectiveSchema(
-          \$node: node,
+          $node: node,
           description: objTyped.description,
           readOnly: objTyped.readOnly,
           writeOnly: objTyped.writeOnly,
@@ -157,7 +162,7 @@ class EffectiveSchemaFactory {
 
       default:
         return UnknownEffectiveSchema(
-          \$node: node,
+          $node: node,
           description: typed.description,
         );
     }

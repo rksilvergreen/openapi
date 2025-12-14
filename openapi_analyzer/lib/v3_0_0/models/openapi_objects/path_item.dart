@@ -77,7 +77,7 @@ class PathItemNode extends OpenApiNode {
     
     for (final method in httpMethods) {
       if (json.containsKey(method)) {
-        final operationJson = json[method] as Map;
+        final operationJson = json[method] as Map<String, dynamic>;
         final operationNode = OperationNode(
           NodeId($id.document, ValidationUtils.buildPath($id.relativePath, method)),
           operationJson
@@ -120,7 +120,7 @@ class PathItemNode extends OpenApiNode {
       final serversList = json['servers'] as List;
       serversNodes = [];
       for (var i = 0; i < serversList.length; i++) {
-        final serverJson = serversList[i] as Map;
+        final serverJson = serversList[i] as Map<String, dynamic>;
         final serverNode = ServerNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'servers'), '[$i]')),
           serverJson
@@ -136,7 +136,7 @@ class PathItemNode extends OpenApiNode {
       final parametersList = json['parameters'] as List;
       parametersNodes = [];
       for (var i = 0; i < parametersList.length; i++) {
-        final parameterJson = parametersList[i] as Map;
+        final parameterJson = parametersList[i] as Map<String, dynamic>;
         final parameterNode = ParameterNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'parameters'), '[$i]')),
           parameterJson

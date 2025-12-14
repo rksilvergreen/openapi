@@ -1,6 +1,5 @@
 import '../../../validation/validation_context.dart';
-import '../../../validation/validation_utils.dart';
-import '../../../validation_exception.dart';
+import '../../../../validation_exception.dart';
 import 'schema_node.dart';
 import 'raw_schema.dart';
 import 'schema_type.dart';
@@ -43,7 +42,16 @@ class TypedSchemaFactory {
       case SchemaType.object:
         return _createObjectTypedSchema(node, raw);
       default:
-        return UnknownTypedSchema($node: node, description: raw.description);
+        // ignore: type_parameter_bound_extends_type_parameter
+        return UnknownTypedSchema(
+          $node: node,
+          description: raw.description,
+          readOnly: raw.readOnly,
+          writeOnly: raw.writeOnly,
+          example: raw.example,
+          deprecated: raw.deprecated,
+          nullable: raw.nullable,
+        ) as TypedSchema;
     }
   }
 
@@ -93,7 +101,7 @@ class TypedSchemaFactory {
 
     // No type information available
     ctx.addException(OpenApiValidationException(
-      node.\$id.relativePath,
+      node.$id.relativePath,
       'Schema has no explicit type and cannot be inferred',
       specReference: 'OpenAPI 3.0.0 - Schema Object',
       severity: ValidationSeverity.low,
@@ -108,18 +116,18 @@ class TypedSchemaFactory {
     SchemaNode node,
     ValidationContext ctx,
   ) {
-    final path = node.\$id.relativePath;
+    final path = node.$id.relativePath;
 
     // Numeric constraints
     if (type == SchemaType.integer || type == SchemaType.number) {
       if (raw.minimum != null && raw.maximum != null) {
         if (raw.minimum! > raw.maximum!) {
-          ctx.addException(OpenApiValidationException(
-            path,
-            'minimum (\${raw.minimum}) cannot be greater than maximum (\${raw.maximum})',
-            specReference: 'JSON Schema Validation',
-            severity: ValidationSeverity.critical,
-          ));
+      ctx.addException(OpenApiValidationException(
+        path,
+        'minimum (${raw.minimum}) cannot be greater than maximum (${raw.maximum})',
+        specReference: 'JSON Schema Validation',
+        severity: ValidationSeverity.critical,
+      ));
         }
       }
       if (raw.multipleOf != null && raw.multipleOf! <= 0) {
@@ -136,12 +144,12 @@ class TypedSchemaFactory {
     if (type == SchemaType.string) {
       if (raw.minLength != null && raw.maxLength != null) {
         if (raw.minLength! > raw.maxLength!) {
-          ctx.addException(OpenApiValidationException(
-            path,
-            'minLength (\${raw.minLength}) cannot be greater than maxLength (\${raw.maxLength})',
-            specReference: 'JSON Schema Validation',
-            severity: ValidationSeverity.critical,
-          ));
+        ctx.addException(OpenApiValidationException(
+          path,
+          'minLength (${raw.minLength}) cannot be greater than maxLength (${raw.maxLength})',
+          specReference: 'JSON Schema Validation',
+          severity: ValidationSeverity.critical,
+        ));
         }
       }
     }
@@ -150,12 +158,12 @@ class TypedSchemaFactory {
     if (type == SchemaType.array) {
       if (raw.minItems != null && raw.maxItems != null) {
         if (raw.minItems! > raw.maxItems!) {
-          ctx.addException(OpenApiValidationException(
-            path,
-            'minItems (\${raw.minItems}) cannot be greater than maxItems (\${raw.maxItems})',
-            specReference: 'JSON Schema Validation',
-            severity: ValidationSeverity.critical,
-          ));
+        ctx.addException(OpenApiValidationException(
+          path,
+          'minItems (${raw.minItems}) cannot be greater than maxItems (${raw.maxItems})',
+          specReference: 'JSON Schema Validation',
+          severity: ValidationSeverity.critical,
+        ));
         }
       }
     }
@@ -164,12 +172,12 @@ class TypedSchemaFactory {
     if (type == SchemaType.object) {
       if (raw.minProperties != null && raw.maxProperties != null) {
         if (raw.minProperties! > raw.maxProperties!) {
-          ctx.addException(OpenApiValidationException(
-            path,
-            'minProperties (\${raw.minProperties}) cannot be greater than maxProperties (\${raw.maxProperties})',
-            specReference: 'JSON Schema Validation',
-            severity: ValidationSeverity.critical,
-          ));
+        ctx.addException(OpenApiValidationException(
+          path,
+          'minProperties (${raw.minProperties}) cannot be greater than maxProperties (${raw.maxProperties})',
+          specReference: 'JSON Schema Validation',
+          severity: ValidationSeverity.critical,
+        ));
         }
       }
 
@@ -191,15 +199,15 @@ class TypedSchemaFactory {
 
   static IntegerTypedSchema _createIntegerTypedSchema(SchemaNode node, RawSchema raw) {
     return IntegerTypedSchema(
-      \$node: node,
+      $node: node,
       description: raw.description ?? '',
       readOnly: raw.readOnly,
       writeOnly: raw.writeOnly,
       example: raw.example,
       deprecated: raw.deprecated,
       nullable: raw.nullable,
-      defaultValue: raw.default_ as int?,
-      enumValues: raw.enum_?.cast<int>() ?? [],
+      defaultValue: raw.default_ is int ? raw.default_ as int : null,
+      enumValues: (raw.enum_?.whereType<int>().toList()) ?? [],
       multipleOf: raw.multipleOf?.toDouble(),
       maximum: raw.maximum?.toInt(),
       exclusiveMaximum: raw.exclusiveMaximum is num ? (raw.exclusiveMaximum as num).toInt() : null,
@@ -211,35 +219,35 @@ class TypedSchemaFactory {
 
   static NumberTypedSchema _createNumberTypedSchema(SchemaNode node, RawSchema raw) {
     return NumberTypedSchema(
-      \$node: node,
+      $node: node,
       description: raw.description ?? '',
       readOnly: raw.readOnly,
       writeOnly: raw.writeOnly,
       example: raw.example,
       deprecated: raw.deprecated,
       nullable: raw.nullable,
-      defaultValue: raw.default_ as num?,
-      enumValues: raw.enum_?.cast<num>() ?? [],
-      multipleOf: raw.multipleOf,
-      maximum: raw.maximum,
-      exclusiveMaximum: raw.exclusiveMaximum is num ? raw.exclusiveMaximum as num : null,
-      minimum: raw.minimum,
-      exclusiveMinimum: raw.exclusiveMinimum is num ? raw.exclusiveMinimum as num : null,
+      defaultValue: raw.default_ is num ? (raw.default_ as num).toDouble() : null,
+      enumValues: (raw.enum_?.whereType<num>().map((e) => e.toDouble()).toList()) ?? [],
+      multipleOf: raw.multipleOf?.toDouble(),
+      maximum: raw.maximum?.toDouble(),
+      exclusiveMaximum: raw.exclusiveMaximum is num ? (raw.exclusiveMaximum as num).toDouble() : null,
+      minimum: raw.minimum?.toDouble(),
+      exclusiveMinimum: raw.exclusiveMinimum is num ? (raw.exclusiveMinimum as num).toDouble() : null,
       format: raw.format,
     );
   }
 
   static StringTypedSchema _createStringTypedSchema(SchemaNode node, RawSchema raw) {
     return StringTypedSchema(
-      \$node: node,
+      $node: node,
       description: raw.description ?? '',
       readOnly: raw.readOnly,
       writeOnly: raw.writeOnly,
       example: raw.example,
       deprecated: raw.deprecated,
       nullable: raw.nullable,
-      defaultValue: raw.default_ as String?,
-      enumValues: raw.enum_?.cast<String>() ?? [],
+      defaultValue: raw.default_ is String ? raw.default_ as String : null,
+      enumValues: (raw.enum_?.whereType<String>().toList()) ?? [],
       minLength: raw.minLength,
       maxLength: raw.maxLength,
       pattern: raw.pattern,
@@ -249,26 +257,29 @@ class TypedSchemaFactory {
 
   static BooleanTypedSchema _createBooleanTypedSchema(SchemaNode node, RawSchema raw) {
     return BooleanTypedSchema(
-      \$node: node,
+      $node: node,
       description: raw.description ?? '',
       readOnly: raw.readOnly,
       writeOnly: raw.writeOnly,
       example: raw.example,
       deprecated: raw.deprecated,
       nullable: raw.nullable,
-      defaultValue: raw.default_ as bool?,
+      defaultValue: raw.default_ is bool ? raw.default_ as bool : null,
+      enumValues: (raw.enum_?.whereType<bool>().toList()) ?? [],
     );
   }
 
   static ArrayTypedSchema _createArrayTypedSchema(SchemaNode node, RawSchema raw) {
     return ArrayTypedSchema(
-      \$node: node,
+      $node: node,
       description: raw.description ?? '',
       readOnly: raw.readOnly,
       writeOnly: raw.writeOnly,
       example: raw.example,
       deprecated: raw.deprecated,
       nullable: raw.nullable,
+      defaultValue: raw.default_ is List ? raw.default_ as List<dynamic> : null,
+      enumValues: (raw.enum_?.whereType<List>().cast<List<dynamic>>().toList()) ?? [],
       minItems: raw.minItems,
       maxItems: raw.maxItems,
       uniqueItems: raw.uniqueItems,
@@ -277,16 +288,18 @@ class TypedSchemaFactory {
 
   static ObjectTypedSchema _createObjectTypedSchema(SchemaNode node, RawSchema raw) {
     return ObjectTypedSchema(
-      \$node: node,
+      $node: node,
       description: raw.description ?? '',
       readOnly: raw.readOnly,
       writeOnly: raw.writeOnly,
       example: raw.example,
       deprecated: raw.deprecated,
       nullable: raw.nullable,
+      defaultValue: raw.default_ is Map ? raw.default_ as Map<String, dynamic> : null,
+      enumValues: (raw.enum_?.whereType<Map>().cast<Map<String, dynamic>>().toList()) ?? [],
       minProperties: raw.minProperties,
       maxProperties: raw.maxProperties,
-      required: raw.required_ ?? [],
+      required: raw.required_,
     );
   }
 }

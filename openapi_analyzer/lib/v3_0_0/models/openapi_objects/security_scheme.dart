@@ -27,18 +27,25 @@ class SecuritySchemeNode extends OpenApiNode {
     // Validate required: type (enum: apiKey, http, oauth2, openIdConnect)
     final type = ValidationUtils.requireField(json, 'type', path);
     ValidationUtils.requireString(type, ValidationUtils.buildPath(path, 'type'));
-    ValidationUtils.validateEnum(type as String, ['apiKey', 'http', 'oauth2', 'openIdConnect'], 
-        ValidationUtils.buildPath(path, 'type'));
+    ValidationUtils.validateEnum(type as String, [
+      'apiKey',
+      'http',
+      'oauth2',
+      'openIdConnect',
+    ], ValidationUtils.buildPath(path, 'type'));
 
     // Validate required fields based on type
     if (type == 'apiKey') {
       ValidationUtils.requireField(json, 'name', path);
       ValidationUtils.requireString(json['name'], ValidationUtils.buildPath(path, 'name'));
-      
+
       final inValue = ValidationUtils.requireField(json, 'in', path);
       ValidationUtils.requireString(inValue, ValidationUtils.buildPath(path, 'in'));
-      ValidationUtils.validateEnum(inValue as String, ['query', 'header', 'cookie'], 
-          ValidationUtils.buildPath(path, 'in'));
+      ValidationUtils.validateEnum(inValue as String, [
+        'query',
+        'header',
+        'cookie',
+      ], ValidationUtils.buildPath(path, 'in'));
     } else if (type == 'http') {
       ValidationUtils.requireField(json, 'scheme', path);
       ValidationUtils.requireString(json['scheme'], ValidationUtils.buildPath(path, 'scheme'));
@@ -63,6 +70,7 @@ class SecuritySchemeNode extends OpenApiNode {
       'Security Scheme Object',
     );
   }
+
   void _createChildNodes() {}
   void _createContent() {
     content = SecurityScheme._(

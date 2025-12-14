@@ -128,7 +128,7 @@ class OperationNode extends OpenApiNode {
   void _createChildNodes() {
     // Create ExternalDocs node
     if (json.containsKey('externalDocs')) {
-      final externalDocsJson = json['externalDocs'] as Map;
+      final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
       externalDocsNode = ExternalDocumentationNode(
         NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'externalDocs')),
         externalDocsJson,
@@ -142,7 +142,7 @@ class OperationNode extends OpenApiNode {
       final parametersList = json['parameters'] as List;
       parametersNodes = [];
       for (var i = 0; i < parametersList.length; i++) {
-        final parameterJson = parametersList[i] as Map;
+        final parameterJson = parametersList[i] as Map<String, dynamic>;
         final parameterNode = ParameterNode(
           NodeId(
             $id.document,
@@ -158,7 +158,7 @@ class OperationNode extends OpenApiNode {
 
     // Create RequestBody node
     if (json.containsKey('requestBody')) {
-      final requestBodyJson = json['requestBody'] as Map;
+      final requestBodyJson = json['requestBody'] as Map<String, dynamic>;
       requestBodyNode = RequestBodyNode(
         NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'requestBody')),
         requestBodyJson,
@@ -168,13 +168,13 @@ class OperationNode extends OpenApiNode {
     }
 
     // Create Response nodes
-    final responsesJson = json['responses'] as Map;
+    final responsesJson = json['responses'] as Map<String, dynamic>;
     responseNodes = {};
     for (final entry in responsesJson.entries) {
       final statusCode = entry.key.toString();
       if (statusCode.startsWith('x-')) continue; // Skip extensions
 
-      final responseJson = entry.value as Map;
+      final responseJson = entry.value as Map<String, dynamic>;
       final responseNode = ResponseNode(
         NodeId(
           $id.document,
@@ -191,13 +191,13 @@ class OperationNode extends OpenApiNode {
 
     // Create Callback nodes
     if (json.containsKey('callbacks')) {
-      final callbacksMap = json['callbacks'] as Map;
+      final callbacksMap = json['callbacks'] as Map<String, dynamic>;
       callbackNodes = {};
       for (final entry in callbacksMap.entries) {
         final callbackName = entry.key.toString();
         if (callbackName.startsWith('x-')) continue; // Skip extensions
 
-        final callbackJson = entry.value as Map;
+        final callbackJson = entry.value as Map<String, dynamic>;
         final callbackNode = CallbackNode(
           NodeId(
             $id.document,
@@ -218,7 +218,7 @@ class OperationNode extends OpenApiNode {
       final securityList = json['security'] as List;
       securityRequirementNodes = [];
       for (var i = 0; i < securityList.length; i++) {
-        final securityJson = securityList[i] as Map;
+        final securityJson = securityList[i] as Map<String, dynamic>;
         final securityNode = SecurityRequirementNode(
           NodeId(
             $id.document,
@@ -237,7 +237,7 @@ class OperationNode extends OpenApiNode {
       final serversList = json['servers'] as List;
       serverNodes = [];
       for (var i = 0; i < serversList.length; i++) {
-        final serverJson = serversList[i] as Map;
+        final serverJson = serversList[i] as Map<String, dynamic>;
         final serverNode = ServerNode(
           NodeId(
             $id.document,

@@ -1,6 +1,6 @@
 import '../../openapi_graph.dart';
 import '../../../validation/validation_utils.dart';
-import '../../../validation_exception.dart';
+import '../../../../validation_exception.dart';
 import 'raw_schema.dart';
 import 'typed_schema/typed_schema.dart';
 import 'typed_schema_factory.dart';
@@ -273,7 +273,7 @@ class SchemaNode extends Node {
         targetNode = OpenApiGraph.i.schemaNodes[targetNodeId.absolutePath]!;
       } else {
         // Create the referenced schema node recursively
-        targetNode = SchemaNode(targetNodeId, targetJson as Map);
+        targetNode = SchemaNode(targetNodeId, targetJson as Map<String, dynamic>);
         OpenApiGraph.i.addSchemaNode(targetNode);
       }
 
@@ -287,11 +287,11 @@ class SchemaNode extends Node {
 
     // Properties edges
     if (json.containsKey('properties')) {
-      final propertiesMap = json['properties'] as Map;
+      final propertiesMap = json['properties'] as Map<String, dynamic>;
       propertiesNodes = {};
       for (final entry in propertiesMap.entries) {
         final propertyName = entry.key.toString();
-        final propertyJson = entry.value as Map;
+        final propertyJson = entry.value as Map<String, dynamic>;
         final propertyNode = SchemaNode(
           NodeId(
             $id.document,
@@ -309,7 +309,10 @@ class SchemaNode extends Node {
     if (json.containsKey('items')) {
       final items = json['items'];
       if (items is Map) {
-        itemsNode = SchemaNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'items')), items);
+        itemsNode = SchemaNode(
+          NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'items')),
+          items as Map<String, dynamic>,
+        );
         OpenApiGraph.i.addSchemaNode(itemsNode!);
         OpenApiGraph.i.addSchemaStructuralEdge(ItemsEdge($id.absolutePath, itemsNode!.$id.absolutePath));
       }
@@ -322,7 +325,7 @@ class SchemaNode extends Node {
       if (additionalProps is Map) {
         additionalPropertiesNode = SchemaNode(
           NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'additionalProperties')),
-          additionalProps,
+          additionalProps as Map<String, dynamic>,
         );
         OpenApiGraph.i.addSchemaNode(additionalPropertiesNode!);
         OpenApiGraph.i.addSchemaStructuralEdge(
@@ -339,7 +342,7 @@ class SchemaNode extends Node {
       final allOfList = json['allOf'] as List;
       allOfNodes = [];
       for (var i = 0; i < allOfList.length; i++) {
-        final allOfJson = allOfList[i] as Map;
+        final allOfJson = allOfList[i] as Map<String, dynamic>;
         final allOfNode = SchemaNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'allOf'), '[$i]')),
           allOfJson,
@@ -355,7 +358,7 @@ class SchemaNode extends Node {
       final oneOfList = json['oneOf'] as List;
       oneOfNodes = [];
       for (var i = 0; i < oneOfList.length; i++) {
-        final oneOfJson = oneOfList[i] as Map;
+        final oneOfJson = oneOfList[i] as Map<String, dynamic>;
         final oneOfNode = SchemaNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'oneOf'), '[$i]')),
           oneOfJson,
@@ -371,7 +374,7 @@ class SchemaNode extends Node {
       final anyOfList = json['anyOf'] as List;
       anyOfNodes = [];
       for (var i = 0; i < anyOfList.length; i++) {
-        final anyOfJson = anyOfList[i] as Map;
+        final anyOfJson = anyOfList[i] as Map<String, dynamic>;
         final anyOfNode = SchemaNode(
           NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'anyOf'), '[$i]')),
           anyOfJson,
@@ -384,14 +387,14 @@ class SchemaNode extends Node {
 
     // Create XML and ExternalDocs nodes if present
     if (json.containsKey('xml')) {
-      final xmlJson = json['xml'] as Map;
+      final xmlJson = json['xml'] as Map<String, dynamic>;
       xmlNode = XMLNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'xml')), xmlJson);
       OpenApiGraph.i.addOpenApiNode(xmlNode!);
       // Note: XML node is connected but not via standard edges
     }
 
     if (json.containsKey('externalDocs')) {
-      final externalDocsJson = json['externalDocs'] as Map;
+      final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
       externalDocsNode = ExternalDocumentationNode(
         NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'externalDocs')),
         externalDocsJson,

@@ -1,6 +1,6 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
-import '../../validation_exception.dart';
+import '../../../validation_exception.dart';
 import 'schema/schema_node.dart';
 import 'response.dart';
 import 'parameter.dart';
@@ -95,13 +95,13 @@ class ComponentsNode extends OpenApiNode {
   void _createChildNodes() {
     // Create Schema nodes
     if (json.containsKey('schemas')) {
-      final schemasMap = json['schemas'] as Map;
+      final schemasMap = json['schemas'] as Map<String, dynamic>;
       schemasNodes = {};
       for (final entry in schemasMap.entries) {
         final schemaName = entry.key.toString();
         if (schemaName.startsWith('x-')) continue;
 
-        final schemaJson = entry.value as Map;
+        final schemaJson = entry.value as Map<String, dynamic>;
         final schemaNode = SchemaNode(
           NodeId(
             $id.document,
@@ -117,13 +117,13 @@ class ComponentsNode extends OpenApiNode {
 
     // Create Response nodes
     if (json.containsKey('responses')) {
-      final responsesMap = json['responses'] as Map;
+      final responsesMap = json['responses'] as Map<String, dynamic>;
       responsesNodes = {};
       for (final entry in responsesMap.entries) {
         final responseName = entry.key.toString();
         if (responseName.startsWith('x-')) continue;
 
-        final responseJson = entry.value as Map;
+        final responseJson = entry.value as Map<String, dynamic>;
         final responseNode = ResponseNode(
           NodeId(
             $id.document,
@@ -141,13 +141,13 @@ class ComponentsNode extends OpenApiNode {
 
     // Create Parameter nodes
     if (json.containsKey('parameters')) {
-      final parametersMap = json['parameters'] as Map;
+      final parametersMap = json['parameters'] as Map<String, dynamic>;
       parametersNodes = {};
       for (final entry in parametersMap.entries) {
         final parameterName = entry.key.toString();
         if (parameterName.startsWith('x-')) continue;
 
-        final parameterJson = entry.value as Map;
+        final parameterJson = entry.value as Map<String, dynamic>;
         final parameterNode = ParameterNode(
           NodeId(
             $id.document,
@@ -165,13 +165,13 @@ class ComponentsNode extends OpenApiNode {
 
     // Create Example nodes
     if (json.containsKey('examples')) {
-      final examplesMap = json['examples'] as Map;
+      final examplesMap = json['examples'] as Map<String, dynamic>;
       examplesNodes = {};
       for (final entry in examplesMap.entries) {
         final exampleName = entry.key.toString();
         if (exampleName.startsWith('x-')) continue;
 
-        final exampleJson = entry.value as Map;
+        final exampleJson = entry.value as Map<String, dynamic>;
         final exampleNode = ExampleNode(
           NodeId(
             $id.document,
@@ -189,13 +189,13 @@ class ComponentsNode extends OpenApiNode {
 
     // Create RequestBody nodes
     if (json.containsKey('requestBodies')) {
-      final requestBodiesMap = json['requestBodies'] as Map;
+      final requestBodiesMap = json['requestBodies'] as Map<String, dynamic>;
       requestBodiesNodes = {};
       for (final entry in requestBodiesMap.entries) {
         final requestBodyName = entry.key.toString();
         if (requestBodyName.startsWith('x-')) continue;
 
-        final requestBodyJson = entry.value as Map;
+        final requestBodyJson = entry.value as Map<String, dynamic>;
         final requestBodyNode = RequestBodyNode(
           NodeId(
             $id.document,
@@ -213,13 +213,13 @@ class ComponentsNode extends OpenApiNode {
 
     // Create Header nodes
     if (json.containsKey('headers')) {
-      final headersMap = json['headers'] as Map;
+      final headersMap = json['headers'] as Map<String, dynamic>;
       headersNodes = {};
       for (final entry in headersMap.entries) {
         final headerName = entry.key.toString();
         if (headerName.startsWith('x-')) continue;
 
-        final headerJson = entry.value as Map;
+        final headerJson = entry.value as Map<String, dynamic>;
         final headerNode = HeaderNode(
           NodeId(
             $id.document,
@@ -237,13 +237,13 @@ class ComponentsNode extends OpenApiNode {
 
     // Create SecurityScheme nodes
     if (json.containsKey('securitySchemes')) {
-      final securitySchemesMap = json['securitySchemes'] as Map;
+      final securitySchemesMap = json['securitySchemes'] as Map<String, dynamic>;
       securitySchemesNodes = {};
       for (final entry in securitySchemesMap.entries) {
         final schemeName = entry.key.toString();
         if (schemeName.startsWith('x-')) continue;
 
-        final schemeJson = entry.value as Map;
+        final schemeJson = entry.value as Map<String, dynamic>;
         final schemeNode = SecuritySchemeNode(
           NodeId(
             $id.document,
@@ -261,13 +261,13 @@ class ComponentsNode extends OpenApiNode {
 
     // Create Link nodes
     if (json.containsKey('links')) {
-      final linksMap = json['links'] as Map;
+      final linksMap = json['links'] as Map<String, dynamic>;
       linksNodes = {};
       for (final entry in linksMap.entries) {
         final linkName = entry.key.toString();
         if (linkName.startsWith('x-')) continue;
 
-        final linkJson = entry.value as Map;
+        final linkJson = entry.value as Map<String, dynamic>;
         final linkNode = LinkNode(
           NodeId(
             $id.document,
@@ -283,13 +283,13 @@ class ComponentsNode extends OpenApiNode {
 
     // Create Callback nodes
     if (json.containsKey('callbacks')) {
-      final callbacksMap = json['callbacks'] as Map;
+      final callbacksMap = json['callbacks'] as Map<String, dynamic>;
       callbacksNodes = {};
       for (final entry in callbacksMap.entries) {
         final callbackName = entry.key.toString();
         if (callbackName.startsWith('x-')) continue;
 
-        final callbackJson = entry.value as Map;
+        final callbackJson = entry.value as Map<String, dynamic>;
         final callbackNode = CallbackNode(
           NodeId(
             $id.document,
