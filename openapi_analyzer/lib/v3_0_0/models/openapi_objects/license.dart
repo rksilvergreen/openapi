@@ -1,4 +1,5 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
 
 class LicenseNode extends OpenApiNode {
   LicenseNode(super.$id, super.json) {
@@ -14,7 +15,27 @@ class LicenseNode extends OpenApiNode {
 
   late final License content;
 
-  void _validateStructure() {}
+  void _validateStructure() {
+    _structureValidated = true;
+    final path = $id.relativePath;
+
+    // Validate required: name (non-empty string)
+    final name = ValidationUtils.requireField(json, 'name', path);
+    ValidationUtils.requireNonEmptyString(name, ValidationUtils.buildPath(path, 'name'));
+
+    // Validate optional: url (string)
+    if (json.containsKey('url')) {
+      ValidationUtils.requireString(json['url'], ValidationUtils.buildPath(path, 'url'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'name', 'url'},
+      path,
+      'License Object',
+    );
+  }
   void _createContent() {
     content = License._($node: this, name: json['name'], url: json['url'], extensions: extractExtensions(json));
   }

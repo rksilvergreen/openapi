@@ -1,4 +1,6 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
+import '../../validation_exception.dart';
 import 'path_item.dart';
 
 class PathsNode extends OpenApiNode {
@@ -18,8 +20,55 @@ class PathsNode extends OpenApiNode {
 
   late final Paths content;
 
-  void _validateStructure() {}
-  void _createChildNodes() {}
+  void _validateStructure() {
+    _structureValidated = true;
+    final path = $id.relativePath;
+
+    // Validate keys are valid path patterns (start with / or are extension fields)
+    for (final key in json.keys) {
+      final keyStr = key.toString();
+      
+      // Skip extension fields
+      if (keyStr.startsWith('x-')) {
+        continue;
+      }
+
+      // Validate path starts with /
+      if (!keyStr.startsWith('/')) {
+        OpenApiGraph.i.validationContext.addException(OpenApiValidationException(
+          ValidationUtils.buildPath(path, keyStr),
+          'Path must start with "/"',
+          specReference: 'OpenAPI 3.0.0 - Paths Object',
+          severity: ValidationSeverity.critical,
+        ));
+      }
+
+      // Validate value is object (will be PathItem or Reference)
+      ValidationUtils.requireMap(json[key], ValidationUtils.buildPath(path, keyStr));
+    }
+  }
+  void _createChildNodes() {
+    pathItemNodes = {};
+    
+    for (final entry in json.entries) {
+      final key = entry.key.toString();
+      
+      // Skip extension fields
+      if (key.startsWith('x-')) {
+        continue;
+      }
+
+      // Create PathItem node for each path
+      final pathItemJson = entry.value as Map;
+      final pathItemNode = PathItemNode(
+        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, key)),
+        pathItemJson
+      );
+      pathItemNodes[key] = pathItemNode;
+      OpenApiGraph.i.addOpenApiNode(pathItemNode);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, pathItemNode.$id.absolutePath, key));
+    }
+  }
   void _createContent() {
     content = Paths._($node: this, extensions: extractExtensions(json));
   }

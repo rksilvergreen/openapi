@@ -1,4 +1,5 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
 import 'enums.dart';
 import 'oauth_flows.dart';
 
@@ -19,7 +20,49 @@ class SecuritySchemeNode extends OpenApiNode {
 
   late final SecurityScheme content;
 
-  void _validateStructure() {}
+  void _validateStructure() {
+    _structureValidated = true;
+    final path = $id.relativePath;
+
+    // Validate required: type (enum: apiKey, http, oauth2, openIdConnect)
+    final type = ValidationUtils.requireField(json, 'type', path);
+    ValidationUtils.requireString(type, ValidationUtils.buildPath(path, 'type'));
+    ValidationUtils.validateEnum(type as String, ['apiKey', 'http', 'oauth2', 'openIdConnect'], 
+        ValidationUtils.buildPath(path, 'type'));
+
+    // Validate required fields based on type
+    if (type == 'apiKey') {
+      ValidationUtils.requireField(json, 'name', path);
+      ValidationUtils.requireString(json['name'], ValidationUtils.buildPath(path, 'name'));
+      
+      final inValue = ValidationUtils.requireField(json, 'in', path);
+      ValidationUtils.requireString(inValue, ValidationUtils.buildPath(path, 'in'));
+      ValidationUtils.validateEnum(inValue as String, ['query', 'header', 'cookie'], 
+          ValidationUtils.buildPath(path, 'in'));
+    } else if (type == 'http') {
+      ValidationUtils.requireField(json, 'scheme', path);
+      ValidationUtils.requireString(json['scheme'], ValidationUtils.buildPath(path, 'scheme'));
+    } else if (type == 'oauth2') {
+      ValidationUtils.requireField(json, 'flows', path);
+      ValidationUtils.requireMap(json['flows'], ValidationUtils.buildPath(path, 'flows'));
+    } else if (type == 'openIdConnect') {
+      ValidationUtils.requireField(json, 'openIdConnectUrl', path);
+      ValidationUtils.requireString(json['openIdConnectUrl'], ValidationUtils.buildPath(path, 'openIdConnectUrl'));
+    }
+
+    // Validate optional: description (string)
+    if (json.containsKey('description')) {
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'type', 'description', 'name', 'in', 'scheme', 'bearerFormat', 'flows', 'openIdConnectUrl'},
+      path,
+      'Security Scheme Object',
+    );
+  }
   void _createChildNodes() {}
   void _createContent() {
     content = SecurityScheme._(

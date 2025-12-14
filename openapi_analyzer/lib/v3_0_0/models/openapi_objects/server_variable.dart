@@ -1,4 +1,5 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
 
 class ServerVariableNode extends OpenApiNode {
   ServerVariableNode(super.$id, super.json) {
@@ -14,7 +15,35 @@ class ServerVariableNode extends OpenApiNode {
 
   late final ServerVariable content;
 
-  void _validateStructure() {}
+  void _validateStructure() {
+    _structureValidated = true;
+    final path = $id.relativePath;
+
+    // Validate required: default (string)
+    final defaultValue = ValidationUtils.requireField(json, 'default', path);
+    ValidationUtils.requireString(defaultValue, ValidationUtils.buildPath(path, 'default'));
+
+    // Validate optional: enum (array of strings)
+    if (json.containsKey('enum')) {
+      final enumList = ValidationUtils.requireList(json['enum'], ValidationUtils.buildPath(path, 'enum'));
+      for (var i = 0; i < enumList.length; i++) {
+        ValidationUtils.requireString(enumList[i], ValidationUtils.buildPath(ValidationUtils.buildPath(path, 'enum'), '[$i]'));
+      }
+    }
+
+    // Validate optional: description (string)
+    if (json.containsKey('description')) {
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'enum', 'default', 'description'},
+      path,
+      'Server Variable Object',
+    );
+  }
   void _createContent() {
     content = ServerVariable._(
       $node: this,

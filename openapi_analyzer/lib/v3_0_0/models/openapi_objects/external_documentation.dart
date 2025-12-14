@@ -1,4 +1,5 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
 
 class ExternalDocumentationNode extends OpenApiNode {
   ExternalDocumentationNode(super.$id, super.json) {
@@ -14,7 +15,27 @@ class ExternalDocumentationNode extends OpenApiNode {
 
   late final ExternalDocumentation content;
 
-  void _validateStructure() {}
+  void _validateStructure() {
+    _structureValidated = true;
+    final path = $id.relativePath;
+
+    // Validate required: url (non-empty string)
+    final url = ValidationUtils.requireField(json, 'url', path);
+    ValidationUtils.requireNonEmptyString(url, ValidationUtils.buildPath(path, 'url'));
+
+    // Validate optional: description (string)
+    if (json.containsKey('description')) {
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'description', 'url'},
+      path,
+      'External Documentation Object',
+    );
+  }
   void _createContent() {
     content = ExternalDocumentation._(
       $node: this,

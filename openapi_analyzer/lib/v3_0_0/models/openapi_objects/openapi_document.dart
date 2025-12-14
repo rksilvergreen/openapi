@@ -1,4 +1,5 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
 import 'info.dart';
 import 'server.dart';
 import 'paths.dart';
@@ -30,8 +31,145 @@ class OpenApiDocumentNode extends OpenApiNode {
 
   late final OpenApiDocument content;
 
-  void _validateStructure() {}
-  void _createChildNodes() {}
+  void _validateStructure() {
+    _structureValidated = true;
+    final path = $id.relativePath;
+
+    // Validate required: openapi (string, pattern ^3\.0\.\d+$)
+    final openapi = ValidationUtils.requireField(json, 'openapi', path);
+    ValidationUtils.requireString(openapi, ValidationUtils.buildPath(path, 'openapi'));
+    ValidationUtils.validatePattern(
+      openapi as String,
+      r'^3\.0\.\d+$',
+      ValidationUtils.buildPath(path, 'openapi'),
+      description: 'OpenAPI version must match pattern 3.0.x',
+    );
+
+    // Validate required: info (object)
+    final info = ValidationUtils.requireField(json, 'info', path);
+    ValidationUtils.requireMap(info, ValidationUtils.buildPath(path, 'info'));
+
+    // Validate required: paths (object)
+    final paths = ValidationUtils.requireField(json, 'paths', path);
+    ValidationUtils.requireMap(paths, ValidationUtils.buildPath(path, 'paths'));
+
+    // Validate optional: servers (array)
+    if (json.containsKey('servers')) {
+      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPath(path, 'servers'));
+    }
+
+    // Validate optional: components (object)
+    if (json.containsKey('components')) {
+      ValidationUtils.requireMap(json['components'], ValidationUtils.buildPath(path, 'components'));
+    }
+
+    // Validate optional: security (array)
+    if (json.containsKey('security')) {
+      ValidationUtils.requireList(json['security'], ValidationUtils.buildPath(path, 'security'));
+    }
+
+    // Validate optional: tags (array)
+    if (json.containsKey('tags')) {
+      ValidationUtils.requireList(json['tags'], ValidationUtils.buildPath(path, 'tags'));
+    }
+
+    // Validate optional: externalDocs (object)
+    if (json.containsKey('externalDocs')) {
+      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPath(path, 'externalDocs'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'openapi', 'info', 'servers', 'paths', 'components', 'security', 'tags', 'externalDocs'},
+      path,
+      'OpenAPI Object',
+    );
+  }
+  void _createChildNodes() {
+    // Create Info node
+    if (json.containsKey('info')) {
+      final infoJson = json['info'] as Map;
+      infoNode = InfoNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'info')), infoJson);
+      OpenApiGraph.i.addOpenApiNode(infoNode);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, infoNode.$id.absolutePath, 'info'));
+    }
+
+    // Create Servers nodes
+    if (json.containsKey('servers')) {
+      final serversList = json['servers'] as List;
+      serversNode = [];
+      for (var i = 0; i < serversList.length; i++) {
+        final serverJson = serversList[i] as Map;
+        final serverNodeInstance = ServerNode(
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'servers'), '[$i]')),
+          serverJson
+        );
+        serversNode!.add(serverNodeInstance);
+        OpenApiGraph.i.addOpenApiNode(serverNodeInstance);
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, serverNodeInstance.$id.absolutePath, 'servers'));
+      }
+    }
+
+    // Create Paths node
+    if (json.containsKey('paths')) {
+      final pathsJson = json['paths'] as Map;
+      pathsNode = PathsNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'paths')), pathsJson);
+      OpenApiGraph.i.addOpenApiNode(pathsNode);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, pathsNode.$id.absolutePath, 'paths'));
+    }
+
+    // Create Components node
+    if (json.containsKey('components')) {
+      final componentsJson = json['components'] as Map;
+      componentsNode = ComponentsNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'components')), componentsJson);
+      OpenApiGraph.i.addOpenApiNode(componentsNode);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, componentsNode.$id.absolutePath, 'components'));
+    }
+
+    // Create Security nodes
+    if (json.containsKey('security')) {
+      final securityList = json['security'] as List;
+      securityNode = [];
+      for (var i = 0; i < securityList.length; i++) {
+        final securityJson = securityList[i] as Map;
+        final securityNodeInstance = SecurityRequirementNode(
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'security'), '[$i]')),
+          securityJson
+        );
+        securityNode!.add(securityNodeInstance);
+        OpenApiGraph.i.addOpenApiNode(securityNodeInstance);
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, securityNodeInstance.$id.absolutePath, 'security'));
+      }
+    }
+
+    // Create Tags nodes
+    if (json.containsKey('tags')) {
+      final tagsList = json['tags'] as List;
+      tagsNode = [];
+      for (var i = 0; i < tagsList.length; i++) {
+        final tagJson = tagsList[i] as Map;
+        final tagNodeInstance = TagNode(
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'tags'), '[$i]')),
+          tagJson
+        );
+        tagsNode!.add(tagNodeInstance);
+        OpenApiGraph.i.addOpenApiNode(tagNodeInstance);
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, tagNodeInstance.$id.absolutePath, 'tags'));
+      }
+    }
+
+    // Create ExternalDocs node
+    if (json.containsKey('externalDocs')) {
+      final externalDocsJson = json['externalDocs'] as Map;
+      externalDocsNode = ExternalDocumentationNode(
+        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'externalDocs')),
+        externalDocsJson
+      );
+      OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, externalDocsNode!.$id.absolutePath, 'externalDocs'));
+    }
+  }
   void _createContent() {
     content = OpenApiDocument._($node: this, openapi: json['openapi'], extensions: extractExtensions(json));
   }

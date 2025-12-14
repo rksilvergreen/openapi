@@ -1,4 +1,5 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
 import 'external_documentation.dart';
 
 class TagNode extends OpenApiNode {
@@ -18,7 +19,32 @@ class TagNode extends OpenApiNode {
 
   late final Tag content;
 
-  void _validateStructure() {}
+  void _validateStructure() {
+    _structureValidated = true;
+    final path = $id.relativePath;
+
+    // Validate required: name (non-empty string)
+    final name = ValidationUtils.requireField(json, 'name', path);
+    ValidationUtils.requireNonEmptyString(name, ValidationUtils.buildPath(path, 'name'));
+
+    // Validate optional: description (string)
+    if (json.containsKey('description')) {
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+    }
+
+    // Validate optional: externalDocs (object)
+    if (json.containsKey('externalDocs')) {
+      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPath(path, 'externalDocs'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'name', 'description', 'externalDocs'},
+      path,
+      'Tag Object',
+    );
+  }
   void _createChildNodes() {}
   void _createContent() {
     content = Tag._(

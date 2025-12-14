@@ -1,4 +1,5 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
 import 'external_documentation.dart';
 import 'parameter.dart';
 import 'request_body.dart';
@@ -32,8 +33,225 @@ class OperationNode extends OpenApiNode {
 
   late final Operation content;
 
-  void _validateStructure() {}
-  void _createChildNodes() {}
+  void _validateStructure() {
+    _structureValidated = true;
+    final path = $id.relativePath;
+
+    // Validate required: responses (object)
+    final responses = ValidationUtils.requireField(json, 'responses', path);
+    ValidationUtils.requireMap(responses, ValidationUtils.buildPath(path, 'responses'));
+
+    // Validate optional: tags (array of strings)
+    if (json.containsKey('tags')) {
+      final tags = ValidationUtils.requireList(json['tags'], ValidationUtils.buildPath(path, 'tags'));
+      for (var i = 0; i < tags.length; i++) {
+        ValidationUtils.requireString(
+          tags[i],
+          ValidationUtils.buildPath(ValidationUtils.buildPath(path, 'tags'), '[$i]'),
+        );
+      }
+    }
+
+    // Validate optional: summary (string)
+    if (json.containsKey('summary')) {
+      ValidationUtils.requireString(json['summary'], ValidationUtils.buildPath(path, 'summary'));
+    }
+
+    // Validate optional: description (string)
+    if (json.containsKey('description')) {
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+    }
+
+    // Validate optional: externalDocs (object)
+    if (json.containsKey('externalDocs')) {
+      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPath(path, 'externalDocs'));
+    }
+
+    // Validate optional: operationId (string)
+    if (json.containsKey('operationId')) {
+      ValidationUtils.requireString(json['operationId'], ValidationUtils.buildPath(path, 'operationId'));
+      // Note: uniqueness validation across all operations will be done in semantic validation
+    }
+
+    // Validate optional: parameters (array)
+    if (json.containsKey('parameters')) {
+      ValidationUtils.requireList(json['parameters'], ValidationUtils.buildPath(path, 'parameters'));
+    }
+
+    // Validate optional: requestBody (object)
+    if (json.containsKey('requestBody')) {
+      ValidationUtils.requireMap(json['requestBody'], ValidationUtils.buildPath(path, 'requestBody'));
+    }
+
+    // Validate optional: callbacks (object)
+    if (json.containsKey('callbacks')) {
+      ValidationUtils.requireMap(json['callbacks'], ValidationUtils.buildPath(path, 'callbacks'));
+    }
+
+    // Validate optional: deprecated (boolean)
+    if (json.containsKey('deprecated')) {
+      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPath(path, 'deprecated'));
+    }
+
+    // Validate optional: security (array)
+    if (json.containsKey('security')) {
+      ValidationUtils.requireList(json['security'], ValidationUtils.buildPath(path, 'security'));
+    }
+
+    // Validate optional: servers (array)
+    if (json.containsKey('servers')) {
+      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPath(path, 'servers'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {
+        'tags',
+        'summary',
+        'description',
+        'externalDocs',
+        'operationId',
+        'parameters',
+        'requestBody',
+        'responses',
+        'callbacks',
+        'deprecated',
+        'security',
+        'servers',
+      },
+      path,
+      'Operation Object',
+    );
+  }
+
+  void _createChildNodes() {
+    // Create ExternalDocs node
+    if (json.containsKey('externalDocs')) {
+      final externalDocsJson = json['externalDocs'] as Map;
+      externalDocsNode = ExternalDocumentationNode(
+        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'externalDocs')),
+        externalDocsJson,
+      );
+      OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, externalDocsNode!.$id.absolutePath, 'externalDocs'));
+    }
+
+    // Create Parameters nodes
+    if (json.containsKey('parameters')) {
+      final parametersList = json['parameters'] as List;
+      parametersNodes = [];
+      for (var i = 0; i < parametersList.length; i++) {
+        final parameterJson = parametersList[i] as Map;
+        final parameterNode = ParameterNode(
+          NodeId(
+            $id.document,
+            ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'parameters'), '[$i]'),
+          ),
+          parameterJson,
+        );
+        parametersNodes!.add(parameterNode);
+        OpenApiGraph.i.addOpenApiNode(parameterNode);
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, parameterNode.$id.absolutePath, 'parameters'));
+      }
+    }
+
+    // Create RequestBody node
+    if (json.containsKey('requestBody')) {
+      final requestBodyJson = json['requestBody'] as Map;
+      requestBodyNode = RequestBodyNode(
+        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'requestBody')),
+        requestBodyJson,
+      );
+      OpenApiGraph.i.addOpenApiNode(requestBodyNode!);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, requestBodyNode!.$id.absolutePath, 'requestBody'));
+    }
+
+    // Create Response nodes
+    final responsesJson = json['responses'] as Map;
+    responseNodes = {};
+    for (final entry in responsesJson.entries) {
+      final statusCode = entry.key.toString();
+      if (statusCode.startsWith('x-')) continue; // Skip extensions
+
+      final responseJson = entry.value as Map;
+      final responseNode = ResponseNode(
+        NodeId(
+          $id.document,
+          ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'responses'), statusCode),
+        ),
+        responseJson,
+      );
+      responseNodes[statusCode] = responseNode;
+      OpenApiGraph.i.addOpenApiNode(responseNode);
+      OpenApiGraph.i.addOpenApiEdge(
+        OpenApiEdge($id.absolutePath, responseNode.$id.absolutePath, 'responses/$statusCode'),
+      );
+    }
+
+    // Create Callback nodes
+    if (json.containsKey('callbacks')) {
+      final callbacksMap = json['callbacks'] as Map;
+      callbackNodes = {};
+      for (final entry in callbacksMap.entries) {
+        final callbackName = entry.key.toString();
+        if (callbackName.startsWith('x-')) continue; // Skip extensions
+
+        final callbackJson = entry.value as Map;
+        final callbackNode = CallbackNode(
+          NodeId(
+            $id.document,
+            ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'callbacks'), callbackName),
+          ),
+          callbackJson,
+        );
+        callbackNodes![callbackName] = callbackNode;
+        OpenApiGraph.i.addOpenApiNode(callbackNode);
+        OpenApiGraph.i.addOpenApiEdge(
+          OpenApiEdge($id.absolutePath, callbackNode.$id.absolutePath, 'callbacks/$callbackName'),
+        );
+      }
+    }
+
+    // Create Security Requirement nodes
+    if (json.containsKey('security')) {
+      final securityList = json['security'] as List;
+      securityRequirementNodes = [];
+      for (var i = 0; i < securityList.length; i++) {
+        final securityJson = securityList[i] as Map;
+        final securityNode = SecurityRequirementNode(
+          NodeId(
+            $id.document,
+            ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'security'), '[$i]'),
+          ),
+          securityJson,
+        );
+        securityRequirementNodes!.add(securityNode);
+        OpenApiGraph.i.addOpenApiNode(securityNode);
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, securityNode.$id.absolutePath, 'security'));
+      }
+    }
+
+    // Create Server nodes
+    if (json.containsKey('servers')) {
+      final serversList = json['servers'] as List;
+      serverNodes = [];
+      for (var i = 0; i < serversList.length; i++) {
+        final serverJson = serversList[i] as Map;
+        final serverNode = ServerNode(
+          NodeId(
+            $id.document,
+            ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'servers'), '[$i]'),
+          ),
+          serverJson,
+        );
+        serverNodes!.add(serverNode);
+        OpenApiGraph.i.addOpenApiNode(serverNode);
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, serverNode.$id.absolutePath, 'servers'));
+      }
+    }
+  }
+
   void _createContent() {
     content = Operation._(
       $node: this,

@@ -1,4 +1,5 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
 
 class ContactNode extends OpenApiNode {
   ContactNode(super.$id, super.json) {
@@ -14,7 +15,31 @@ class ContactNode extends OpenApiNode {
 
   late final Contact content;
 
-  void _validateStructure() {}
+  void _validateStructure() {
+    _structureValidated = true;
+    final path = $id.relativePath;
+
+    // All fields optional: name, url, email
+    if (json.containsKey('name')) {
+      ValidationUtils.requireString(json['name'], ValidationUtils.buildPath(path, 'name'));
+    }
+
+    if (json.containsKey('url')) {
+      ValidationUtils.requireString(json['url'], ValidationUtils.buildPath(path, 'url'));
+    }
+
+    if (json.containsKey('email')) {
+      ValidationUtils.requireString(json['email'], ValidationUtils.buildPath(path, 'email'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'name', 'url', 'email'},
+      path,
+      'Contact Object',
+    );
+  }
   void _createContent() {
     content = Contact._(
       $node: this,

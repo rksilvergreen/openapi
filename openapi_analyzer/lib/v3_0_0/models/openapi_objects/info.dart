@@ -1,4 +1,5 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
 import 'contact.dart';
 import 'license.dart';
 
@@ -20,8 +21,69 @@ class InfoNode extends OpenApiNode {
 
   late final Info content;
 
-  void _validateStructure() {}
-  void _createChildNodes() {}
+  void _validateStructure() {
+    _structureValidated = true;
+    final path = $id.relativePath;
+
+    // Validate required: title (non-empty string)
+    final title = ValidationUtils.requireField(json, 'title', path);
+    ValidationUtils.requireNonEmptyString(title, ValidationUtils.buildPath(path, 'title'));
+
+    // Validate required: version (non-empty string)
+    final version = ValidationUtils.requireField(json, 'version', path);
+    ValidationUtils.requireNonEmptyString(version, ValidationUtils.buildPath(path, 'version'));
+
+    // Validate optional: description (string)
+    if (json.containsKey('description')) {
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+    }
+
+    // Validate optional: termsOfService (string)
+    if (json.containsKey('termsOfService')) {
+      ValidationUtils.requireString(json['termsOfService'], ValidationUtils.buildPath(path, 'termsOfService'));
+    }
+
+    // Validate optional: contact (object)
+    if (json.containsKey('contact')) {
+      ValidationUtils.requireMap(json['contact'], ValidationUtils.buildPath(path, 'contact'));
+    }
+
+    // Validate optional: license (object)
+    if (json.containsKey('license')) {
+      ValidationUtils.requireMap(json['license'], ValidationUtils.buildPath(path, 'license'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'title', 'description', 'termsOfService', 'contact', 'license', 'version'},
+      path,
+      'Info Object',
+    );
+  }
+  void _createChildNodes() {
+    // Create Contact node
+    if (json.containsKey('contact')) {
+      final contactJson = json['contact'] as Map;
+      contactNode = ContactNode(
+        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'contact')),
+        contactJson
+      );
+      OpenApiGraph.i.addOpenApiNode(contactNode!);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, contactNode!.$id.absolutePath, 'contact'));
+    }
+
+    // Create License node
+    if (json.containsKey('license')) {
+      final licenseJson = json['license'] as Map;
+      licenseNode = LicenseNode(
+        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'license')),
+        licenseJson
+      );
+      OpenApiGraph.i.addOpenApiNode(licenseNode!);
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, licenseNode!.$id.absolutePath, 'license'));
+    }
+  }
   void _createContent() {
     content = Info._(
       $node: this,

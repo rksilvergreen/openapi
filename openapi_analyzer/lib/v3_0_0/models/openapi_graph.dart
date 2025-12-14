@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:yaml/yaml.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/openapi_document.dart';
+import 'package:openapi_analyzer/validation_exception.dart';
+import '../validation/validation_context.dart';
+import '../reference/reference_resolver.dart';
 import 'openapi_objects/schema/schema_node.dart';
 
 abstract class Node {
@@ -38,6 +41,9 @@ class OpenApiGraph {
   static late final OpenApiGraph i;
 
   final File file;
+  late final ValidationContext validationContext;
+  late final ReferenceResolver referenceResolver;
+  final Map<String, dynamic> loadedDocuments = {};
 
   OpenApiGraph(this.file) {
     i = this;
@@ -45,24 +51,52 @@ class OpenApiGraph {
 
   late final OpenApiDocument root;
 
-  OpenApiDocument create() {
-    if (!file.existsSync()) {
-      print('Error: File not found: ${file.path}');
-      exit(1);
-    }
+  OpenApiDocument create({ValidationStrictness strictness = ValidationStrictness.moderate}) {
+    // Initialize validation context
+    validationContext = ValidationContext();
+    referenceResolver = ReferenceResolver(file, validationContext);
 
-    String yamlContent;
     try {
-      yamlContent = file.readAsStringSync();
-    } catch (e) {
-      print('Error: Failed to read file: $e');
-      exit(1);
-    }
-    final yamlDoc = loadYaml(yamlContent);
+      // Load and parse YAML
+      if (!file.existsSync()) {
+        throw Exception('File not found: ${file.path}');
+      }
 
-    final rootId = NodeId(file.uri.pathSegments.last, '/');
-    final rootNode = OpenApiDocumentNode(rootId, yamlDoc);
-    return root = rootNode.content;
+      final yamlContent = file.readAsStringSync();
+      final yamlDoc = loadYaml(yamlContent);
+
+      // Ensure root is a Map
+      if (yamlDoc is! Map) {
+        validationContext.addException(
+          OpenApiValidationException(
+            '/',
+            'OpenAPI document root must be an object',
+            specReference: 'OpenAPI 3.0.0 - Document Structure',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+        validationContext.throwIfFailed(strictness);
+      }
+
+      // Store loaded root document
+      loadedDocuments[file.path] = yamlDoc;
+
+      // Create root node (triggers three-stage pipeline)
+      final rootId = NodeId(file.uri.pathSegments.last, '/');
+      final rootNode = OpenApiDocumentNode(rootId, yamlDoc as Map);
+      root = rootNode.content;
+
+      // Check for validation failures
+      validationContext.throwIfFailed(strictness);
+
+      return root;
+    } catch (e) {
+      if (e is ValidationFailedException) {
+        rethrow;
+      }
+      print('Error creating OpenAPI graph: $e');
+      rethrow;
+    }
   }
 
   final Map<String, OpenApiNode> openApiNodes = {};

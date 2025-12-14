@@ -1,4 +1,6 @@
 import '../openapi_graph.dart';
+import '../../validation/validation_utils.dart';
+import '../../validation_exception.dart';
 import 'enums.dart';
 import 'schema/schema_node.dart';
 import 'schema/effective_schema/effective_schema.dart';
@@ -24,8 +26,139 @@ class ParameterNode extends OpenApiNode {
 
   late final Parameter content;
 
-  void _validateStructure() {}
-  void _createChildNodes() {}
+  void _validateStructure() {
+    _structureValidated = true;
+    final path = $id.relativePath;
+
+    // Validate required: name (string)
+    final name = ValidationUtils.requireField(json, 'name', path);
+    ValidationUtils.requireString(name, ValidationUtils.buildPath(path, 'name'));
+
+    // Validate required: in (enum: query, header, path, cookie)
+    final inValue = ValidationUtils.requireField(json, 'in', path);
+    ValidationUtils.requireString(inValue, ValidationUtils.buildPath(path, 'in'));
+    ValidationUtils.validateEnum(inValue as String, ['query', 'header', 'path', 'cookie'], 
+        ValidationUtils.buildPath(path, 'in'));
+
+    // If in=path, required must be true
+    if (inValue == 'path') {
+      if (!json.containsKey('required') || json['required'] != true) {
+        OpenApiGraph.i.validationContext.addException(OpenApiValidationException(
+          ValidationUtils.buildPath(path, 'required'),
+          'Parameter with in=path must have required=true',
+          specReference: 'OpenAPI 3.0.0 - Parameter Object',
+          severity: ValidationSeverity.critical,
+        ));
+      }
+    }
+
+    // Validate optional: description (string)
+    if (json.containsKey('description')) {
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+    }
+
+    // Validate optional: required (boolean)
+    if (json.containsKey('required')) {
+      ValidationUtils.requireBool(json['required'], ValidationUtils.buildPath(path, 'required'));
+    }
+
+    // Validate optional: deprecated (boolean)
+    if (json.containsKey('deprecated')) {
+      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPath(path, 'deprecated'));
+    }
+
+    // Validate optional: allowEmptyValue (boolean)
+    if (json.containsKey('allowEmptyValue')) {
+      ValidationUtils.requireBool(json['allowEmptyValue'], ValidationUtils.buildPath(path, 'allowEmptyValue'));
+    }
+
+    // Validate optional: schema (object)
+    if (json.containsKey('schema')) {
+      ValidationUtils.requireMap(json['schema'], ValidationUtils.buildPath(path, 'schema'));
+    }
+
+    // Validate optional: style (string)
+    if (json.containsKey('style')) {
+      ValidationUtils.requireString(json['style'], ValidationUtils.buildPath(path, 'style'));
+    }
+
+    // Validate optional: explode (boolean)
+    if (json.containsKey('explode')) {
+      ValidationUtils.requireBool(json['explode'], ValidationUtils.buildPath(path, 'explode'));
+    }
+
+    // Validate optional: allowReserved (boolean)
+    if (json.containsKey('allowReserved')) {
+      ValidationUtils.requireBool(json['allowReserved'], ValidationUtils.buildPath(path, 'allowReserved'));
+    }
+
+    // Validate optional: examples (object)
+    if (json.containsKey('examples')) {
+      ValidationUtils.requireMap(json['examples'], ValidationUtils.buildPath(path, 'examples'));
+    }
+
+    // Validate optional: content (object)
+    if (json.containsKey('content')) {
+      ValidationUtils.requireMap(json['content'], ValidationUtils.buildPath(path, 'content'));
+    }
+
+    // Validate no unknown fields
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'name', 'in', 'description', 'required', 'deprecated', 'allowEmptyValue', 
+       'style', 'explode', 'allowReserved', 'schema', 'example', 'examples', 'content'},
+      path,
+      'Parameter Object',
+    );
+  }
+  void _createChildNodes() {
+    // Create Schema node (with RootEdge)
+    if (json.containsKey('schema')) {
+      final schemaJson = json['schema'] as Map;
+      schemaNode = SchemaNode(
+        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'schema')),
+        schemaJson
+      );
+      OpenApiGraph.i.addSchemaNode(schemaNode!);
+      OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePath, schemaNode!.$id.absolutePath));
+    }
+
+    // Create Example nodes
+    if (json.containsKey('examples')) {
+      final examplesMap = json['examples'] as Map;
+      examplesNodes = {};
+      for (final entry in examplesMap.entries) {
+        final exampleName = entry.key.toString();
+        if (exampleName.startsWith('x-')) continue;
+        
+        final exampleJson = entry.value as Map;
+        final exampleNode = ExampleNode(
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'examples'), exampleName)),
+          exampleJson
+        );
+        examplesNodes![exampleName] = exampleNode;
+        OpenApiGraph.i.addOpenApiNode(exampleNode);
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, exampleNode.$id.absolutePath, 'examples/$exampleName'));
+      }
+    }
+
+    // Create Content nodes (MediaType)
+    if (json.containsKey('content')) {
+      final contentMap = json['content'] as Map;
+      contentNodes = {};
+      for (final entry in contentMap.entries) {
+        final mediaType = entry.key.toString();
+        final mediaTypeJson = entry.value as Map;
+        final mediaTypeNode = MediaTypeNode(
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'content'), mediaType)),
+          mediaTypeJson
+        );
+        contentNodes![mediaType] = mediaTypeNode;
+        OpenApiGraph.i.addOpenApiNode(mediaTypeNode);
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, mediaTypeNode.$id.absolutePath, 'content/$mediaType'));
+      }
+    }
+  }
   void _createContent() {
     content = Parameter._(
       $node: this,
