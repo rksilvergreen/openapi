@@ -52,21 +52,21 @@ class IntegerSchema extends SingleTypeSchema<int, IntegerSchema> {
     return true;
   }
 
-  bool isSubSchemeOf(IntegerSchema schema) {
-    if (schema is IntegerStandardSchema) {
-      if ((schema.multipleOf != null && schema.multipleOf == multipleOf) &&
-          (schema.maximum != null && schema.maximum == maximum) &&
-          (schema.exclusiveMaximum != null && schema.exclusiveMaximum == exclusiveMaximum) &&
-          (schema.minimum != null && schema.minimum == minimum) &&
-          (schema.exclusiveMinimum != null && schema.exclusiveMinimum == exclusiveMinimum) &&
-          (schema.enumValues.isEmpty || schema.enumValues.every(enumValues.contains))) {
-        return true;
-      }
-      return false;
-    }
-    if (schema is IntegerVariantSchema) {
-      return schema.variants.any(isSubSchemeOf);
-    }
-    return false;
-  }
+  // bool isSubSchemeOf(IntegerSchema schema) {
+  //   if (schema is IntegerStandardSchema) {
+  //     if ((schema.multipleOf != null && schema.multipleOf == multipleOf) &&
+  //         (schema.maximum != null && schema.maximum == maximum) &&
+  //         (schema.exclusiveMaximum != null && schema.exclusiveMaximum == exclusiveMaximum) &&
+  //         (schema.minimum != null && schema.minimum == minimum) &&
+  //         (schema.exclusiveMinimum != null && schema.exclusiveMinimum == exclusiveMinimum) &&
+  //         (schema.enumValues.isEmpty || schema.enumValues.every(enumValues.contains))) {
+  //       return true;
+  //     }
+  //     return false;
+  //   }
+  //   if (schema is IntegerVariantSchema) {
+  //     return schema.variants.any(isSubSchemeOf);
+  //   }
+  //   return false;
+  // }
 }

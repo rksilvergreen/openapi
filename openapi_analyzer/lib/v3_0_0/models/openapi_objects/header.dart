@@ -1,3 +1,5 @@
+import 'package:json_annotation/json_annotation.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
@@ -7,7 +9,9 @@ import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
 import 'media_type.dart';
 
-class HeaderNode extends OpenApiNode {
+part '_gen/header.g.dart';
+
+class HeaderNode extends OpenApiNode<Header> {
   HeaderNode(super.$id, super.json);
 
   bool _structureValidated = false;
@@ -161,27 +165,38 @@ class HeaderNode extends OpenApiNode {
   }
 
   void _createContent() {
-    content = Header._(
-      $node: this,
-      description: json['description'],
-      required_: json['required'],
-      deprecated: json['deprecated'],
-      allowEmptyValue: json['allowEmptyValue'],
-      style: json['style'] != null
-          ? ParameterStyle.values.firstWhere((e) => e.value == json['style'])
-          : null,
-      explode: json['explode'],
-      allowReserved: json['allowReserved'],
-      example: json['example'],
-      extensions: extractExtensions(json),
-    );
-    _contentCreated = true;
+    // content = Header._(
+    //   $node: this,
+    //   description: json['description'],
+    //   required_: json['required'],
+    //   deprecated: json['deprecated'],
+    //   allowEmptyValue: json['allowEmptyValue'],
+    //   style: json['style'] != null
+    //       ? ParameterStyle.values.firstWhere((e) => e.value == json['style'])
+    //       : null,
+    //   explode: json['explode'],
+    //   allowReserved: json['allowReserved'],
+    //   example: json['example'],
+    //   extensions: extractExtensions(json),
+    // );
+    // _contentCreated = true;
+
+      final extensions = extractExtensions(json);
+      content = _$HeaderFromJson(jsonWithoutExtensions(json));
+      content.copyWith(extensions: extensions);
+      content.$node = this;
+      _contentCreated = true;
   }
+
 }
 
 /// Header Object follows the structure of the Parameter Object.
+@CopyWith(constructor: '_')
+@JsonSerializable(constructor: '_')
 class Header {
-  final HeaderNode $node;
+  // @JsonKey(includeToJson: false, includeFromJson: false)
+  // final HeaderNode $node;
+  late HeaderNode $node;
   final String? description;
   final bool required_;
   final bool deprecated;
@@ -195,8 +210,11 @@ class Header {
   Map<String, MediaType>? get content => $node.contentNodes?.map((k, v) => MapEntry(k, v.content));
   final Map<String, dynamic>? extensions;
 
+@JsonKey(includeToJson: true)
+  String get something => 'something';
+
   Header._({
-    required this.$node,
+    // required this.$node,
     this.description,
     this.required_ = false,
     this.deprecated = false,
