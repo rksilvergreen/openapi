@@ -1,6 +1,9 @@
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_node.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
+import 'package:openapi_analyzer/v3_0_0/models/openapi_graph.dart';
 import '../raw_schema.dart';
+import '../../../../validation/validation_context.dart';
+import '../../../../../validation_exception.dart';
 
 import 'typed_schema.dart';
 
@@ -38,6 +41,7 @@ class StringTypedSchema extends SingleTypeTypedSchema<String, StringTypedSchema>
        );
 
   factory StringTypedSchema.fromRaw(SchemaNode node, RawSchema raw) {
+    _validateConstraints(raw, node, OpenApiGraph.i.validationContext);
     return StringTypedSchema(
       $node: node,
       description: raw.description ?? '',
@@ -53,5 +57,23 @@ class StringTypedSchema extends SingleTypeTypedSchema<String, StringTypedSchema>
       pattern: raw.pattern,
       format: raw.format,
     );
+  }
+
+  /// Validates atomic constraints for string type.
+  static void _validateConstraints(RawSchema raw, SchemaNode node, ValidationContext ctx) {
+    final path = node.$id.relativePath;
+
+    if (raw.minLength != null && raw.maxLength != null) {
+      if (raw.minLength! > raw.maxLength!) {
+        ctx.addException(
+          OpenApiValidationException(
+            path,
+            'minLength (${raw.minLength}) cannot be greater than maxLength (${raw.maxLength})',
+            specReference: 'JSON Schema Validation',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+      }
+    }
   }
 }

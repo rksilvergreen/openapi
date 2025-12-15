@@ -1,6 +1,9 @@
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_node.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
+import 'package:openapi_analyzer/v3_0_0/models/openapi_graph.dart';
 import '../raw_schema.dart';
+import '../../../../validation/validation_context.dart';
+import '../../../../../validation_exception.dart';
 
 import 'typed_schema.dart';
 
@@ -42,6 +45,7 @@ class IntegerTypedSchema extends SingleTypeTypedSchema<int, IntegerTypedSchema> 
        );
 
   factory IntegerTypedSchema.fromRaw(SchemaNode node, RawSchema raw) {
+    _validateConstraints(raw, node, OpenApiGraph.i.validationContext);
     return IntegerTypedSchema(
       $node: node,
       description: raw.description ?? '',
@@ -59,5 +63,33 @@ class IntegerTypedSchema extends SingleTypeTypedSchema<int, IntegerTypedSchema> 
       exclusiveMinimum: raw.exclusiveMinimum is num ? (raw.exclusiveMinimum as num).toInt() : null,
       format: raw.format,
     );
+  }
+
+  /// Validates atomic constraints for integer type.
+  static void _validateConstraints(RawSchema raw, SchemaNode node, ValidationContext ctx) {
+    final path = node.$id.relativePath;
+
+    if (raw.minimum != null && raw.maximum != null) {
+      if (raw.minimum! > raw.maximum!) {
+        ctx.addException(
+          OpenApiValidationException(
+            path,
+            'minimum (${raw.minimum}) cannot be greater than maximum (${raw.maximum})',
+            specReference: 'JSON Schema Validation',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+      }
+    }
+    if (raw.multipleOf != null && raw.multipleOf! <= 0) {
+      ctx.addException(
+        OpenApiValidationException(
+          path,
+          'multipleOf must be greater than 0',
+          specReference: 'JSON Schema Validation',
+          severity: ValidationSeverity.critical,
+        ),
+      );
+    }
   }
 }

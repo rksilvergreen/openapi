@@ -1,11 +1,14 @@
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_node.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
+import 'package:openapi_analyzer/v3_0_0/models/openapi_graph.dart';
 import '../raw_schema.dart';
+import '../../../../validation/validation_context.dart';
+import '../../../../../validation_exception.dart';
 
 import 'typed_schema.dart';
 
 class ArrayTypedSchema extends SingleTypeTypedSchema<List<dynamic>, ArrayTypedSchema> {
-  final SchemaNode? items;
+  final SchemaNode items;
   final int? maxItems;
   final int? minItems;
   final bool? uniqueItems;
@@ -20,7 +23,7 @@ class ArrayTypedSchema extends SingleTypeTypedSchema<List<dynamic>, ArrayTypedSc
     required bool nullable,
     required List<dynamic>? defaultValue,
     required List<List<dynamic>> enumValues,
-    this.items,
+    required this.items,
     this.maxItems,
     this.minItems,
     this.uniqueItems,
@@ -38,6 +41,7 @@ class ArrayTypedSchema extends SingleTypeTypedSchema<List<dynamic>, ArrayTypedSc
        );
 
   factory ArrayTypedSchema.fromRaw(SchemaNode node, RawSchema raw) {
+    _validateConstraints(raw, node, OpenApiGraph.i.validationContext);
     return ArrayTypedSchema(
       $node: node,
       description: raw.description ?? '',
@@ -48,9 +52,28 @@ class ArrayTypedSchema extends SingleTypeTypedSchema<List<dynamic>, ArrayTypedSc
       nullable: raw.nullable,
       defaultValue: raw.default_ is List ? raw.default_ as List<dynamic> : null,
       enumValues: (raw.enum_?.whereType<List>().cast<List<dynamic>>().toList()) ?? [],
+      items: node.itemsNode,
       minItems: raw.minItems,
       maxItems: raw.maxItems,
       uniqueItems: raw.uniqueItems,
     );
+  }
+
+  /// Validates atomic constraints for array type.
+  static void _validateConstraints(RawSchema raw, SchemaNode node, ValidationContext ctx) {
+    final path = node.$id.relativePath;
+
+    if (raw.minItems != null && raw.maxItems != null) {
+      if (raw.minItems! > raw.maxItems!) {
+        ctx.addException(
+          OpenApiValidationException(
+            path,
+            'minItems (${raw.minItems}) cannot be greater than maxItems (${raw.maxItems})',
+            specReference: 'JSON Schema Validation',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+      }
+    }
   }
 }

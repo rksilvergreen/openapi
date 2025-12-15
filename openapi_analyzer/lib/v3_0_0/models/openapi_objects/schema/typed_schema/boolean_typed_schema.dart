@@ -1,6 +1,8 @@
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_node.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
+import 'package:openapi_analyzer/v3_0_0/models/openapi_graph.dart';
 import '../raw_schema.dart';
+import '../../../../validation/validation_context.dart';
 
 import 'typed_schema.dart';
 
@@ -32,6 +34,7 @@ class BooleanTypedSchema extends SingleTypeTypedSchema<bool, BooleanTypedSchema>
        );
 
   factory BooleanTypedSchema.fromRaw(SchemaNode node, RawSchema raw) {
+    _validateConstraints(raw, node, OpenApiGraph.i.validationContext);
     return BooleanTypedSchema(
       $node: node,
       description: raw.description ?? '',
@@ -43,5 +46,10 @@ class BooleanTypedSchema extends SingleTypeTypedSchema<bool, BooleanTypedSchema>
       defaultValue: raw.default_ is bool ? raw.default_ as bool : null,
       enumValues: (raw.enum_?.whereType<bool>().toList()) ?? [],
     );
+  }
+
+  /// Validates atomic constraints for boolean type.
+  static void _validateConstraints(RawSchema raw, SchemaNode node, ValidationContext ctx) {
+    // Boolean type has no specific constraints to validate
   }
 }
