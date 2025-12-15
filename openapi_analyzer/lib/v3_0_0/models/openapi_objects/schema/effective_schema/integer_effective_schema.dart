@@ -1,5 +1,6 @@
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_node.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
+import '../typed_schema/integer_typed_schema.dart';
 import 'effective_schema.dart';
 
 class IntegerEffectiveSchema extends SingleTypeEffectiveSchema<int, IntegerEffectiveSchema>
@@ -39,6 +40,26 @@ class IntegerEffectiveSchema extends SingleTypeEffectiveSchema<int, IntegerEffec
          defaultValue,
          enumValues,
        );
+
+  factory IntegerEffectiveSchema.fromTyped(SchemaNode node, IntegerTypedSchema typed) {
+    return IntegerEffectiveSchema(
+      $node: node,
+      description: typed.description,
+      readOnly: typed.readOnly,
+      writeOnly: typed.writeOnly,
+      example: typed.example,
+      deprecated: typed.deprecated,
+      nullable: typed.nullable,
+      defaultValue: typed.defaultValue,
+      enumValues: typed.enumValues,
+      multipleOf: typed.multipleOf,
+      maximum: typed.maximum,
+      exclusiveMaximum: typed.exclusiveMaximum,
+      minimum: typed.minimum,
+      exclusiveMinimum: typed.exclusiveMinimum,
+      format: typed.format,
+    );
+  }
 }
 
 class IntegerUnionEffectiveSchema extends SingleTypeEffectiveSchema<int, IntegerEffectiveSchema>

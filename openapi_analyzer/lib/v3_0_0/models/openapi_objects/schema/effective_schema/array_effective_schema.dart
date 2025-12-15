@@ -1,5 +1,6 @@
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_node.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
+import '../typed_schema/array_typed_schema.dart';
 import 'effective_schema.dart';
 
 class ArrayEffectiveSchema extends SingleTypeEffectiveSchema<List<dynamic>, ArrayEffectiveSchema>
@@ -35,6 +36,23 @@ class ArrayEffectiveSchema extends SingleTypeEffectiveSchema<List<dynamic>, Arra
          defaultValue,
          enumValues,
        );
+
+  factory ArrayEffectiveSchema.fromTyped(SchemaNode node, ArrayTypedSchema typed) {
+    return ArrayEffectiveSchema(
+      $node: node,
+      description: typed.description,
+      readOnly: typed.readOnly,
+      writeOnly: typed.writeOnly,
+      example: typed.example,
+      deprecated: typed.deprecated,
+      nullable: typed.nullable,
+      defaultValue: typed.defaultValue,
+      enumValues: typed.enumValues,
+      minItems: typed.minItems,
+      maxItems: typed.maxItems,
+      uniqueItems: typed.uniqueItems,
+    );
+  }
 }
 
 class ArrayUnionEffectiveSchema extends SingleTypeEffectiveSchema<List<dynamic>, ArrayEffectiveSchema>

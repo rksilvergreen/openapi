@@ -1,5 +1,6 @@
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_node.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
+import '../typed_schema/boolean_typed_schema.dart';
 import 'effective_schema.dart';
 
 class BooleanEffectiveSchema extends SingleTypeEffectiveSchema<bool, BooleanEffectiveSchema>
@@ -29,6 +30,20 @@ class BooleanEffectiveSchema extends SingleTypeEffectiveSchema<bool, BooleanEffe
          defaultValue,
          enumValues,
        );
+
+  factory BooleanEffectiveSchema.fromTyped(SchemaNode node, BooleanTypedSchema typed) {
+    return BooleanEffectiveSchema(
+      $node: node,
+      description: typed.description,
+      readOnly: typed.readOnly,
+      writeOnly: typed.writeOnly,
+      example: typed.example,
+      deprecated: typed.deprecated,
+      nullable: typed.nullable,
+      defaultValue: typed.defaultValue,
+      enumValues: typed.enumValues,
+    );
+  }
 }
 
 class BooleanUnionEffectiveSchema extends SingleTypeEffectiveSchema<bool, BooleanEffectiveSchema>

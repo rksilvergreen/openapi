@@ -1,5 +1,6 @@
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_node.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
+import '../typed_schema/string_typed_schema.dart';
 import 'effective_schema.dart';
 
 class StringEffectiveSchema extends SingleTypeEffectiveSchema<String, StringEffectiveSchema>
@@ -35,6 +36,24 @@ class StringEffectiveSchema extends SingleTypeEffectiveSchema<String, StringEffe
          defaultValue,
          enumValues,
        );
+
+  factory StringEffectiveSchema.fromTyped(SchemaNode node, StringTypedSchema typed) {
+    return StringEffectiveSchema(
+      $node: node,
+      description: typed.description,
+      readOnly: typed.readOnly,
+      writeOnly: typed.writeOnly,
+      example: typed.example,
+      deprecated: typed.deprecated,
+      nullable: typed.nullable,
+      defaultValue: typed.defaultValue,
+      enumValues: typed.enumValues,
+      minLength: typed.minLength,
+      maxLength: typed.maxLength,
+      pattern: typed.pattern,
+      format: typed.format,
+    );
+  }
 }
 
 class StringUnionEffectiveSchema extends SingleTypeEffectiveSchema<String, StringEffectiveSchema>

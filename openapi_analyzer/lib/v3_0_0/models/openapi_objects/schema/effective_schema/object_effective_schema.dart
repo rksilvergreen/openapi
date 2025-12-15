@@ -1,5 +1,6 @@
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_node.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
+import '../typed_schema/object_typed_schema.dart';
 import 'effective_schema.dart';
 
 class ObjectEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, dynamic>, ObjectEffectiveSchema>
@@ -39,6 +40,23 @@ class ObjectEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, dynami
          defaultValue,
          enumValues,
        );
+
+  factory ObjectEffectiveSchema.fromTyped(SchemaNode node, ObjectTypedSchema typed) {
+    return ObjectEffectiveSchema(
+      $node: node,
+      description: typed.description,
+      readOnly: typed.readOnly,
+      writeOnly: typed.writeOnly,
+      example: typed.example,
+      deprecated: typed.deprecated,
+      nullable: typed.nullable,
+      defaultValue: typed.defaultValue,
+      enumValues: typed.enumValues,
+      minProperties: typed.minProperties,
+      maxProperties: typed.maxProperties,
+      required: typed.required,
+    );
+  }
 }
 
 class ObjectUnionEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, dynamic>, ObjectEffectiveSchema>

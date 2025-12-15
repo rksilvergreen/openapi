@@ -4,7 +4,6 @@ import '../../../../validation_exception.dart';
 import 'raw_schema.dart';
 import 'typed_schema/typed_schema.dart';
 import 'effective_schema/effective_schema.dart';
-import 'effective_schema_factory.dart';
 import '../external_documentation.dart';
 import '../xml.dart';
 
@@ -447,7 +446,7 @@ class SchemaNode extends Node {
   }
 
   void _createEffective() {
-    effective = EffectiveSchemaFactory.createEffectiveSchema(this, typed, OpenApiGraph.i.validationContext);
+    effective = EffectiveSchema.fromTyped(this, typed, OpenApiGraph.i.validationContext);
     isEffectiveSet = true;
   }
 }
