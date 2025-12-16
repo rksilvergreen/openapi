@@ -1,5 +1,6 @@
 import 'openapi_graph.dart';
 import '../validation/validation_utils.dart';
+import '../../../validation_exception.dart';
 
 /// Extension providing helper methods for creating child nodes.
 /// These methods handle the common patterns of node creation, edge addition, and node reuse.
@@ -9,8 +10,21 @@ extension NodeCreationHelpers on OpenApiNode {
   T? createReferencableNode<T extends OpenApiNode>({
     required String jsonKey,
     required T Function(Map<String, dynamic> json, String document, String jsonPointer) factory,
+    bool required = false,
   }) {
-    if (!json.containsKey(jsonKey)) return null;
+    if (!json.containsKey(jsonKey)) {
+      if (required) {
+        OpenApiGraph.i.validationContext.addException(
+          OpenApiValidationException(
+            ValidationUtils.buildPath($id.jsonPointer, jsonKey),
+            'Required field "$jsonKey" is missing',
+            specReference: 'OpenAPI 3.0.0 Specification',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+      }
+      return null;
+    }
 
     final childJson = json[jsonKey] as Map<String, dynamic>;
     final childNode =
@@ -32,18 +46,19 @@ extension NodeCreationHelpers on OpenApiNode {
     required T Function(NodeId id, Map<String, dynamic> json) factory,
     bool required = false,
   }) {
-    if (required) {
-      final childJson = json[jsonKey] as Map<String, dynamic>;
-      final childNode =
-          factory(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, jsonKey)), childJson) as OpenApiNode;
-
-      OpenApiGraph.i.addOpenApiNode(childNode);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, childNode.$id.absolutePointer, jsonKey));
-      childNode.create();
-      return childNode as T;
+    if (!json.containsKey(jsonKey)) {
+      if (required) {
+        OpenApiGraph.i.validationContext.addException(
+          OpenApiValidationException(
+            ValidationUtils.buildPath($id.jsonPointer, jsonKey),
+            'Required field "$jsonKey" is missing',
+            specReference: 'OpenAPI 3.0.0 Specification',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+      }
+      return null;
     }
-
-    if (!json.containsKey(jsonKey)) return null;
 
     final childJson = json[jsonKey] as Map<String, dynamic>;
     final childNode =
@@ -59,8 +74,21 @@ extension NodeCreationHelpers on OpenApiNode {
   List<T> createReferencableListNode<T extends OpenApiNode>({
     required String jsonKey,
     required T Function(Map<String, dynamic> json, String document, String jsonPointer) factory,
+    bool required = false,
   }) {
-    if (!json.containsKey(jsonKey)) return [];
+    if (!json.containsKey(jsonKey)) {
+      if (required) {
+        OpenApiGraph.i.validationContext.addException(
+          OpenApiValidationException(
+            ValidationUtils.buildPath($id.jsonPointer, jsonKey),
+            'Required field "$jsonKey" is missing',
+            specReference: 'OpenAPI 3.0.0 Specification',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+      }
+      return [];
+    }
 
     final list = json[jsonKey] as List;
     final nodes = <T>[];
@@ -93,8 +121,21 @@ extension NodeCreationHelpers on OpenApiNode {
   List<T> createListNode<T extends OpenApiNode>({
     required String jsonKey,
     required T Function(NodeId id, Map<String, dynamic> json) factory,
+    bool required = false,
   }) {
-    if (!json.containsKey(jsonKey)) return [];
+    if (!json.containsKey(jsonKey)) {
+      if (required) {
+        OpenApiGraph.i.validationContext.addException(
+          OpenApiValidationException(
+            ValidationUtils.buildPath($id.jsonPointer, jsonKey),
+            'Required field "$jsonKey" is missing',
+            specReference: 'OpenAPI 3.0.0 Specification',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+      }
+      return [];
+    }
 
     final list = json[jsonKey] as List;
     final nodes = <T>[];
@@ -126,12 +167,19 @@ extension NodeCreationHelpers on OpenApiNode {
     required T Function(Map<String, dynamic> json, String document, String jsonPointer) factory,
     bool required = false,
   }) {
-    if (required) {
-      final map = json[jsonKey] as Map<String, dynamic>;
-      return processReferencableMapEntries<T>(map, jsonKey, factory);
+    if (!json.containsKey(jsonKey)) {
+      if (required) {
+        OpenApiGraph.i.validationContext.addException(
+          OpenApiValidationException(
+            ValidationUtils.buildPath($id.jsonPointer, jsonKey),
+            'Required field "$jsonKey" is missing',
+            specReference: 'OpenAPI 3.0.0 Specification',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+      }
+      return {};
     }
-
-    if (!json.containsKey(jsonKey)) return {};
 
     final map = json[jsonKey] as Map<String, dynamic>;
     return processReferencableMapEntries<T>(map, jsonKey, factory);
@@ -143,12 +191,19 @@ extension NodeCreationHelpers on OpenApiNode {
     required T Function(NodeId id, Map<String, dynamic> json) factory,
     bool required = false,
   }) {
-    if (required) {
-      final map = json[jsonKey] as Map<String, dynamic>;
-      return processMapEntries<T>(map, jsonKey, factory);
+    if (!json.containsKey(jsonKey)) {
+      if (required) {
+        OpenApiGraph.i.validationContext.addException(
+          OpenApiValidationException(
+            ValidationUtils.buildPath($id.jsonPointer, jsonKey),
+            'Required field "$jsonKey" is missing',
+            specReference: 'OpenAPI 3.0.0 Specification',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+      }
+      return {};
     }
-
-    if (!json.containsKey(jsonKey)) return {};
 
     final map = json[jsonKey] as Map<String, dynamic>;
     return processMapEntries<T>(map, jsonKey, factory);
