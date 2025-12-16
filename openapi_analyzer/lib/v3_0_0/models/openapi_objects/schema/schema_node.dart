@@ -1,14 +1,18 @@
 import '../../openapi_graph.dart';
 import '../../../validation/validation_utils.dart';
 import '../../../../validation_exception.dart';
+import '../../referencable.dart';
 import 'raw_schema.dart';
 import 'typed_schema/typed_schema.dart';
 import 'effective_schema/effective_schema.dart';
 import '../external_documentation.dart';
 import '../xml.dart';
 
-class SchemaNode extends Node {
-  SchemaNode(super.$id, super.json);
+class SchemaNode extends Node with Referencable {
+  SchemaNode._(super.$id, super.json);
+
+  factory SchemaNode(Map<String, dynamic> json, String document, String jsonPointer) =>
+      Referencable.getNode<SchemaNode>(json, document, jsonPointer, (nodeId, json) => SchemaNode._(nodeId, json));
 
   void create() {
     _validateStructure();
@@ -50,7 +54,6 @@ class SchemaNode extends Node {
     _validateArrayConstraints(path);
     _validateObjectConstraints(path);
     _validateCompositionKeywords(path);
-    _validateRef(path);
     _validateOpenApiSpecificFields(path);
   }
 
@@ -184,13 +187,6 @@ class SchemaNode extends Node {
     }
   }
 
-  void _validateRef(String path) {
-    if (json.containsKey('\$ref')) {
-      final refValue = ValidationUtils.requireString(json['\$ref'], ValidationUtils.buildPath(path, '\$ref'));
-      ValidationUtils.validateRefFormat(refValue, ValidationUtils.buildPath(path, '\$ref'));
-    }
-  }
-
   void _validateOpenApiSpecificFields(String path) {
     if (json.containsKey('nullable')) {
       ValidationUtils.requireBool(json['nullable'], ValidationUtils.buildPath(path, 'nullable'));
@@ -216,11 +212,6 @@ class SchemaNode extends Node {
   }
 
   void _createChildNodes() {
-    // Handle $ref - if present, resolve it and create edge (no other children)
-    if (_handleRef()) {
-      return; // No other children when $ref is present
-    }
-
     // Create Structural Children
     _createPropertiesNodes();
     _createItemsNode();
@@ -236,59 +227,6 @@ class SchemaNode extends Node {
     _createExternalDocsNode();
   }
 
-  /// Handles $ref resolution. Returns true if $ref was present (and handled), false otherwise.
-  bool _handleRef() {
-    if (!json.containsKey('\$ref')) {
-      return false;
-    }
-
-    final ref = json['\$ref'] as String;
-    final resolved = OpenApiGraph.i.referenceResolver.parseReference(ref, $id.jsonPointer);
-
-    // Load external document if needed
-    Map<dynamic, dynamic> targetDoc;
-    if (resolved.isExternal) {
-      targetDoc = OpenApiGraph.i.referenceResolver.loadExternalDocument(resolved.documentPath);
-    } else {
-      targetDoc = OpenApiGraph.i.getLoadedDocument($id.document);
-    }
-
-    // Resolve pointer within document
-    final targetJson = OpenApiGraph.i.referenceResolver.resolvePointer(targetDoc, resolved.jsonPointer);
-
-    if (targetJson == null) {
-      OpenApiGraph.i.validationContext.addException(
-        OpenApiValidationException(
-          $id.jsonPointer,
-          'Reference not found: $ref',
-          specReference: 'OpenAPI 3.0.0 - Reference Object',
-          severity: ValidationSeverity.critical,
-        ),
-      );
-      return true; // Cannot proceed without valid reference
-    }
-
-    // Check if referenced schema node already exists
-    // Convert absolute path to relative path for NodeId
-    final relativeDocPath = OpenApiGraph.i.getRelativeDocumentPath(resolved.documentPath);
-    final targetNodeId = NodeId(relativeDocPath, resolved.jsonPointer);
-    SchemaNode targetNode;
-
-    if (OpenApiGraph.i.schemaNodes.containsKey(targetNodeId.absolutePointer)) {
-      targetNode = OpenApiGraph.i.schemaNodes[targetNodeId.absolutePointer]!;
-    } else {
-      // Create the referenced schema node recursively
-      targetNode = SchemaNode(targetNodeId, targetJson as Map<String, dynamic>);
-      OpenApiGraph.i.addSchemaNode(targetNode);
-      targetNode.create();
-    }
-
-    // Note: $ref doesn't create a special edge type - the reference is resolved
-    // The referring node effectively "becomes" the referenced node
-    // We don't create edges for $ref - the node just points to the target
-    return true;
-  }
-
   void _createPropertiesNodes() {
     if (!json.containsKey('properties')) {
       return;
@@ -300,16 +238,16 @@ class SchemaNode extends Node {
       final propertyName = entry.key.toString();
       final propertyJson = entry.value as Map<String, dynamic>;
       final propertyNode = SchemaNode(
-        NodeId(
-          $id.document,
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'properties'), propertyName),
-        ),
         propertyJson,
+        $id.document,
+        ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'properties'), propertyName),
       );
       propertiesNodes![propertyName] = propertyNode;
-      OpenApiGraph.i.addSchemaNode(propertyNode);
-      OpenApiGraph.i.addSchemaStructuralEdge(PropertiesEdge($id.absolutePointer, propertyNode.$id.absolutePointer));
-      propertyNode.create();
+      if (!OpenApiGraph.i.schemaNodes.containsKey(propertyNode.$id.absolutePointer)) {
+        OpenApiGraph.i.addSchemaNode(propertyNode);
+        OpenApiGraph.i.addSchemaStructuralEdge(PropertiesEdge($id.absolutePointer, propertyNode.$id.absolutePointer));
+        propertyNode.create();
+      }
     }
   }
 
@@ -319,10 +257,12 @@ class SchemaNode extends Node {
     }
 
     final items = json['items'] as Map<String, dynamic>;
-    itemsNode = SchemaNode(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'items')), items);
-    OpenApiGraph.i.addSchemaNode(itemsNode);
-    OpenApiGraph.i.addSchemaStructuralEdge(ItemsEdge($id.absolutePointer, itemsNode.$id.absolutePointer));
-    itemsNode.create();
+    itemsNode = SchemaNode(items, $id.document, ValidationUtils.buildPath($id.jsonPointer, 'items'));
+    if (!OpenApiGraph.i.schemaNodes.containsKey(itemsNode.$id.absolutePointer)) {
+      OpenApiGraph.i.addSchemaNode(itemsNode);
+      OpenApiGraph.i.addSchemaStructuralEdge(ItemsEdge($id.absolutePointer, itemsNode.$id.absolutePointer));
+      itemsNode.create();
+    }
   }
 
   void _createAdditionalPropertiesNode() {
@@ -333,14 +273,17 @@ class SchemaNode extends Node {
     final additionalProps = json['additionalProperties'];
     if (additionalProps is Map) {
       additionalPropertiesNode = SchemaNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'additionalProperties')),
         additionalProps as Map<String, dynamic>,
+        $id.document,
+        ValidationUtils.buildPath($id.jsonPointer, 'additionalProperties'),
       );
-      OpenApiGraph.i.addSchemaNode(additionalPropertiesNode!);
-      OpenApiGraph.i.addSchemaStructuralEdge(
-        AdditionalPropertiesEdge($id.absolutePointer, additionalPropertiesNode!.$id.absolutePointer),
-      );
-      additionalPropertiesNode!.create();
+      if (!OpenApiGraph.i.schemaNodes.containsKey(additionalPropertiesNode!.$id.absolutePointer)) {
+        OpenApiGraph.i.addSchemaNode(additionalPropertiesNode!);
+        OpenApiGraph.i.addSchemaStructuralEdge(
+          AdditionalPropertiesEdge($id.absolutePointer, additionalPropertiesNode!.$id.absolutePointer),
+        );
+        additionalPropertiesNode!.create();
+      }
     }
     // If additionalProperties is boolean, no child node is created
   }
@@ -355,13 +298,16 @@ class SchemaNode extends Node {
     for (var i = 0; i < allOfList.length; i++) {
       final allOfJson = allOfList[i] as Map<String, dynamic>;
       final allOfNode = SchemaNode(
-        NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'allOf'), '[$i]')),
         allOfJson,
+        $id.document,
+        ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'allOf'), '[$i]'),
       );
       allOfNodes!.add(allOfNode);
-      OpenApiGraph.i.addSchemaNode(allOfNode);
-      OpenApiGraph.i.addSchemaApplicatorEdge(AllOfEdge($id.absolutePointer, allOfNode.$id.absolutePointer));
-      allOfNode.create();
+      if (!OpenApiGraph.i.schemaNodes.containsKey(allOfNode.$id.absolutePointer)) {
+        OpenApiGraph.i.addSchemaNode(allOfNode);
+        OpenApiGraph.i.addSchemaApplicatorEdge(AllOfEdge($id.absolutePointer, allOfNode.$id.absolutePointer));
+        allOfNode.create();
+      }
     }
   }
 
@@ -375,13 +321,16 @@ class SchemaNode extends Node {
     for (var i = 0; i < oneOfList.length; i++) {
       final oneOfJson = oneOfList[i] as Map<String, dynamic>;
       final oneOfNode = SchemaNode(
-        NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'oneOf'), '[$i]')),
         oneOfJson,
+        $id.document,
+        ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'oneOf'), '[$i]'),
       );
       oneOfNodes!.add(oneOfNode);
-      OpenApiGraph.i.addSchemaNode(oneOfNode);
-      OpenApiGraph.i.addSchemaApplicatorEdge(OneOfEdge($id.absolutePointer, oneOfNode.$id.absolutePointer));
-      oneOfNode.create();
+      if (!OpenApiGraph.i.schemaNodes.containsKey(oneOfNode.$id.absolutePointer)) {
+        OpenApiGraph.i.addSchemaNode(oneOfNode);
+        OpenApiGraph.i.addSchemaApplicatorEdge(OneOfEdge($id.absolutePointer, oneOfNode.$id.absolutePointer));
+        oneOfNode.create();
+      }
     }
   }
 
@@ -395,13 +344,16 @@ class SchemaNode extends Node {
     for (var i = 0; i < anyOfList.length; i++) {
       final anyOfJson = anyOfList[i] as Map<String, dynamic>;
       final anyOfNode = SchemaNode(
-        NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'anyOf'), '[$i]')),
         anyOfJson,
+        $id.document,
+        ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'anyOf'), '[$i]'),
       );
       anyOfNodes!.add(anyOfNode);
-      OpenApiGraph.i.addSchemaNode(anyOfNode);
-      OpenApiGraph.i.addSchemaApplicatorEdge(AnyOfEdge($id.absolutePointer, anyOfNode.$id.absolutePointer));
-      anyOfNode.create();
+      if (!OpenApiGraph.i.schemaNodes.containsKey(anyOfNode.$id.absolutePointer)) {
+        OpenApiGraph.i.addSchemaNode(anyOfNode);
+        OpenApiGraph.i.addSchemaApplicatorEdge(AnyOfEdge($id.absolutePointer, anyOfNode.$id.absolutePointer));
+        anyOfNode.create();
+      }
     }
   }
 

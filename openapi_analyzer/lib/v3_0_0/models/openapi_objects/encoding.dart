@@ -72,18 +72,18 @@ class EncodingNode extends OpenApiNode {
 
         final headerJson = entry.value as Map<String, dynamic>;
         final headerNode = HeaderNode(
-          NodeId(
-            $id.document,
-            ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'headers'), headerName),
-          ),
           headerJson,
+          $id.document,
+          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'headers'), headerName),
         );
         headersNodes![headerName] = headerNode;
-        OpenApiGraph.i.addOpenApiNode(headerNode);
-        OpenApiGraph.i.addOpenApiEdge(
-          OpenApiEdge($id.absolutePointer, headerNode.$id.absolutePointer, 'headers/$headerName'),
-        );
-        headerNode.create();
+        if (!OpenApiGraph.i.openApiNodes.containsKey(headerNode.$id.absolutePointer)) {
+          OpenApiGraph.i.addOpenApiNode(headerNode);
+          OpenApiGraph.i.addOpenApiEdge(
+            OpenApiEdge($id.absolutePointer, headerNode.$id.absolutePointer, 'headers/$headerName'),
+          );
+          headerNode.create();
+        }
       }
     }
   }

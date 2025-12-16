@@ -1,11 +1,20 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
+import '../referencable.dart';
 import 'operation.dart';
 import 'server.dart';
 import 'parameter.dart';
 
-class PathItemNode extends OpenApiNode {
-  PathItemNode(super.$id, super.json);
+class PathItemNode extends OpenApiNode with Referencable {
+  PathItemNode._(super.$id, super.json);
+
+  factory PathItemNode(Map<String, dynamic> json, String document, String jsonPointer) =>
+      Referencable.getNode<PathItemNode>(
+        json,
+        document,
+        jsonPointer,
+        (nodeId, json) => PathItemNode._(nodeId, json),
+      );
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -142,13 +151,16 @@ class PathItemNode extends OpenApiNode {
       for (var i = 0; i < parametersList.length; i++) {
         final parameterJson = parametersList[i] as Map<String, dynamic>;
         final parameterNode = ParameterNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'parameters'), '[$i]')),
           parameterJson,
+          $id.document,
+          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'parameters'), '[$i]'),
         );
         parametersNodes!.add(parameterNode);
-        OpenApiGraph.i.addOpenApiNode(parameterNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, parameterNode.$id.absolutePointer, 'parameters'));
-        parameterNode.create();
+        if (!OpenApiGraph.i.openApiNodes.containsKey(parameterNode.$id.absolutePointer)) {
+          OpenApiGraph.i.addOpenApiNode(parameterNode);
+          OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, parameterNode.$id.absolutePointer, 'parameters'));
+          parameterNode.create();
+        }
       }
     }
   }

@@ -1,10 +1,19 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
+import '../referencable.dart';
 import 'server.dart';
 
-class LinkNode extends OpenApiNode {
-  LinkNode(super.$id, super.json);
+class LinkNode extends OpenApiNode with Referencable {
+  LinkNode._(super.$id, super.json);
+
+  factory LinkNode(Map<String, dynamic> json, String document, String jsonPointer) =>
+      Referencable.getNode<LinkNode>(
+        json,
+        document,
+        jsonPointer,
+        (nodeId, json) => LinkNode._(nodeId, json),
+      );
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -24,20 +33,6 @@ class LinkNode extends OpenApiNode {
 
   void _validateStructure() {
     final path = $id.jsonPointer;
-
-    // Check for $ref - if present, only validate $ref
-    if (json.containsKey('\$ref')) {
-      final refValue = ValidationUtils.requireString(json['\$ref'], ValidationUtils.buildPath(path, '\$ref'));
-      ValidationUtils.validateRefFormat(refValue, ValidationUtils.buildPath(path, '\$ref'));
-      ValidationUtils.validateNoUnknownFields(
-        json,
-        {'\$ref'},
-        path,
-        'Reference Object',
-      );
-      _structureValidated = true;
-      return;
-    }
 
     // All fields are optional
     if (json.containsKey('operationRef')) {
@@ -84,11 +79,6 @@ class LinkNode extends OpenApiNode {
   }
 
   void _createChildNodes() {
-    // Handle $ref - if present, we don't create child nodes
-    if (_handleRef()) {
-      return;
-    }
-
     // Create Server node
     if (json.containsKey('server')) {
       final serverJson = json['server'] as Map<String, dynamic>;
@@ -99,40 +89,6 @@ class LinkNode extends OpenApiNode {
     }
   }
 
-  /// Handles $ref resolution. Returns true if $ref was present, false otherwise.
-  bool _handleRef() {
-    if (!json.containsKey('\$ref')) {
-      return false;
-    }
-
-    final ref = json['\$ref'] as String;
-    final resolved = OpenApiGraph.i.referenceResolver.parseReference(ref, $id.jsonPointer);
-
-    // Load document
-    Map<dynamic, dynamic> targetDoc;
-    if (resolved.isExternal) {
-      targetDoc = OpenApiGraph.i.referenceResolver.loadExternalDocument(resolved.documentPath);
-    } else {
-      targetDoc = OpenApiGraph.i.getLoadedDocument($id.document);
-    }
-
-    // Resolve pointer within document
-    final targetJson = OpenApiGraph.i.referenceResolver.resolvePointer(targetDoc, resolved.jsonPointer);
-
-    if (targetJson == null) {
-      OpenApiGraph.i.validationContext.addException(
-        OpenApiValidationException(
-          $id.jsonPointer,
-          'Reference not found: $ref',
-          specReference: 'OpenAPI 3.0.0 - Reference Object',
-          severity: ValidationSeverity.critical,
-        ),
-      );
-      return true;
-    }
-
-    return true;
-  }
 
   void _createContent() {
     content = Link._(

@@ -149,18 +149,18 @@ class OperationNode extends OpenApiNode {
       for (var i = 0; i < parametersList.length; i++) {
         final parameterJson = parametersList[i] as Map<String, dynamic>;
         final parameterNode = ParameterNode(
-          NodeId(
-            $id.document,
-            ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'parameters'), '[$i]'),
-          ),
           parameterJson,
+          $id.document,
+          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'parameters'), '[$i]'),
         );
         parametersNodes!.add(parameterNode);
-        OpenApiGraph.i.addOpenApiNode(parameterNode);
-        OpenApiGraph.i.addOpenApiEdge(
-          OpenApiEdge($id.absolutePointer, parameterNode.$id.absolutePointer, 'parameters'),
-        );
-        parameterNode.create();
+        if (!OpenApiGraph.i.openApiNodes.containsKey(parameterNode.$id.absolutePointer)) {
+          OpenApiGraph.i.addOpenApiNode(parameterNode);
+          OpenApiGraph.i.addOpenApiEdge(
+            OpenApiEdge($id.absolutePointer, parameterNode.$id.absolutePointer, 'parameters'),
+          );
+          parameterNode.create();
+        }
       }
     }
 
@@ -191,18 +191,18 @@ class OperationNode extends OpenApiNode {
 
       final responseJson = entry.value as Map<String, dynamic>;
       final responseNode = ResponseNode(
-        NodeId(
-          $id.document,
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'responses'), statusCode),
-        ),
         responseJson,
+        $id.document,
+        ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'responses'), statusCode),
       );
       responseNodes[statusCode] = responseNode;
-      OpenApiGraph.i.addOpenApiNode(responseNode);
-      OpenApiGraph.i.addOpenApiEdge(
-        OpenApiEdge($id.absolutePointer, responseNode.$id.absolutePointer, 'responses/$statusCode'),
-      );
-      responseNode.create();
+      if (!OpenApiGraph.i.openApiNodes.containsKey(responseNode.$id.absolutePointer)) {
+        OpenApiGraph.i.addOpenApiNode(responseNode);
+        OpenApiGraph.i.addOpenApiEdge(
+          OpenApiEdge($id.absolutePointer, responseNode.$id.absolutePointer, 'responses/$statusCode'),
+        );
+        responseNode.create();
+      }
     }
 
     // Create Callback nodes
@@ -215,18 +215,18 @@ class OperationNode extends OpenApiNode {
 
         final callbackJson = entry.value as Map<String, dynamic>;
         final callbackNode = CallbackNode(
-          NodeId(
-            $id.document,
-            ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'callbacks'), callbackName),
-          ),
           callbackJson,
+          $id.document,
+          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'callbacks'), callbackName),
         );
         callbackNodes![callbackName] = callbackNode;
-        OpenApiGraph.i.addOpenApiNode(callbackNode);
-        OpenApiGraph.i.addOpenApiEdge(
-          OpenApiEdge($id.absolutePointer, callbackNode.$id.absolutePointer, 'callbacks/$callbackName'),
-        );
-        callbackNode.create();
+        if (!OpenApiGraph.i.openApiNodes.containsKey(callbackNode.$id.absolutePointer)) {
+          OpenApiGraph.i.addOpenApiNode(callbackNode);
+          OpenApiGraph.i.addOpenApiEdge(
+            OpenApiEdge($id.absolutePointer, callbackNode.$id.absolutePointer, 'callbacks/$callbackName'),
+          );
+          callbackNode.create();
+        }
       }
     }
 

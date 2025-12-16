@@ -63,13 +63,16 @@ class PathsNode extends OpenApiNode {
       // Create PathItem node for each path
       final pathItemJson = entry.value as Map<String, dynamic>;
       final pathItemNode = PathItemNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, key)),
         pathItemJson,
+        $id.document,
+        ValidationUtils.buildPath($id.jsonPointer, key),
       );
       pathItemNodes[key] = pathItemNode;
-      OpenApiGraph.i.addOpenApiNode(pathItemNode);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, pathItemNode.$id.absolutePointer, key));
-      pathItemNode.create();
+      if (!OpenApiGraph.i.openApiNodes.containsKey(pathItemNode.$id.absolutePointer)) {
+        OpenApiGraph.i.addOpenApiNode(pathItemNode);
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, pathItemNode.$id.absolutePointer, key));
+        pathItemNode.create();
+      }
     }
   }
 

@@ -71,13 +71,16 @@ class MediaTypeNode extends OpenApiNode {
     if (json.containsKey('schema')) {
       final schemaJson = json['schema'] as Map<String, dynamic>;
       schemaNode = SchemaNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'schema')),
-        schemaJson
+        schemaJson,
+        $id.document,
+        ValidationUtils.buildPath($id.jsonPointer, 'schema'),
       );
-      OpenApiGraph.i.addSchemaNode(schemaNode!);
-      // Use RootEdge to mark this as a schema root
-      OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePointer, schemaNode!.$id.absolutePointer));
-      schemaNode!.create();
+      if (!OpenApiGraph.i.schemaNodes.containsKey(schemaNode!.$id.absolutePointer)) {
+        OpenApiGraph.i.addSchemaNode(schemaNode!);
+        // Use RootEdge to mark this as a schema root
+        OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePointer, schemaNode!.$id.absolutePointer));
+        schemaNode!.create();
+      }
     }
 
     // Create Example nodes
@@ -90,13 +93,16 @@ class MediaTypeNode extends OpenApiNode {
 
         final exampleJson = entry.value as Map<String, dynamic>;
         final exampleNode = ExampleNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'examples'), exampleName)),
           exampleJson,
+          $id.document,
+          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'examples'), exampleName),
         );
         examplesNodes![exampleName] = exampleNode;
-        OpenApiGraph.i.addOpenApiNode(exampleNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, exampleNode.$id.absolutePointer, 'examples/$exampleName'));
-        exampleNode.create();
+        if (!OpenApiGraph.i.openApiNodes.containsKey(exampleNode.$id.absolutePointer)) {
+          OpenApiGraph.i.addOpenApiNode(exampleNode);
+          OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, exampleNode.$id.absolutePointer, 'examples/$exampleName'));
+          exampleNode.create();
+        }
       }
     }
 
