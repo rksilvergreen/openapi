@@ -23,7 +23,7 @@ class ServerNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: url (non-empty string)
     final url = ValidationUtils.requireField(json, 'url', path);
@@ -59,12 +59,12 @@ class ServerNode extends OpenApiNode {
 
         final variableJson = entry.value as Map<String, dynamic>;
         final variableNode = ServerVariableNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'variables'), variableName)),
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'variables'), variableName)),
           variableJson,
         );
         variablesNodes![variableName] = variableNode;
         OpenApiGraph.i.addOpenApiNode(variableNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, variableNode.$id.absolutePath, 'variables/$variableName'));
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, variableNode.$id.absolutePointer, 'variables/$variableName'));
         variableNode.create();
       }
     }

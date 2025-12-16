@@ -29,7 +29,7 @@ class MediaTypeNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // All fields optional: schema, example, examples, encoding
 
@@ -71,12 +71,12 @@ class MediaTypeNode extends OpenApiNode {
     if (json.containsKey('schema')) {
       final schemaJson = json['schema'] as Map<String, dynamic>;
       schemaNode = SchemaNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'schema')),
+        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'schema')),
         schemaJson
       );
       OpenApiGraph.i.addSchemaNode(schemaNode!);
       // Use RootEdge to mark this as a schema root
-      OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePath, schemaNode!.$id.absolutePath));
+      OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePointer, schemaNode!.$id.absolutePointer));
       schemaNode!.create();
     }
 
@@ -90,12 +90,12 @@ class MediaTypeNode extends OpenApiNode {
 
         final exampleJson = entry.value as Map<String, dynamic>;
         final exampleNode = ExampleNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'examples'), exampleName)),
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'examples'), exampleName)),
           exampleJson,
         );
         examplesNodes![exampleName] = exampleNode;
         OpenApiGraph.i.addOpenApiNode(exampleNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, exampleNode.$id.absolutePath, 'examples/$exampleName'));
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, exampleNode.$id.absolutePointer, 'examples/$exampleName'));
         exampleNode.create();
       }
     }
@@ -110,12 +110,12 @@ class MediaTypeNode extends OpenApiNode {
 
         final encodingJson = entry.value as Map<String, dynamic>;
         final encodingNode = EncodingNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'encoding'), propertyName)),
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'encoding'), propertyName)),
           encodingJson,
         );
         encodingNodes![propertyName] = encodingNode;
         OpenApiGraph.i.addOpenApiNode(encodingNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, encodingNode.$id.absolutePath, 'encoding/$propertyName'));
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, encodingNode.$id.absolutePointer, 'encoding/$propertyName'));
         encodingNode.create();
       }
     }

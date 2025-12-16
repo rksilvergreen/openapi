@@ -25,7 +25,7 @@ class InfoNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: title (non-empty string)
     final title = ValidationUtils.requireField(json, 'title', path);
@@ -69,11 +69,11 @@ class InfoNode extends OpenApiNode {
     if (json.containsKey('contact')) {
       final contactJson = json['contact'] as Map<String, dynamic>;
       contactNode = ContactNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'contact')),
+        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'contact')),
         contactJson,
       );
       OpenApiGraph.i.addOpenApiNode(contactNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, contactNode!.$id.absolutePath, 'contact'));
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, contactNode!.$id.absolutePointer, 'contact'));
       contactNode!.create();
     }
 
@@ -81,11 +81,11 @@ class InfoNode extends OpenApiNode {
     if (json.containsKey('license')) {
       final licenseJson = json['license'] as Map<String, dynamic>;
       licenseNode = LicenseNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'license')),
+        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'license')),
         licenseJson,
       );
       OpenApiGraph.i.addOpenApiNode(licenseNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, licenseNode!.$id.absolutePath, 'license'));
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, licenseNode!.$id.absolutePointer, 'license'));
       licenseNode!.create();
     }
   }

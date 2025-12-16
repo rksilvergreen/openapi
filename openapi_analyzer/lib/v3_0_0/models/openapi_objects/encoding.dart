@@ -23,7 +23,7 @@ class EncodingNode extends OpenApiNode {
   }
 
   void _validateStructure() {
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // All fields are optional
     if (json.containsKey('contentType')) {
@@ -74,14 +74,14 @@ class EncodingNode extends OpenApiNode {
         final headerNode = HeaderNode(
           NodeId(
             $id.document,
-            ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'headers'), headerName),
+            ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'headers'), headerName),
           ),
           headerJson,
         );
         headersNodes![headerName] = headerNode;
         OpenApiGraph.i.addOpenApiNode(headerNode);
         OpenApiGraph.i.addOpenApiEdge(
-          OpenApiEdge($id.absolutePath, headerNode.$id.absolutePath, 'headers/$headerName'),
+          OpenApiEdge($id.absolutePointer, headerNode.$id.absolutePointer, 'headers/$headerName'),
         );
         headerNode.create();
       }

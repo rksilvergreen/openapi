@@ -19,7 +19,7 @@ class LicenseNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: name (non-empty string)
     final name = ValidationUtils.requireField(json, 'name', path);

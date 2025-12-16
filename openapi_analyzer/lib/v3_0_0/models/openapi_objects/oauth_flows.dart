@@ -25,7 +25,7 @@ class OAuthFlowsNode extends OpenApiNode {
   }
 
   void _validateStructure() {
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // All flow types are optional
     if (json.containsKey('implicit')) {
@@ -60,11 +60,11 @@ class OAuthFlowsNode extends OpenApiNode {
     if (json.containsKey('implicit')) {
       final implicitJson = json['implicit'] as Map<String, dynamic>;
       implicitNode = OAuthFlowNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'implicit')),
+        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'implicit')),
         implicitJson,
       );
       OpenApiGraph.i.addOpenApiNode(implicitNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, implicitNode!.$id.absolutePath, 'implicit'));
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, implicitNode!.$id.absolutePointer, 'implicit'));
       implicitNode!.create();
     }
 
@@ -72,11 +72,11 @@ class OAuthFlowsNode extends OpenApiNode {
     if (json.containsKey('password')) {
       final passwordJson = json['password'] as Map<String, dynamic>;
       passwordNode = OAuthFlowNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'password')),
+        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'password')),
         passwordJson,
       );
       OpenApiGraph.i.addOpenApiNode(passwordNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, passwordNode!.$id.absolutePath, 'password'));
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, passwordNode!.$id.absolutePointer, 'password'));
       passwordNode!.create();
     }
 
@@ -84,11 +84,11 @@ class OAuthFlowsNode extends OpenApiNode {
     if (json.containsKey('clientCredentials')) {
       final clientCredentialsJson = json['clientCredentials'] as Map<String, dynamic>;
       clientCredentialsNode = OAuthFlowNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'clientCredentials')),
+        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'clientCredentials')),
         clientCredentialsJson,
       );
       OpenApiGraph.i.addOpenApiNode(clientCredentialsNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, clientCredentialsNode!.$id.absolutePath, 'clientCredentials'));
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, clientCredentialsNode!.$id.absolutePointer, 'clientCredentials'));
       clientCredentialsNode!.create();
     }
 
@@ -96,11 +96,11 @@ class OAuthFlowsNode extends OpenApiNode {
     if (json.containsKey('authorizationCode')) {
       final authorizationCodeJson = json['authorizationCode'] as Map<String, dynamic>;
       authorizationCodeNode = OAuthFlowNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'authorizationCode')),
+        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'authorizationCode')),
         authorizationCodeJson,
       );
       OpenApiGraph.i.addOpenApiNode(authorizationCodeNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, authorizationCodeNode!.$id.absolutePath, 'authorizationCode'));
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, authorizationCodeNode!.$id.absolutePointer, 'authorizationCode'));
       authorizationCodeNode!.create();
     }
   }

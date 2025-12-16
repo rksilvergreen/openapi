@@ -30,7 +30,7 @@ class ParameterNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: name (string)
     final name = ValidationUtils.requireField(json, 'name', path);
@@ -118,11 +118,11 @@ class ParameterNode extends OpenApiNode {
     if (json.containsKey('schema')) {
       final schemaJson = json['schema'] as Map<String, dynamic>;
       schemaNode = SchemaNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'schema')),
+        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'schema')),
         schemaJson
       );
       OpenApiGraph.i.addSchemaNode(schemaNode!);
-      OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePath, schemaNode!.$id.absolutePath));
+      OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePointer, schemaNode!.$id.absolutePointer));
       schemaNode!.create();
     }
 
@@ -136,12 +136,12 @@ class ParameterNode extends OpenApiNode {
 
         final exampleJson = entry.value as Map<String, dynamic>;
         final exampleNode = ExampleNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'examples'), exampleName)),
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'examples'), exampleName)),
           exampleJson,
         );
         examplesNodes![exampleName] = exampleNode;
         OpenApiGraph.i.addOpenApiNode(exampleNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, exampleNode.$id.absolutePath, 'examples/$exampleName'));
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, exampleNode.$id.absolutePointer, 'examples/$exampleName'));
         exampleNode.create();
       }
     }
@@ -154,12 +154,12 @@ class ParameterNode extends OpenApiNode {
         final mediaType = entry.key.toString();
         final mediaTypeJson = entry.value as Map<String, dynamic>;
         final mediaTypeNode = MediaTypeNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'content'), mediaType)),
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'content'), mediaType)),
           mediaTypeJson,
         );
         contentNodes![mediaType] = mediaTypeNode;
         OpenApiGraph.i.addOpenApiNode(mediaTypeNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, mediaTypeNode.$id.absolutePath, 'content/$mediaType'));
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, mediaTypeNode.$id.absolutePointer, 'content/$mediaType'));
         mediaTypeNode.create();
       }
     }

@@ -23,7 +23,7 @@ class RequestBodyNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: content (map of MediaType objects)
     final content = ValidationUtils.requireField(json, 'content', path);
@@ -40,13 +40,9 @@ class RequestBodyNode extends OpenApiNode {
     }
 
     // Validate no unknown fields
-    ValidationUtils.validateNoUnknownFields(
-      json,
-      {'description', 'content', 'required'},
-      path,
-      'Request Body Object',
-    );
+    ValidationUtils.validateNoUnknownFields(json, {'description', 'content', 'required'}, path, 'Request Body Object');
   }
+
   void _createChildNodes() {
     // Create MediaType nodes for content
     final contentMap = json['content'] as Map<String, dynamic>;
@@ -55,12 +51,17 @@ class RequestBodyNode extends OpenApiNode {
       final mediaType = entry.key.toString();
       final mediaTypeJson = entry.value as Map<String, dynamic>;
       final mediaTypeNode = MediaTypeNode(
-        NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'content'), mediaType)),
-        mediaTypeJson
+        NodeId(
+          $id.document,
+          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'content'), mediaType),
+        ),
+        mediaTypeJson,
       );
       contentNodes[mediaType] = mediaTypeNode;
       OpenApiGraph.i.addOpenApiNode(mediaTypeNode);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, mediaTypeNode.$id.absolutePath, 'content/$mediaType'));
+      OpenApiGraph.i.addOpenApiEdge(
+        OpenApiEdge($id.absolutePointer, mediaTypeNode.$id.absolutePointer, 'content/$mediaType'),
+      );
       mediaTypeNode.create();
     }
   }

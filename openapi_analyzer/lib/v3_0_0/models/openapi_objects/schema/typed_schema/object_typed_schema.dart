@@ -64,7 +64,7 @@ class ObjectTypedSchema extends SingleTypeTypedSchema<Map<String, dynamic>, Obje
 
   /// Validates atomic constraints for object type.
   static void _validateConstraints(RawSchema raw, SchemaNode node, ValidationContext ctx) {
-    final path = node.$id.relativePath;
+    final path = node.$id.jsonPointer;
 
     if (raw.minProperties != null && raw.maxProperties != null) {
       if (raw.minProperties! > raw.maxProperties!) {

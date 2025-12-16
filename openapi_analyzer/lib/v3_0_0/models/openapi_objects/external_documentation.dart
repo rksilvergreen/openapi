@@ -19,7 +19,7 @@ class ExternalDocumentationNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: url (non-empty string)
     final url = ValidationUtils.requireField(json, 'url', path);

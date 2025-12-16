@@ -20,7 +20,7 @@ class SecurityRequirementNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate structure: map of string to array of strings
     for (final entry in json.entries) {

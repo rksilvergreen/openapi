@@ -23,7 +23,7 @@ class LinkNode extends OpenApiNode {
   }
 
   void _validateStructure() {
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // All fields are optional
     if (json.containsKey('operationRef')) {
@@ -73,9 +73,9 @@ class LinkNode extends OpenApiNode {
     // Create Server node
     if (json.containsKey('server')) {
       final serverJson = json['server'] as Map<String, dynamic>;
-      serverNode = ServerNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'server')), serverJson);
+      serverNode = ServerNode(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'server')), serverJson);
       OpenApiGraph.i.addOpenApiNode(serverNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, serverNode!.$id.absolutePath, 'server'));
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, serverNode!.$id.absolutePointer, 'server'));
       serverNode!.create();
     }
   }

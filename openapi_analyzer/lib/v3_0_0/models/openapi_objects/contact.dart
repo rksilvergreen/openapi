@@ -19,7 +19,7 @@ class ContactNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // All fields optional: name, url, email
     if (json.containsKey('name')) {

@@ -23,7 +23,7 @@ class TagNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: name (non-empty string)
     final name = ValidationUtils.requireField(json, 'name', path);
@@ -52,11 +52,11 @@ class TagNode extends OpenApiNode {
     if (json.containsKey('externalDocs')) {
       final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
       externalDocsNode = ExternalDocumentationNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'externalDocs')),
+        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'externalDocs')),
         externalDocsJson,
       );
       OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, externalDocsNode!.$id.absolutePath, 'externalDocs'));
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, externalDocsNode!.$id.absolutePointer, 'externalDocs'));
       externalDocsNode!.create();
     }
   }

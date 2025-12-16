@@ -19,7 +19,7 @@ class ExampleNode extends OpenApiNode {
   }
 
   void _validateStructure() {
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // All fields are optional
     if (json.containsKey('summary')) {

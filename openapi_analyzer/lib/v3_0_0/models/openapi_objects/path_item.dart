@@ -34,7 +34,7 @@ class PathItemNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate optional HTTP method fields (objects)
     final httpMethods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
@@ -81,7 +81,7 @@ class PathItemNode extends OpenApiNode {
       if (json.containsKey(method)) {
         final operationJson = json[method] as Map<String, dynamic>;
         final operationNode = OperationNode(
-          NodeId($id.document, ValidationUtils.buildPath($id.relativePath, method)),
+          NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, method)),
           operationJson
         );
         
@@ -113,7 +113,7 @@ class PathItemNode extends OpenApiNode {
         }
         
         OpenApiGraph.i.addOpenApiNode(operationNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, operationNode.$id.absolutePath, method));
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, operationNode.$id.absolutePointer, method));
         operationNode.create();
       }
     }
@@ -125,12 +125,12 @@ class PathItemNode extends OpenApiNode {
       for (var i = 0; i < serversList.length; i++) {
         final serverJson = serversList[i] as Map<String, dynamic>;
         final serverNode = ServerNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'servers'), '[$i]')),
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'servers'), '[$i]')),
           serverJson,
         );
         serversNodes!.add(serverNode);
         OpenApiGraph.i.addOpenApiNode(serverNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, serverNode.$id.absolutePath, 'servers'));
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, serverNode.$id.absolutePointer, 'servers'));
         serverNode.create();
       }
     }
@@ -142,12 +142,12 @@ class PathItemNode extends OpenApiNode {
       for (var i = 0; i < parametersList.length; i++) {
         final parameterJson = parametersList[i] as Map<String, dynamic>;
         final parameterNode = ParameterNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'parameters'), '[$i]')),
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'parameters'), '[$i]')),
           parameterJson,
         );
         parametersNodes!.add(parameterNode);
         OpenApiGraph.i.addOpenApiNode(parameterNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, parameterNode.$id.absolutePath, 'parameters'));
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, parameterNode.$id.absolutePointer, 'parameters'));
         parameterNode.create();
       }
     }

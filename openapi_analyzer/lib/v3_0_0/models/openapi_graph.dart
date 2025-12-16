@@ -24,10 +24,10 @@ abstract class Node {
 
 class NodeId {
   final String document;
-  final String relativePath;
-  final String absolutePath;
+  final String jsonPointer;
+  final String absolutePointer;
 
-  const NodeId(this.document, this.relativePath) : absolutePath = '$document$relativePath';
+  const NodeId(this.document, this.jsonPointer) : absolutePointer = '$document#$jsonPointer';
 }
 
 abstract class OpenApiNode extends Node {
@@ -44,6 +44,7 @@ class OpenApiGraph {
   late final ValidationContext validationContext;
   late final ReferenceResolver referenceResolver;
   final Map<String, dynamic> loadedDocuments = {};
+  late final String rootDocumentName;
 
   OpenApiGraph(this.file) {
     i = this;
@@ -79,10 +80,11 @@ class OpenApiGraph {
       }
 
       // Store loaded root document
-      loadedDocuments[file.path] = yamlDoc;
+      rootDocumentName = file.uri.pathSegments.last;
+      loadedDocuments[rootDocumentName] = yamlDoc;
 
       // Create root node
-      final rootId = NodeId(file.uri.pathSegments.last, '/');
+      final rootId = NodeId(rootDocumentName, '/');
       final rootNode = OpenApiDocumentNode(rootId, yamlDoc as Map<String, dynamic>);
       addOpenApiNode(rootNode);
 
@@ -109,9 +111,9 @@ class OpenApiGraph {
   final List<StructuralEdge> schemaStructuralEdges = [];
   final List<ApplicatorEdge> schemaApplicatorEdges = [];
 
-  void addOpenApiNode(OpenApiNode node) => openApiNodes[node.$id.absolutePath] = node;
+  void addOpenApiNode(OpenApiNode node) => openApiNodes[node.$id.absolutePointer] = node;
 
-  void addSchemaNode(SchemaNode node) => schemaNodes[node.$id.absolutePath] = node;
+  void addSchemaNode(SchemaNode node) => schemaNodes[node.$id.absolutePointer] = node;
 
   void addOpenApiEdge(OpenApiEdge edge) => openApiEdges.add(edge);
 
@@ -119,7 +121,7 @@ class OpenApiGraph {
 
   void addSchemaApplicatorEdge(ApplicatorEdge edge) => schemaApplicatorEdges.add(edge);
 
-  T getOpenApiNode<T extends OpenApiNode>(NodeId id) => openApiNodes[id.absolutePath]! as T;
+  T getOpenApiNode<T extends OpenApiNode>(NodeId id) => openApiNodes[id.absolutePointer]! as T;
 
   List<OpenApiNode> getOpenApiNodeParents(OpenApiNode node) =>
       openApiEdges.where((edge) => edge.to == node).map((edge) => edge.from).toList();
@@ -127,7 +129,7 @@ class OpenApiGraph {
   List<Node> getOpenApiNodeChildren(OpenApiNode node) =>
       openApiEdges.where((edge) => edge.from == node).map((edge) => edge.to).toList();
 
-  SchemaNode getSchemaNode(NodeId id) => schemaNodes[id.absolutePath]!;
+  SchemaNode getSchemaNode(NodeId id) => schemaNodes[id.absolutePointer]!;
 
   List<Node> getSchemaNodeStructuralParents<T extends StructuralEdge>(SchemaNode node) =>
       schemaStructuralEdges.where((edge) => edge is T && edge.to == node).map((edge) => edge.from).toList();
@@ -143,6 +145,47 @@ class OpenApiGraph {
 
   List<SchemaNode> getStructuralSchemaRoots() =>
       schemaStructuralEdges.where((edge) => edge is RootEdge).map((edge) => edge.to).toList();
+
+  /// Converts an absolute document path to a relative path for use in NodeId.
+  /// Returns just the filename for the main document, or a relative path for external documents.
+  String getRelativeDocumentPath(String absolutePath) {
+    if (absolutePath == file.path) {
+      return rootDocumentName;
+    }
+    // Get relative path from the base file's directory
+    final baseDir = file.parent.path;
+    if (absolutePath.startsWith(baseDir)) {
+      var relativePath = absolutePath.substring(baseDir.length);
+      // Remove leading slash/backslash
+      if (relativePath.startsWith(Platform.pathSeparator)) {
+        relativePath = relativePath.substring(1);
+      }
+      return relativePath;
+    }
+    // If not in the same directory tree, just return the filename
+    return absolutePath.split(Platform.pathSeparator).last;
+  }
+
+  /// Gets a loaded document by its relative path (as used in NodeId.document).
+  /// For external documents, loads them if not already cached.
+  Map<dynamic, dynamic> getLoadedDocument(String relativeDocPath) {
+    // Check if already loaded
+    if (loadedDocuments.containsKey(relativeDocPath)) {
+      return loadedDocuments[relativeDocPath]!;
+    }
+
+    // If it's not the root document, it must be an external document
+    if (relativeDocPath != rootDocumentName) {
+      // Convert relative path to absolute path for loading
+      final absolutePath = file.parent.path + Platform.pathSeparator + relativeDocPath;
+      final externalDoc = referenceResolver.loadExternalDocument(absolutePath);
+      // Cache it with the relative path
+      loadedDocuments[relativeDocPath] = externalDoc;
+      return externalDoc;
+    }
+
+    return {};
+  }
 }
 
 abstract class Edge {

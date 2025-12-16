@@ -27,7 +27,7 @@ class ResponseNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: description (string)
     final description = ValidationUtils.requireField(json, 'description', path);
@@ -67,12 +67,12 @@ class ResponseNode extends OpenApiNode {
 
         final headerJson = entry.value as Map<String, dynamic>;
         final headerNode = HeaderNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'headers'), headerName)),
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'headers'), headerName)),
           headerJson
         );
         headersNodes![headerName] = headerNode;
         OpenApiGraph.i.addOpenApiNode(headerNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, headerNode.$id.absolutePath, 'headers/$headerName'));
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, headerNode.$id.absolutePointer, 'headers/$headerName'));
         headerNode.create();
       }
     }
@@ -85,12 +85,12 @@ class ResponseNode extends OpenApiNode {
         final mediaType = entry.key.toString();
         final mediaTypeJson = entry.value as Map<String, dynamic>;
         final mediaTypeNode = MediaTypeNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'content'), mediaType)),
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'content'), mediaType)),
           mediaTypeJson,
         );
         contentNodes![mediaType] = mediaTypeNode;
         OpenApiGraph.i.addOpenApiNode(mediaTypeNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, mediaTypeNode.$id.absolutePath, 'content/$mediaType'));
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, mediaTypeNode.$id.absolutePointer, 'content/$mediaType'));
         mediaTypeNode.create();
       }
     }
@@ -105,12 +105,12 @@ class ResponseNode extends OpenApiNode {
 
         final linkJson = entry.value as Map<String, dynamic>;
         final linkNode = LinkNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'links'), linkName)),
+          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'links'), linkName)),
           linkJson,
         );
         linksNodes![linkName] = linkNode;
         OpenApiGraph.i.addOpenApiNode(linkNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, linkNode.$id.absolutePath, 'links/$linkName'));
+        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, linkNode.$id.absolutePointer, 'links/$linkName'));
         linkNode.create();
       }
     }

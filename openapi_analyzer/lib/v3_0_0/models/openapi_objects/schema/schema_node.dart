@@ -42,7 +42,7 @@ class SchemaNode extends Node {
 
   void _validateStructure() {
     _isStructuralValidationPassed = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     _validateType(path);
     _validateNumericConstraints(path);
@@ -242,14 +242,14 @@ class SchemaNode extends Node {
     }
 
     final ref = json['\$ref'] as String;
-    final resolved = OpenApiGraph.i.referenceResolver.parseReference(ref, $id.relativePath);
+    final resolved = OpenApiGraph.i.referenceResolver.parseReference(ref, $id.jsonPointer);
 
     // Load external document if needed
     Map<dynamic, dynamic> targetDoc;
     if (resolved.isExternal) {
       targetDoc = OpenApiGraph.i.referenceResolver.loadExternalDocument(resolved.documentPath);
     } else {
-      targetDoc = OpenApiGraph.i.loadedDocuments[$id.document] ?? {};
+      targetDoc = OpenApiGraph.i.getLoadedDocument($id.document);
     }
 
     // Resolve pointer within document
@@ -258,7 +258,7 @@ class SchemaNode extends Node {
     if (targetJson == null) {
       OpenApiGraph.i.validationContext.addException(
         OpenApiValidationException(
-          $id.relativePath,
+          $id.jsonPointer,
           'Reference not found: $ref',
           specReference: 'OpenAPI 3.0.0 - Reference Object',
           severity: ValidationSeverity.critical,
@@ -268,11 +268,13 @@ class SchemaNode extends Node {
     }
 
     // Check if referenced schema node already exists
-    final targetNodeId = NodeId(resolved.documentPath, resolved.jsonPointer);
+    // Convert absolute path to relative path for NodeId
+    final relativeDocPath = OpenApiGraph.i.getRelativeDocumentPath(resolved.documentPath);
+    final targetNodeId = NodeId(relativeDocPath, resolved.jsonPointer);
     SchemaNode targetNode;
 
-    if (OpenApiGraph.i.schemaNodes.containsKey(targetNodeId.absolutePath)) {
-      targetNode = OpenApiGraph.i.schemaNodes[targetNodeId.absolutePath]!;
+    if (OpenApiGraph.i.schemaNodes.containsKey(targetNodeId.absolutePointer)) {
+      targetNode = OpenApiGraph.i.schemaNodes[targetNodeId.absolutePointer]!;
     } else {
       // Create the referenced schema node recursively
       targetNode = SchemaNode(targetNodeId, targetJson as Map<String, dynamic>);
@@ -299,13 +301,13 @@ class SchemaNode extends Node {
       final propertyNode = SchemaNode(
         NodeId(
           $id.document,
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'properties'), propertyName),
+          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'properties'), propertyName),
         ),
         propertyJson,
       );
       propertiesNodes![propertyName] = propertyNode;
       OpenApiGraph.i.addSchemaNode(propertyNode);
-      OpenApiGraph.i.addSchemaStructuralEdge(PropertiesEdge($id.absolutePath, propertyNode.$id.absolutePath));
+      OpenApiGraph.i.addSchemaStructuralEdge(PropertiesEdge($id.absolutePointer, propertyNode.$id.absolutePointer));
       propertyNode.create();
     }
   }
@@ -316,9 +318,9 @@ class SchemaNode extends Node {
     }
 
     final items = json['items'] as Map<String, dynamic>;
-    itemsNode = SchemaNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'items')), items);
+    itemsNode = SchemaNode(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'items')), items);
     OpenApiGraph.i.addSchemaNode(itemsNode);
-    OpenApiGraph.i.addSchemaStructuralEdge(ItemsEdge($id.absolutePath, itemsNode.$id.absolutePath));
+    OpenApiGraph.i.addSchemaStructuralEdge(ItemsEdge($id.absolutePointer, itemsNode.$id.absolutePointer));
     itemsNode.create();
   }
 
@@ -330,12 +332,12 @@ class SchemaNode extends Node {
     final additionalProps = json['additionalProperties'];
     if (additionalProps is Map) {
       additionalPropertiesNode = SchemaNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'additionalProperties')),
+        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'additionalProperties')),
         additionalProps as Map<String, dynamic>,
       );
       OpenApiGraph.i.addSchemaNode(additionalPropertiesNode!);
       OpenApiGraph.i.addSchemaStructuralEdge(
-        AdditionalPropertiesEdge($id.absolutePath, additionalPropertiesNode!.$id.absolutePath),
+        AdditionalPropertiesEdge($id.absolutePointer, additionalPropertiesNode!.$id.absolutePointer),
       );
       additionalPropertiesNode!.create();
     }
@@ -352,12 +354,12 @@ class SchemaNode extends Node {
     for (var i = 0; i < allOfList.length; i++) {
       final allOfJson = allOfList[i] as Map<String, dynamic>;
       final allOfNode = SchemaNode(
-        NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'allOf'), '[$i]')),
+        NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'allOf'), '[$i]')),
         allOfJson,
       );
       allOfNodes!.add(allOfNode);
       OpenApiGraph.i.addSchemaNode(allOfNode);
-      OpenApiGraph.i.addSchemaApplicatorEdge(AllOfEdge($id.absolutePath, allOfNode.$id.absolutePath));
+      OpenApiGraph.i.addSchemaApplicatorEdge(AllOfEdge($id.absolutePointer, allOfNode.$id.absolutePointer));
       allOfNode.create();
     }
   }
@@ -372,12 +374,12 @@ class SchemaNode extends Node {
     for (var i = 0; i < oneOfList.length; i++) {
       final oneOfJson = oneOfList[i] as Map<String, dynamic>;
       final oneOfNode = SchemaNode(
-        NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'oneOf'), '[$i]')),
+        NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'oneOf'), '[$i]')),
         oneOfJson,
       );
       oneOfNodes!.add(oneOfNode);
       OpenApiGraph.i.addSchemaNode(oneOfNode);
-      OpenApiGraph.i.addSchemaApplicatorEdge(OneOfEdge($id.absolutePath, oneOfNode.$id.absolutePath));
+      OpenApiGraph.i.addSchemaApplicatorEdge(OneOfEdge($id.absolutePointer, oneOfNode.$id.absolutePointer));
       oneOfNode.create();
     }
   }
@@ -392,12 +394,12 @@ class SchemaNode extends Node {
     for (var i = 0; i < anyOfList.length; i++) {
       final anyOfJson = anyOfList[i] as Map<String, dynamic>;
       final anyOfNode = SchemaNode(
-        NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.relativePath, 'anyOf'), '[$i]')),
+        NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'anyOf'), '[$i]')),
         anyOfJson,
       );
       anyOfNodes!.add(anyOfNode);
       OpenApiGraph.i.addSchemaNode(anyOfNode);
-      OpenApiGraph.i.addSchemaApplicatorEdge(AnyOfEdge($id.absolutePath, anyOfNode.$id.absolutePath));
+      OpenApiGraph.i.addSchemaApplicatorEdge(AnyOfEdge($id.absolutePointer, anyOfNode.$id.absolutePointer));
       anyOfNode.create();
     }
   }
@@ -408,7 +410,7 @@ class SchemaNode extends Node {
     }
 
     final xmlJson = json['xml'] as Map<String, dynamic>;
-    xmlNode = XMLNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'xml')), xmlJson);
+    xmlNode = XMLNode(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'xml')), xmlJson);
     OpenApiGraph.i.addOpenApiNode(xmlNode!);
     xmlNode!.create();
     // Note: XML node is connected but not via standard edges
@@ -421,7 +423,7 @@ class SchemaNode extends Node {
 
     final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
     externalDocsNode = ExternalDocumentationNode(
-      NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'externalDocs')),
+      NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'externalDocs')),
       externalDocsJson,
     );
     OpenApiGraph.i.addOpenApiNode(externalDocsNode!);

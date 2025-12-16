@@ -67,7 +67,7 @@ class IntegerTypedSchema extends SingleTypeTypedSchema<int, IntegerTypedSchema> 
 
   /// Validates atomic constraints for integer type.
   static void _validateConstraints(RawSchema raw, SchemaNode node, ValidationContext ctx) {
-    final path = node.$id.relativePath;
+    final path = node.$id.jsonPointer;
 
     if (raw.minimum != null && raw.maximum != null) {
       if (raw.minimum! > raw.maximum!) {

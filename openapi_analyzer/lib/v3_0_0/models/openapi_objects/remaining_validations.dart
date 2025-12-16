@@ -5,7 +5,7 @@
 TAG NODE:
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: name (non-empty string)
     final name = ValidationUtils.requireField(json, 'name', path);
@@ -33,7 +33,7 @@ TAG NODE:
 EXTERNAL DOCUMENTATION NODE:
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: url (non-empty string)
     final url = ValidationUtils.requireField(json, 'url', path);
@@ -56,7 +56,7 @@ EXTERNAL DOCUMENTATION NODE:
 SECURITY REQUIREMENT NODE:
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate structure: map of string to array of strings
     for (final entry in json.entries) {
@@ -80,7 +80,7 @@ SECURITY REQUIREMENT NODE:
 SECURITY SCHEME NODE:
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: type (enum: apiKey, http, oauth2, openIdConnect)
     final type = ValidationUtils.requireField(json, 'type', path);

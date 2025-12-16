@@ -61,7 +61,7 @@ class StringTypedSchema extends SingleTypeTypedSchema<String, StringTypedSchema>
 
   /// Validates atomic constraints for string type.
   static void _validateConstraints(RawSchema raw, SchemaNode node, ValidationContext ctx) {
-    final path = node.$id.relativePath;
+    final path = node.$id.jsonPointer;
 
     if (raw.minLength != null && raw.maxLength != null) {
       if (raw.minLength! > raw.maxLength!) {

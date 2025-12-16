@@ -19,7 +19,7 @@ class ServerVariableNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: default (string)
     final defaultValue = ValidationUtils.requireField(json, 'default', path);

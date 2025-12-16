@@ -18,7 +18,7 @@ class DiscriminatorNode extends OpenApiNode {
   }
 
   void _validateStructure() {
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: propertyName
     ValidationUtils.requireString(

@@ -84,7 +84,7 @@ abstract class TypedSchema<T extends TypedSchema<T>> {
         default:
           ctx.addException(
             OpenApiValidationException(
-              node.$id.relativePath,
+              node.$id.jsonPointer,
               'Invalid type value: "${raw.type}". Must be one of: integer, number, string, boolean, array, object, null',
               specReference: 'OpenAPI 3.0.0 - Schema Object',
               severity: ValidationSeverity.critical,
@@ -118,7 +118,7 @@ abstract class TypedSchema<T extends TypedSchema<T>> {
       if (hasNumericKeywords) conflictingTypes.add('number/integer');
       ctx.addException(
         OpenApiValidationException(
-          node.$id.relativePath,
+          node.$id.jsonPointer,
           'Schema has conflicting type-specific keywords indicating multiple types: ${conflictingTypes.join(", ")}. '
           'Please specify an explicit type or remove conflicting keywords.',
           specReference: 'OpenAPI 3.0.0 - Schema Object',
@@ -152,7 +152,7 @@ abstract class TypedSchema<T extends TypedSchema<T>> {
     // No type information available
     ctx.addException(
       OpenApiValidationException(
-        node.$id.relativePath,
+        node.$id.jsonPointer,
         'Schema has no explicit type and cannot be inferred',
         specReference: 'OpenAPI 3.0.0 - Schema Object',
         severity: ValidationSeverity.low,

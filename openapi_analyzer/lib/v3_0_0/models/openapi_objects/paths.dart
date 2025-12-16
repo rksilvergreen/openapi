@@ -24,7 +24,7 @@ class PathsNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate keys are valid path patterns (start with / or are extension fields)
     for (final key in json.keys) {
@@ -63,12 +63,12 @@ class PathsNode extends OpenApiNode {
       // Create PathItem node for each path
       final pathItemJson = entry.value as Map<String, dynamic>;
       final pathItemNode = PathItemNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, key)),
+        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, key)),
         pathItemJson,
       );
       pathItemNodes[key] = pathItemNode;
       OpenApiGraph.i.addOpenApiNode(pathItemNode);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, pathItemNode.$id.absolutePath, key));
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, pathItemNode.$id.absolutePointer, key));
       pathItemNode.create();
     }
   }

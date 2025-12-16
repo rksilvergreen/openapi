@@ -18,7 +18,7 @@ class OAuthFlowNode extends OpenApiNode {
   }
 
   void _validateStructure() {
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: scopes
     final scopes = ValidationUtils.requireField(json, 'scopes', path);

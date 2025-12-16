@@ -68,7 +68,7 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
     if (validBranches.isEmpty && branches.isNotEmpty) {
       ctx.addException(
         OpenApiValidationException(
-          node.$id.absolutePath,
+          node.$id.absolutePointer,
           'All composition branches are unsatisfiable due to type conflicts or constraint incompatibilities',
           severity: ValidationSeverity.critical,
         ),

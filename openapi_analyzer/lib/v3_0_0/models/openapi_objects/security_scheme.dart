@@ -24,7 +24,7 @@ class SecuritySchemeNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Validate required: type (enum: apiKey, http, oauth2, openIdConnect)
     final type = ValidationUtils.requireField(json, 'type', path);
@@ -77,9 +77,9 @@ class SecuritySchemeNode extends OpenApiNode {
     // Create OAuthFlows node
     if (json.containsKey('flows')) {
       final flowsJson = json['flows'] as Map<String, dynamic>;
-      flowsNode = OAuthFlowsNode(NodeId($id.document, ValidationUtils.buildPath($id.relativePath, 'flows')), flowsJson);
+      flowsNode = OAuthFlowsNode(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'flows')), flowsJson);
       OpenApiGraph.i.addOpenApiNode(flowsNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, flowsNode!.$id.absolutePath, 'flows'));
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, flowsNode!.$id.absolutePointer, 'flows'));
       flowsNode!.create();
     }
   }

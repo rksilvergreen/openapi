@@ -22,7 +22,7 @@ class CallbackNode extends OpenApiNode {
   }
 
   void _validateStructure() {
-    final path = $id.relativePath;
+    final path = $id.jsonPointer;
 
     // Callback is a map of runtime expressions to PathItem objects
     // All fields should be runtime expressions or extension fields
@@ -47,12 +47,12 @@ class CallbackNode extends OpenApiNode {
 
       final pathItemJson = entry.value as Map<String, dynamic>;
       final pathItemNode = PathItemNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.relativePath, expression)),
+        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, expression)),
         pathItemJson,
       );
       expressionsNodes[expression] = pathItemNode;
       OpenApiGraph.i.addOpenApiNode(pathItemNode);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePath, pathItemNode.$id.absolutePath, expression));
+      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, pathItemNode.$id.absolutePointer, expression));
       pathItemNode.create();
     }
   }

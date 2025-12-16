@@ -61,7 +61,7 @@ class ArrayTypedSchema extends SingleTypeTypedSchema<List<dynamic>, ArrayTypedSc
 
   /// Validates atomic constraints for array type.
   static void _validateConstraints(RawSchema raw, SchemaNode node, ValidationContext ctx) {
-    final path = node.$id.relativePath;
+    final path = node.$id.jsonPointer;
 
     if (raw.minItems != null && raw.maxItems != null) {
       if (raw.minItems! > raw.maxItems!) {
