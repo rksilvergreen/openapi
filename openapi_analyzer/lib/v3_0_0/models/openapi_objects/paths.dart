@@ -29,44 +29,33 @@ class PathsNode extends OpenApiNode {
     // Validate keys are valid path patterns (start with / or are extension fields)
     for (final key in json.keys) {
       final keyStr = key.toString();
-      
-      // Skip extension fields
-      if (keyStr.startsWith('x-')) {
-        continue;
-      }
 
       // Validate path starts with /
       if (!keyStr.startsWith('/')) {
-        OpenApiGraph.i.validationContext.addException(OpenApiValidationException(
-          ValidationUtils.buildPath(jsonPointer, keyStr),
-          'Path must start with "/"',
-          specReference: 'OpenAPI 3.0.0 - Paths Object',
-          severity: ValidationSeverity.critical,
-        ));
+        OpenApiGraph.i.validationContext.addException(
+          OpenApiValidationException(
+            ValidationUtils.buildPath(jsonPointer, keyStr),
+            'Path must start with "/"',
+            specReference: 'OpenAPI 3.0.0 - Paths Object',
+            severity: ValidationSeverity.critical,
+          ),
+        );
       }
 
       // Validate value is object (will be PathItem or Reference)
       ValidationUtils.requireMap(json[key], ValidationUtils.buildPath(jsonPointer, keyStr));
     }
   }
+
   void _createChildNodes() {
     pathItemNodes = {};
-    
+
     for (final entry in json.entries) {
       final key = entry.key.toString();
-      
-      // Skip extension fields
-      if (key.startsWith('x-')) {
-        continue;
-      }
 
       // Create PathItem node for each path
       final pathItemJson = entry.value as Map<String, dynamic>;
-      final pathItemNode = PathItemNode(
-        pathItemJson,
-        $id.document,
-        ValidationUtils.buildPath($id.jsonPointer, key),
-      );
+      final pathItemNode = PathItemNode(pathItemJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, key));
       pathItemNodes[key] = pathItemNode;
       if (!OpenApiGraph.i.openApiNodes.containsKey(pathItemNode.$id.absolutePointer)) {
         OpenApiGraph.i.addOpenApiNode(pathItemNode);

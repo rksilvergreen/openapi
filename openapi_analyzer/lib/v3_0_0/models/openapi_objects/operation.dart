@@ -226,7 +226,6 @@ class OperationNode extends OpenApiNode {
     responseNodes = {};
     for (final entry in responsesJson.entries) {
       final statusCode = entry.key.toString();
-      if (statusCode.startsWith('x-')) continue; // Skip extensions
 
       final responseJson = entry.value as Map<String, dynamic>;
       final responseNode = ResponseNode(
@@ -251,7 +250,6 @@ class OperationNode extends OpenApiNode {
       callbackNodes = {};
       for (final entry in callbacksMap.entries) {
         final callbackName = entry.key.toString();
-        if (callbackName.startsWith('x-')) continue; // Skip extensions
 
         final callbackJson = entry.value as Map<String, dynamic>;
         final callbackNode = CallbackNode(

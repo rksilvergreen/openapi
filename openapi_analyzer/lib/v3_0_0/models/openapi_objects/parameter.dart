@@ -178,7 +178,6 @@ class ParameterNode extends OpenApiNode with Referencable {
       examplesNodes = {};
       for (final entry in examplesMap.entries) {
         final exampleName = entry.key.toString();
-        if (exampleName.startsWith('x-')) continue;
 
         final exampleJson = entry.value as Map<String, dynamic>;
         final exampleNode = ExampleNode(

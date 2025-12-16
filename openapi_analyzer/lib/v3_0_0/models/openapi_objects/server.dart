@@ -55,7 +55,6 @@ class ServerNode extends OpenApiNode {
       variablesNodes = {};
       for (final entry in variablesMap.entries) {
         final variableName = entry.key.toString();
-        if (variableName.startsWith('x-')) continue;
 
         final variableJson = entry.value as Map<String, dynamic>;
         final variableNode = ServerVariableNode(

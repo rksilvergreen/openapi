@@ -101,7 +101,6 @@ class ComponentsNode extends OpenApiNode {
       schemasNodes = {};
       for (final entry in schemasMap.entries) {
         final schemaName = entry.key.toString();
-        if (schemaName.startsWith('x-')) continue;
 
         final schemaJson = entry.value as Map<String, dynamic>;
         final schemaNode = SchemaNode(
@@ -124,7 +123,6 @@ class ComponentsNode extends OpenApiNode {
       responsesNodes = {};
       for (final entry in responsesMap.entries) {
         final responseName = entry.key.toString();
-        if (responseName.startsWith('x-')) continue;
 
         final responseJson = entry.value as Map<String, dynamic>;
         final responseNode = ResponseNode(
@@ -149,7 +147,6 @@ class ComponentsNode extends OpenApiNode {
       parametersNodes = {};
       for (final entry in parametersMap.entries) {
         final parameterName = entry.key.toString();
-        if (parameterName.startsWith('x-')) continue;
 
         final parameterJson = entry.value as Map<String, dynamic>;
         final parameterNode = ParameterNode(
@@ -174,7 +171,6 @@ class ComponentsNode extends OpenApiNode {
       examplesNodes = {};
       for (final entry in examplesMap.entries) {
         final exampleName = entry.key.toString();
-        if (exampleName.startsWith('x-')) continue;
 
         final exampleJson = entry.value as Map<String, dynamic>;
         final exampleNode = ExampleNode(
@@ -199,7 +195,6 @@ class ComponentsNode extends OpenApiNode {
       requestBodiesNodes = {};
       for (final entry in requestBodiesMap.entries) {
         final requestBodyName = entry.key.toString();
-        if (requestBodyName.startsWith('x-')) continue;
 
         final requestBodyJson = entry.value as Map<String, dynamic>;
         final requestBodyNode = RequestBodyNode(
@@ -224,7 +219,6 @@ class ComponentsNode extends OpenApiNode {
       headersNodes = {};
       for (final entry in headersMap.entries) {
         final headerName = entry.key.toString();
-        if (headerName.startsWith('x-')) continue;
 
         final headerJson = entry.value as Map<String, dynamic>;
         final headerNode = HeaderNode(
@@ -249,7 +243,6 @@ class ComponentsNode extends OpenApiNode {
       securitySchemesNodes = {};
       for (final entry in securitySchemesMap.entries) {
         final schemeName = entry.key.toString();
-        if (schemeName.startsWith('x-')) continue;
 
         final schemeJson = entry.value as Map<String, dynamic>;
         final schemeNode = SecuritySchemeNode(
@@ -274,7 +267,6 @@ class ComponentsNode extends OpenApiNode {
       linksNodes = {};
       for (final entry in linksMap.entries) {
         final linkName = entry.key.toString();
-        if (linkName.startsWith('x-')) continue;
 
         final linkJson = entry.value as Map<String, dynamic>;
         final linkNode = LinkNode(
@@ -285,7 +277,9 @@ class ComponentsNode extends OpenApiNode {
         linksNodes![linkName] = linkNode;
         if (!OpenApiGraph.i.openApiNodes.containsKey(linkNode.$id.absolutePointer)) {
           OpenApiGraph.i.addOpenApiNode(linkNode);
-          OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, linkNode.$id.absolutePointer, 'links/$linkName'));
+          OpenApiGraph.i.addOpenApiEdge(
+            OpenApiEdge($id.absolutePointer, linkNode.$id.absolutePointer, 'links/$linkName'),
+          );
           linkNode.create();
         }
       }
@@ -297,7 +291,6 @@ class ComponentsNode extends OpenApiNode {
       callbacksNodes = {};
       for (final entry in callbacksMap.entries) {
         final callbackName = entry.key.toString();
-        if (callbackName.startsWith('x-')) continue;
 
         final callbackJson = entry.value as Map<String, dynamic>;
         final callbackNode = CallbackNode(

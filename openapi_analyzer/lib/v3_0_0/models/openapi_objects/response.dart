@@ -9,12 +9,7 @@ class ResponseNode extends OpenApiNode with Referencable {
   ResponseNode._(super.$id, super.json);
 
   factory ResponseNode(Map<String, dynamic> json, String document, String jsonPointer) =>
-      Referencable.getNode<ResponseNode>(
-        json,
-        document,
-        jsonPointer,
-        (nodeId, json) => ResponseNode._(nodeId, json),
-      );
+      Referencable.getNode<ResponseNode>(json, document, jsonPointer, (nodeId, json) => ResponseNode._(nodeId, json));
 
   void create() {
     _validateStructure();
@@ -89,7 +84,6 @@ class ResponseNode extends OpenApiNode with Referencable {
       headersNodes = {};
       for (final entry in headersMap.entries) {
         final headerName = entry.key.toString();
-        if (headerName.startsWith('x-')) continue;
 
         final headerJson = entry.value as Map<String, dynamic>;
         final headerNode = HeaderNode(
@@ -100,7 +94,9 @@ class ResponseNode extends OpenApiNode with Referencable {
         headersNodes![headerName] = headerNode;
         if (!OpenApiGraph.i.openApiNodes.containsKey(headerNode.$id.absolutePointer)) {
           OpenApiGraph.i.addOpenApiNode(headerNode);
-          OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, headerNode.$id.absolutePointer, 'headers/$headerName'));
+          OpenApiGraph.i.addOpenApiEdge(
+            OpenApiEdge($id.absolutePointer, headerNode.$id.absolutePointer, 'headers/$headerName'),
+          );
           headerNode.create();
         }
       }
@@ -115,12 +111,17 @@ class ResponseNode extends OpenApiNode with Referencable {
         final mediaType = entry.key.toString();
         final mediaTypeJson = entry.value as Map<String, dynamic>;
         final mediaTypeNode = MediaTypeNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'content'), mediaType)),
+          NodeId(
+            $id.document,
+            ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'content'), mediaType),
+          ),
           mediaTypeJson,
         );
         contentNodes![mediaType] = mediaTypeNode;
         OpenApiGraph.i.addOpenApiNode(mediaTypeNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, mediaTypeNode.$id.absolutePointer, 'content/$mediaType'));
+        OpenApiGraph.i.addOpenApiEdge(
+          OpenApiEdge($id.absolutePointer, mediaTypeNode.$id.absolutePointer, 'content/$mediaType'),
+        );
         mediaTypeNode.create();
       }
     }
@@ -132,7 +133,6 @@ class ResponseNode extends OpenApiNode with Referencable {
       linksNodes = {};
       for (final entry in linksMap.entries) {
         final linkName = entry.key.toString();
-        if (linkName.startsWith('x-')) continue;
 
         final linkJson = entry.value as Map<String, dynamic>;
         final linkNode = LinkNode(
@@ -143,13 +143,14 @@ class ResponseNode extends OpenApiNode with Referencable {
         linksNodes![linkName] = linkNode;
         if (!OpenApiGraph.i.openApiNodes.containsKey(linkNode.$id.absolutePointer)) {
           OpenApiGraph.i.addOpenApiNode(linkNode);
-          OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, linkNode.$id.absolutePointer, 'links/$linkName'));
+          OpenApiGraph.i.addOpenApiEdge(
+            OpenApiEdge($id.absolutePointer, linkNode.$id.absolutePointer, 'links/$linkName'),
+          );
           linkNode.create();
         }
       }
     }
   }
-
 
   void _createContent() {
     content = Response._($node: this, description: json['description'], extensions: extractExtensions(json));

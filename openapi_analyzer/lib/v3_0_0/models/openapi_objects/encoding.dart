@@ -68,7 +68,6 @@ class EncodingNode extends OpenApiNode {
       headersNodes = {};
       for (final entry in headersMap.entries) {
         final headerName = entry.key.toString();
-        if (headerName.startsWith('x-')) continue;
 
         final headerJson = entry.value as Map<String, dynamic>;
         final headerNode = HeaderNode(

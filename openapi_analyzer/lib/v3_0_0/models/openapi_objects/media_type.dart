@@ -105,7 +105,6 @@ class MediaTypeNode extends OpenApiNode {
       examplesNodes = {};
       for (final entry in examplesMap.entries) {
         final exampleName = entry.key.toString();
-        if (exampleName.startsWith('x-')) continue;
 
         final exampleJson = entry.value as Map<String, dynamic>;
         final exampleNode = ExampleNode(
@@ -129,7 +128,6 @@ class MediaTypeNode extends OpenApiNode {
       encodingNodes = {};
       for (final entry in encodingMap.entries) {
         final propertyName = entry.key.toString();
-        if (propertyName.startsWith('x-')) continue;
 
         final encodingJson = entry.value as Map<String, dynamic>;
         final encodingNode = EncodingNode(

@@ -7,12 +7,7 @@ class CallbackNode extends OpenApiNode with Referencable {
   CallbackNode._(super.$id, super.json);
 
   factory CallbackNode(Map<String, dynamic> json, String document, String jsonPointer) =>
-      Referencable.getNode<CallbackNode>(
-        json,
-        document,
-        jsonPointer,
-        (nodeId, json) => CallbackNode._(nodeId, json),
-      );
+      Referencable.getNode<CallbackNode>(json, document, jsonPointer, (nodeId, json) => CallbackNode._(nodeId, json));
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -32,18 +27,10 @@ class CallbackNode extends OpenApiNode with Referencable {
 
   void _validateStructure() {
     final jsonPointer = $id.jsonPointer;
-
-    // Callback is a map of runtime expressions to PathItem objects
-    // All fields should be runtime expressions or extension fields
     for (final key in json.keys) {
       final keyStr = key.toString();
-      if (!keyStr.startsWith('x-')) {
-        // Runtime expression validation (should be a valid expression or path)
-        // For now, just ensure the value is a map
         ValidationUtils.requireMap(json[key], ValidationUtils.buildPath(jsonPointer, keyStr));
-      }
     }
-
     _structureValidated = true;
   }
 
@@ -52,7 +39,6 @@ class CallbackNode extends OpenApiNode with Referencable {
 
     for (final entry in json.entries) {
       final expression = entry.key.toString();
-      if (expression.startsWith('x-')) continue; // Skip extensions
 
       final pathItemJson = entry.value as Map<String, dynamic>;
       final pathItemNode = PathItemNode(
@@ -68,7 +54,6 @@ class CallbackNode extends OpenApiNode with Referencable {
       }
     }
   }
-
 
   void _createContent() {
     content = Callback._($node: this, extensions: extractExtensions(json));
