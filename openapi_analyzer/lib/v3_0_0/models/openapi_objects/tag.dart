@@ -3,7 +3,8 @@ import '../../validation/validation_utils.dart';
 import 'external_documentation.dart';
 
 class TagNode extends OpenApiNode {
-  TagNode(super.$id, super.json);
+  TagNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -52,8 +53,9 @@ class TagNode extends OpenApiNode {
     if (json.containsKey('externalDocs')) {
       final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
       externalDocsNode = ExternalDocumentationNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'externalDocs')),
         externalDocsJson,
+        $id.document,
+        ValidationUtils.buildPath($id.jsonPointer, 'externalDocs'),
       );
       OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, externalDocsNode!.$id.absolutePointer, 'externalDocs'));

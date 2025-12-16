@@ -3,7 +3,8 @@ import '../../validation/validation_utils.dart';
 import 'oauth_flow.dart';
 
 class OAuthFlowsNode extends OpenApiNode {
-  OAuthFlowsNode(super.$id, super.json);
+  OAuthFlowsNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -60,8 +61,9 @@ class OAuthFlowsNode extends OpenApiNode {
     if (json.containsKey('implicit')) {
       final implicitJson = json['implicit'] as Map<String, dynamic>;
       implicitNode = OAuthFlowNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'implicit')),
         implicitJson,
+        $id.document,
+        ValidationUtils.buildPath($id.jsonPointer, 'implicit'),
       );
       OpenApiGraph.i.addOpenApiNode(implicitNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, implicitNode!.$id.absolutePointer, 'implicit'));
@@ -72,8 +74,9 @@ class OAuthFlowsNode extends OpenApiNode {
     if (json.containsKey('password')) {
       final passwordJson = json['password'] as Map<String, dynamic>;
       passwordNode = OAuthFlowNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'password')),
         passwordJson,
+        $id.document,
+        ValidationUtils.buildPath($id.jsonPointer, 'password'),
       );
       OpenApiGraph.i.addOpenApiNode(passwordNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, passwordNode!.$id.absolutePointer, 'password'));
@@ -84,8 +87,9 @@ class OAuthFlowsNode extends OpenApiNode {
     if (json.containsKey('clientCredentials')) {
       final clientCredentialsJson = json['clientCredentials'] as Map<String, dynamic>;
       clientCredentialsNode = OAuthFlowNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'clientCredentials')),
         clientCredentialsJson,
+        $id.document,
+        ValidationUtils.buildPath($id.jsonPointer, 'clientCredentials'),
       );
       OpenApiGraph.i.addOpenApiNode(clientCredentialsNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, clientCredentialsNode!.$id.absolutePointer, 'clientCredentials'));
@@ -96,8 +100,9 @@ class OAuthFlowsNode extends OpenApiNode {
     if (json.containsKey('authorizationCode')) {
       final authorizationCodeJson = json['authorizationCode'] as Map<String, dynamic>;
       authorizationCodeNode = OAuthFlowNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'authorizationCode')),
         authorizationCodeJson,
+        $id.document,
+        ValidationUtils.buildPath($id.jsonPointer, 'authorizationCode'),
       );
       OpenApiGraph.i.addOpenApiNode(authorizationCodeNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, authorizationCodeNode!.$id.absolutePointer, 'authorizationCode'));

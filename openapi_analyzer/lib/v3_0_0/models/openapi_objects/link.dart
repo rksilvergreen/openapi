@@ -82,7 +82,7 @@ class LinkNode extends OpenApiNode with Referencable {
     // Create Server node
     if (json.containsKey('server')) {
       final serverJson = json['server'] as Map<String, dynamic>;
-      serverNode = ServerNode(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'server')), serverJson);
+      serverNode = ServerNode(serverJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, 'server'));
       OpenApiGraph.i.addOpenApiNode(serverNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, serverNode!.$id.absolutePointer, 'server'));
       serverNode!.create();

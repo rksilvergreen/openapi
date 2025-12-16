@@ -2,7 +2,8 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
 class OAuthFlowNode extends OpenApiNode {
-  OAuthFlowNode(super.$id, super.json);
+  OAuthFlowNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;

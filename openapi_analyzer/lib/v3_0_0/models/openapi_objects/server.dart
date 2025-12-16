@@ -4,7 +4,8 @@ import '../node_creation_helpers.dart';
 import 'server_variable.dart';
 
 class ServerNode extends OpenApiNode {
-  ServerNode(super.$id, super.json);
+  ServerNode(Map<String, dynamic> json, String document, String jsonPointer)
+    : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -51,7 +52,8 @@ class ServerNode extends OpenApiNode {
   void _createServerVariableNodes() {
     variablesNodes = createMapNode<ServerVariableNode>(
       jsonKey: 'variables',
-      factory: ({required id, required json}) => ServerVariableNode(id, json),
+      factory: ({required json, required document, required jsonPointer}) =>
+          ServerVariableNode(json, document, jsonPointer),
     );
   }
 

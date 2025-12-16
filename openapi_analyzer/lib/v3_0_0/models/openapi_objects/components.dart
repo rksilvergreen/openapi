@@ -13,7 +13,8 @@ import 'link.dart';
 import 'callback.dart';
 
 class ComponentsNode extends OpenApiNode {
-  ComponentsNode(super.$id, super.json);
+  ComponentsNode(Map<String, dynamic> json, String document, String jsonPointer)
+    : super(NodeId(document, jsonPointer), json);
 
   void create() {
     _validateStructure();

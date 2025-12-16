@@ -5,7 +5,8 @@ import 'enums.dart';
 import 'header.dart';
 
 class EncodingNode extends OpenApiNode {
-  EncodingNode(super.$id, super.json);
+  EncodingNode(Map<String, dynamic> json, String document, String jsonPointer)
+    : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;

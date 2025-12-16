@@ -12,7 +12,8 @@ import 'server.dart';
 // import 'paths.dart';
 
 class OperationNode extends OpenApiNode {
-  OperationNode(super.$id, super.json);
+  OperationNode(Map<String, dynamic> json, String document, String jsonPointer)
+    : super(NodeId(document, jsonPointer), json);
 
   void create() {
     _validateStructure();
@@ -168,7 +169,8 @@ class OperationNode extends OpenApiNode {
   void _createExternalDocsNode() {
     externalDocsNode = createNode<ExternalDocumentationNode>(
       jsonKey: 'externalDocs',
-      factory: ({required id, required json}) => ExternalDocumentationNode(id, json),
+      factory: ({required json, required document, required jsonPointer}) =>
+          ExternalDocumentationNode(json, document, jsonPointer),
     );
   }
 
@@ -205,14 +207,15 @@ class OperationNode extends OpenApiNode {
   void _createSecurityRequirementNodes() {
     securityRequirementNodes = createListNode<SecurityRequirementNode>(
       jsonKey: 'security',
-      factory: ({required id, required json}) => SecurityRequirementNode(id, json),
+      factory: ({required json, required document, required jsonPointer}) =>
+          SecurityRequirementNode(json, document, jsonPointer),
     );
   }
 
   void _createServerNodes() {
     serverNodes = createListNode<ServerNode>(
       jsonKey: 'servers',
-      factory: ({required id, required json}) => ServerNode(id, json),
+      factory: ({required json, required document, required jsonPointer}) => ServerNode(json, document, jsonPointer),
     );
   }
 

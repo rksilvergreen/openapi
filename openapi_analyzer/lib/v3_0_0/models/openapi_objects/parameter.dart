@@ -193,7 +193,7 @@ class ParameterNode extends OpenApiNode with Referencable {
   void _createContentNodes() {
     contentNodes = createMapNode<MediaTypeNode>(
       jsonKey: 'content',
-      factory: ({required id, required json}) => MediaTypeNode(id, json),
+      factory: ({required json, required document, required jsonPointer}) => MediaTypeNode(json, document, jsonPointer),
     );
   }
 

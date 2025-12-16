@@ -2,7 +2,8 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
 class XMLNode extends OpenApiNode {
-  XMLNode(super.$id, super.json);
+  XMLNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;

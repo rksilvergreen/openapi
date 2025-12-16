@@ -4,7 +4,8 @@ import 'contact.dart';
 import 'license.dart';
 
 class InfoNode extends OpenApiNode {
-  InfoNode(super.$id, super.json);
+  InfoNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   void create() {
     _validateStructure();
@@ -69,8 +70,9 @@ class InfoNode extends OpenApiNode {
     if (json.containsKey('contact')) {
       final contactJson = json['contact'] as Map<String, dynamic>;
       contactNode = ContactNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'contact')),
         contactJson,
+        $id.document,
+        ValidationUtils.buildPath($id.jsonPointer, 'contact'),
       );
       OpenApiGraph.i.addOpenApiNode(contactNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, contactNode!.$id.absolutePointer, 'contact'));
@@ -81,8 +83,9 @@ class InfoNode extends OpenApiNode {
     if (json.containsKey('license')) {
       final licenseJson = json['license'] as Map<String, dynamic>;
       licenseNode = LicenseNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'license')),
         licenseJson,
+        $id.document,
+        ValidationUtils.buildPath($id.jsonPointer, 'license'),
       );
       OpenApiGraph.i.addOpenApiNode(licenseNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, licenseNode!.$id.absolutePointer, 'license'));

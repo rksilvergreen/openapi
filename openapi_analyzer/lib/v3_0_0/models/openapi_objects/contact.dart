@@ -2,7 +2,8 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
 class ContactNode extends OpenApiNode {
-  ContactNode(super.$id, super.json);
+  ContactNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;

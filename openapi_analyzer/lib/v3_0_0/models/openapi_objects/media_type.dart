@@ -8,7 +8,8 @@ import 'example.dart';
 import 'encoding.dart';
 
 class MediaTypeNode extends OpenApiNode {
-  MediaTypeNode(super.$id, super.json);
+  MediaTypeNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   void create() {
     _validateStructure();
@@ -108,7 +109,7 @@ class MediaTypeNode extends OpenApiNode {
   void _createEncodingNodes() {
     encodingNodes = createMapNode<EncodingNode>(
       jsonKey: 'encoding',
-      factory: ({required id, required json}) => EncodingNode(id, json),
+      factory: ({required json, required document, required jsonPointer}) => EncodingNode(json, document, jsonPointer),
     );
   }
 

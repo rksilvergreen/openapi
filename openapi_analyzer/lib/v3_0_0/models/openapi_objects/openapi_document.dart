@@ -10,7 +10,8 @@ import 'tag.dart';
 import 'external_documentation.dart';
 
 class OpenApiDocumentNode extends OpenApiNode {
-  OpenApiDocumentNode(super.$id, super.json);
+  OpenApiDocumentNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -123,14 +124,14 @@ class OpenApiDocumentNode extends OpenApiNode {
     infoNode = createNode<InfoNode>(
       jsonKey: 'info',
       required: true,
-      factory: ({required id, required json}) => InfoNode(id, json),
+      factory: ({required json, required document, required jsonPointer}) => InfoNode(json, document, jsonPointer),
     )!;
   }
 
   void _createServersNodes() {
     serversNode = createListNode<ServerNode>(
       jsonKey: 'servers',
-      factory: ({required id, required json}) => ServerNode(id, json),
+      factory: ({required json, required document, required jsonPointer}) => ServerNode(json, document, jsonPointer),
     );
   }
 
@@ -138,32 +139,35 @@ class OpenApiDocumentNode extends OpenApiNode {
     pathsNode = createNode<PathsNode>(
       jsonKey: 'paths',
       required: true,
-      factory: ({required id, required json}) => PathsNode(id, json),
+      factory: ({required json, required document, required jsonPointer}) => PathsNode(json, document, jsonPointer),
     )!;
   }
 
   void _createComponentsNode() {
     componentsNode = createNode<ComponentsNode>(
       jsonKey: 'components',
-      factory: ({required id, required json}) => ComponentsNode(id, json),
+      factory: ({required json, required document, required jsonPointer}) => ComponentsNode(json, document, jsonPointer),
     );
   }
 
   void _createSecurityNodes() {
     securityNode = createListNode<SecurityRequirementNode>(
       jsonKey: 'security',
-      factory: ({required id, required json}) => SecurityRequirementNode(id, json),
+      factory: ({required json, required document, required jsonPointer}) => SecurityRequirementNode(json, document, jsonPointer),
     );
   }
 
   void _createTagsNodes() {
-    tagsNode = createListNode<TagNode>(jsonKey: 'tags', factory: ({required id, required json}) => TagNode(id, json));
+    tagsNode = createListNode<TagNode>(
+      jsonKey: 'tags',
+      factory: ({required json, required document, required jsonPointer}) => TagNode(json, document, jsonPointer),
+    );
   }
 
   void _createExternalDocsNode() {
     externalDocsNode = createNode<ExternalDocumentationNode>(
       jsonKey: 'externalDocs',
-      factory: ({required id, required json}) => ExternalDocumentationNode(id, json),
+      factory: ({required json, required document, required jsonPointer}) => ExternalDocumentationNode(json, document, jsonPointer),
     );
   }
 

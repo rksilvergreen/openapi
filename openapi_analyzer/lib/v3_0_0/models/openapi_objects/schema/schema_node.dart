@@ -91,13 +91,22 @@ class SchemaNode extends Node with Referencable {
       ValidationUtils.requireNumber(json['maximum'], ValidationUtils.buildPath(jsonPointer, 'maximum'));
     }
     if (json.containsKey('exclusiveMinimum')) {
-      ValidationUtils.requireNumber(json['exclusiveMinimum'], ValidationUtils.buildPath(jsonPointer, 'exclusiveMinimum'));
+      ValidationUtils.requireNumber(
+        json['exclusiveMinimum'],
+        ValidationUtils.buildPath(jsonPointer, 'exclusiveMinimum'),
+      );
     }
     if (json.containsKey('exclusiveMaximum')) {
-      ValidationUtils.requireNumber(json['exclusiveMaximum'], ValidationUtils.buildPath(jsonPointer, 'exclusiveMaximum'));
+      ValidationUtils.requireNumber(
+        json['exclusiveMaximum'],
+        ValidationUtils.buildPath(jsonPointer, 'exclusiveMaximum'),
+      );
     }
     if (json.containsKey('multipleOf')) {
-      final val = ValidationUtils.requireNumber(json['multipleOf'], ValidationUtils.buildPath(jsonPointer, 'multipleOf'));
+      final val = ValidationUtils.requireNumber(
+        json['multipleOf'],
+        ValidationUtils.buildPath(jsonPointer, 'multipleOf'),
+      );
       ValidationUtils.validatePositive(val, ValidationUtils.buildPath(jsonPointer, 'multipleOf'));
     }
   }
@@ -137,15 +146,24 @@ class SchemaNode extends Node with Referencable {
 
   void _validateObjectConstraints(String jsonPointer) {
     if (json.containsKey('minProperties')) {
-      final val = ValidationUtils.requireInt(json['minProperties'], ValidationUtils.buildPath(jsonPointer, 'minProperties'));
+      final val = ValidationUtils.requireInt(
+        json['minProperties'],
+        ValidationUtils.buildPath(jsonPointer, 'minProperties'),
+      );
       ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'minProperties'));
     }
     if (json.containsKey('maxProperties')) {
-      final val = ValidationUtils.requireInt(json['maxProperties'], ValidationUtils.buildPath(jsonPointer, 'maxProperties'));
+      final val = ValidationUtils.requireInt(
+        json['maxProperties'],
+        ValidationUtils.buildPath(jsonPointer, 'maxProperties'),
+      );
       ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'maxProperties'));
     }
     if (json.containsKey('required')) {
-      final required = ValidationUtils.requireList(json['required'], ValidationUtils.buildPath(jsonPointer, 'required'));
+      final required = ValidationUtils.requireList(
+        json['required'],
+        ValidationUtils.buildPath(jsonPointer, 'required'),
+      );
       for (var i = 0; i < required.length; i++) {
         ValidationUtils.requireString(
           required[i],
@@ -363,7 +381,7 @@ class SchemaNode extends Node with Referencable {
     }
 
     final xmlJson = json['xml'] as Map<String, dynamic>;
-    xmlNode = XMLNode(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'xml')), xmlJson);
+    xmlNode = XMLNode(xmlJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, 'xml'));
     OpenApiGraph.i.addOpenApiNode(xmlNode!);
     xmlNode!.create();
     // Note: XML node is connected but not via standard edges
@@ -376,8 +394,9 @@ class SchemaNode extends Node with Referencable {
 
     final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
     externalDocsNode = ExternalDocumentationNode(
-      NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'externalDocs')),
       externalDocsJson,
+      $id.document,
+      ValidationUtils.buildPath($id.jsonPointer, 'externalDocs'),
     );
     OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
     externalDocsNode!.create();

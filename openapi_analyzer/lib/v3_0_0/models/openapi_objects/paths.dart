@@ -4,7 +4,8 @@ import '../../../validation_exception.dart';
 import 'path_item.dart';
 
 class PathsNode extends OpenApiNode {
-  PathsNode(super.$id, super.json);
+  PathsNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;

@@ -85,8 +85,7 @@ class OpenApiGraph {
       loadedDocuments[rootDocumentName] = yamlDoc;
 
       // Create root node
-      final rootId = NodeId(rootDocumentName, '/');
-      final rootNode = OpenApiDocumentNode(rootId, yamlDoc as Map<String, dynamic>);
+      final rootNode = OpenApiDocumentNode(yamlDoc as Map<String, dynamic>, rootDocumentName, '/');
       addOpenApiNode(rootNode);
 
       // Trigger three-stage pipeline

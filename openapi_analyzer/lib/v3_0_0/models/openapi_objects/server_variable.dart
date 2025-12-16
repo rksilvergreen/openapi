@@ -2,7 +2,8 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
 class ServerVariableNode extends OpenApiNode {
-  ServerVariableNode(super.$id, super.json);
+  ServerVariableNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;

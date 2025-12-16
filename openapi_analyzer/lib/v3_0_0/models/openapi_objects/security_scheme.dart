@@ -86,7 +86,7 @@ class SecuritySchemeNode extends OpenApiNode with Referencable {
     // Create OAuthFlows node
     if (json.containsKey('flows')) {
       final flowsJson = json['flows'] as Map<String, dynamic>;
-      flowsNode = OAuthFlowsNode(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'flows')), flowsJson);
+      flowsNode = OAuthFlowsNode(flowsJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, 'flows'));
       OpenApiGraph.i.addOpenApiNode(flowsNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, flowsNode!.$id.absolutePointer, 'flows'));
       flowsNode!.create();

@@ -110,8 +110,9 @@ class PathItemNode extends OpenApiNode with Referencable {
       if (json.containsKey(method)) {
         final operationJson = json[method] as Map<String, dynamic>;
         final operationNode = OperationNode(
-          NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, method)),
-          operationJson
+          operationJson,
+          $id.document,
+          ValidationUtils.buildPath($id.jsonPointer, method),
         );
         
         switch (method) {
@@ -151,7 +152,7 @@ class PathItemNode extends OpenApiNode with Referencable {
   void _createServersNodes() {
     serversNodes = createListNode<ServerNode>(
       jsonKey: 'servers',
-      factory: ({required id, required json}) => ServerNode(id, json),
+      factory: ({required json, required document, required jsonPointer}) => ServerNode(json, document, jsonPointer),
     );
   }
 
