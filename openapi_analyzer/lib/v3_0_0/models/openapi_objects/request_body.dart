@@ -6,6 +6,7 @@ import 'media_type.dart';
 class RequestBodyNode extends OpenApiNode {
   RequestBodyNode(super.$id, super.json);
 
+
   void create() {
     _validateStructure();
     _createChildNodes();

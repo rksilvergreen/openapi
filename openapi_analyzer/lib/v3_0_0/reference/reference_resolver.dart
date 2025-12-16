@@ -2,9 +2,10 @@ import 'dart:io';
 import 'package:yaml/yaml.dart';
 import '../../validation_exception.dart';
 import '../validation/validation_context.dart';
+import '../models/openapi_graph.dart';
 
 /// Handles resolution of $ref references in OpenAPI documents.
-/// 
+///
 /// Supports both internal references (#/components/schemas/User) and
 /// external references (common.yaml#/definitions/Base).
 class ReferenceResolver {
@@ -18,7 +19,7 @@ class ReferenceResolver {
   }
 
   /// Parses a $ref string into its components.
-  /// 
+  ///
   /// Returns a [ResolvedReference] with document path and JSON pointer.
   ResolvedReference parseReference(String ref, String currentPath) {
     if (ref.startsWith('#')) {
@@ -40,11 +41,7 @@ class ReferenceResolver {
     } else {
       // External reference without fragment (references whole document)
       final externalPath = _resolveExternalPath(ref);
-      return ResolvedReference(
-        documentPath: externalPath,
-        jsonPointer: '/',
-        isExternal: true,
-      );
+      return ResolvedReference(documentPath: externalPath, jsonPointer: '/', isExternal: true);
     }
   }
 
@@ -56,7 +53,7 @@ class ReferenceResolver {
   }
 
   /// Loads an external document if not already cached.
-  /// 
+  ///
   /// Returns the parsed YAML content as a Map.
   Map<dynamic, dynamic> loadExternalDocument(String documentPath) {
     if (_loadedDocuments.containsKey(documentPath)) {
@@ -65,44 +62,50 @@ class ReferenceResolver {
 
     final file = File(documentPath);
     if (!file.existsSync()) {
-      validationContext.addException(OpenApiValidationException(
-        '/',
-        'External reference file not found: $documentPath',
-        specReference: 'OpenAPI 3.0.0 - Reference Object',
-        severity: ValidationSeverity.critical,
-      ));
+      validationContext.addException(
+        OpenApiValidationException(
+          '/',
+          'External reference file not found: $documentPath',
+          specReference: 'OpenAPI 3.0.0 - Reference Object',
+          severity: ValidationSeverity.critical,
+        ),
+      );
       return {};
     }
 
     try {
       final yamlContent = file.readAsStringSync();
       final yamlDoc = loadYaml(yamlContent);
-      
+
       if (yamlDoc is! Map) {
-        validationContext.addException(OpenApiValidationException(
-          '/',
-          'External document must be an object: $documentPath',
-          specReference: 'OpenAPI 3.0.0 - Reference Object',
-          severity: ValidationSeverity.critical,
-        ));
+        validationContext.addException(
+          OpenApiValidationException(
+            '/',
+            'External document must be an object: $documentPath',
+            specReference: 'OpenAPI 3.0.0 - Reference Object',
+            severity: ValidationSeverity.critical,
+          ),
+        );
         return {};
       }
 
       _loadedDocuments[documentPath] = yamlDoc;
       return yamlDoc;
     } catch (e) {
-      validationContext.addException(OpenApiValidationException(
-        '/',
-        'Failed to load external document: $documentPath. Error: $e',
-        specReference: 'OpenAPI 3.0.0 - Reference Object',
-        severity: ValidationSeverity.critical,
-      ));
+      validationContext.addException(
+        OpenApiValidationException(
+          '/',
+          'Failed to load external document: $documentPath. Error: $e',
+          specReference: 'OpenAPI 3.0.0 - Reference Object',
+          severity: ValidationSeverity.critical,
+        ),
+      );
       return {};
     }
   }
 
   /// Resolves a JSON pointer within a document.
-  /// 
+  ///
   /// Returns the referenced value or null if not found.
   dynamic resolvePointer(Map<dynamic, dynamic> document, String jsonPointer) {
     if (jsonPointer == '/' || jsonPointer.isEmpty) {
@@ -135,11 +138,11 @@ class ReferenceResolver {
   }
 
   /// Fully resolves a $ref string to its target value.
-  /// 
+  ///
   /// Handles both internal and external references.
   dynamic resolve(String ref, String currentPath) {
     final resolved = parseReference(ref, currentPath);
-    
+
     // Load document if external
     final document = resolved.isExternal
         ? loadExternalDocument(resolved.documentPath)
@@ -147,6 +150,177 @@ class ReferenceResolver {
 
     // Resolve pointer within document
     return resolvePointer(document, resolved.jsonPointer);
+  }
+
+  /// Validates the format of a $ref string according to OpenAPI 3.0.0 and JSON Reference specs.
+  /// Checks for proper URI format, JSON pointer syntax, and encoding.
+  void validateRefFormat(String ref, String path) {
+    if (ref.isEmpty) {
+      validationContext.addException(
+        OpenApiValidationException(
+          path,
+          '\$ref cannot be an empty string',
+          specReference: 'OpenAPI 3.0.0 - Reference Object',
+          severity: ValidationSeverity.critical,
+        ),
+      );
+      return;
+    }
+
+    if (ref.startsWith('#')) {
+      // Internal reference - validate JSON pointer format
+      if (ref.length == 1) {
+        validationContext.addException(
+          OpenApiValidationException(
+            path,
+            '\$ref "#" is invalid - must include JSON pointer',
+            specReference: 'RFC 6901 - JSON Pointer',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+        return;
+      }
+
+      final jsonPointer = ref.substring(1);
+      if (!jsonPointer.startsWith('/')) {
+        validationContext.addException(
+          OpenApiValidationException(
+            path,
+            '\$ref "$ref" is invalid - JSON pointer must start with "/" after "#"',
+            specReference: 'RFC 6901 - JSON Pointer',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+      }
+
+      // Validate JSON pointer encoding
+      _validateJsonPointerEncoding(jsonPointer, path, ref);
+    } else {
+      // External reference - validate URI and optional fragment
+      if (ref.contains('#')) {
+        final parts = ref.split('#');
+        if (parts[0].isEmpty) {
+          validationContext.addException(
+            OpenApiValidationException(
+              path,
+              '\$ref "$ref" is invalid - document path cannot be empty before "#"',
+              specReference: 'OpenAPI 3.0.0 - Reference Object',
+              severity: ValidationSeverity.critical,
+            ),
+          );
+          return;
+        }
+
+        if (parts.length > 1 && parts[1].isNotEmpty && !parts[1].startsWith('/')) {
+          validationContext.addException(
+            OpenApiValidationException(
+              path,
+              '\$ref "$ref" is invalid - fragment must be a valid JSON pointer starting with "/"',
+              specReference: 'RFC 6901 - JSON Pointer',
+              severity: ValidationSeverity.critical,
+            ),
+          );
+        }
+
+        // Validate JSON pointer in fragment if present
+        if (parts.length > 1 && parts[1].isNotEmpty) {
+          _validateJsonPointerEncoding(parts[1], path, ref);
+        }
+      }
+
+      // Validate file extension (moderate severity, not critical)
+      final filePath = ref.split('#')[0];
+      if (!filePath.endsWith('.yaml') && !filePath.endsWith('.yml') && !filePath.endsWith('.json')) {
+        validationContext.addException(
+          OpenApiValidationException(
+            path,
+            '\$ref "$ref" should reference a .yaml, .yml, or .json file',
+            specReference: 'OpenAPI 3.0.0 - Reference Object',
+            severity: ValidationSeverity.moderate,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Validates JSON pointer encoding according to RFC 6901.
+  /// JSON pointers can only use ~0 (for ~) and ~1 (for /) escape sequences.
+  void _validateJsonPointerEncoding(String pointer, String path, String fullRef) {
+    // Check for invalid escape sequences (~ not followed by 0 or 1)
+    final invalidEscape = RegExp(r'~(?![01])');
+    if (invalidEscape.hasMatch(pointer)) {
+      validationContext.addException(
+        OpenApiValidationException(
+          path,
+          '\$ref "$fullRef" contains invalid escape sequence in JSON pointer - only ~0 and ~1 are allowed',
+          specReference: 'RFC 6901 - JSON Pointer',
+          severity: ValidationSeverity.critical,
+        ),
+      );
+    }
+
+    // Check for trailing ~ without 0 or 1
+    if (pointer.endsWith('~')) {
+      validationContext.addException(
+        OpenApiValidationException(
+          path,
+          '\$ref "$fullRef" contains incomplete escape sequence at end of JSON pointer',
+          specReference: 'RFC 6901 - JSON Pointer',
+          severity: ValidationSeverity.critical,
+        ),
+      );
+    }
+  }
+
+  /// Resolves a reference if present, or returns the original JSON with its ID.
+  /// Returns: (NodeId, JSON, bool wasReference) - the actual target if $ref, or original if not
+  (NodeId, Map<String, dynamic>, bool) resolveReferenceIfPresent(
+    Map<String, dynamic> json,
+    NodeId localId,
+    String currentPath,
+  ) {
+    // Check for $ref
+    if (!json.containsKey('\$ref')) {
+      return (localId, json, false);
+    }
+
+    final ref = json['\$ref'] as String;
+
+    // Validate format
+    validateRefFormat(ref, '$currentPath/\$ref');
+
+    // Parse reference
+    final resolved = parseReference(ref, currentPath);
+
+    // Load target document
+    Map<dynamic, dynamic> targetDoc;
+    if (resolved.isExternal) {
+      targetDoc = loadExternalDocument(resolved.documentPath);
+    } else {
+      targetDoc = OpenApiGraph.i.getLoadedDocument(localId.document);
+    }
+
+    // Resolve pointer
+    final targetJson = resolvePointer(targetDoc, resolved.jsonPointer);
+
+    if (targetJson == null) {
+      validationContext.addException(
+        OpenApiValidationException(
+          currentPath,
+          'Reference not found: $ref',
+          specReference: 'OpenAPI 3.0.0 - Reference Object',
+          severity: ValidationSeverity.critical,
+        ),
+      );
+      // Return original on error
+      return (localId, json, false);
+    }
+
+    // Get target ID
+    final relativeDocPath = OpenApiGraph.i.getRelativeDocumentPath(resolved.documentPath);
+    final targetId = NodeId(relativeDocPath, resolved.jsonPointer);
+
+    return (targetId, targetJson as Map<String, dynamic>, true);
   }
 }
 
@@ -156,15 +330,8 @@ class ResolvedReference {
   final String jsonPointer;
   final bool isExternal;
 
-  ResolvedReference({
-    required this.documentPath,
-    required this.jsonPointer,
-    required this.isExternal,
-  });
+  ResolvedReference({required this.documentPath, required this.jsonPointer, required this.isExternal});
 
   @override
-  String toString() => isExternal 
-      ? '$documentPath#$jsonPointer'
-      : '#$jsonPointer';
+  String toString() => isExternal ? '$documentPath#$jsonPointer' : '#$jsonPointer';
 }
-
