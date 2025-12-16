@@ -2,10 +2,18 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 import 'media_type.dart';
+import '../referencable.dart';
 
-class RequestBodyNode extends OpenApiNode {
-  RequestBodyNode(super.$id, super.json);
+class RequestBodyNode extends OpenApiNode with Referencable {
+  RequestBodyNode._(super.$id, super.json);
 
+  factory RequestBodyNode(Map<String, dynamic> json, String document, String jsonPointer) =>
+      Referencable.getNode<RequestBodyNode>(
+        json,
+        document,
+        jsonPointer,
+        (nodeId, json) => RequestBodyNode._(nodeId, json),
+      );
 
   void create() {
     _validateStructure();

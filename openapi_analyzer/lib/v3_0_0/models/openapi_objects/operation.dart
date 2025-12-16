@@ -168,25 +168,18 @@ class OperationNode extends OpenApiNode {
     if (json.containsKey('requestBody')) {
       final requestBodyJson = json['requestBody'] as Map<String, dynamic>;
 
-      // Resolve reference if present
-      final (nodeId, actualJson, wasReference) = OpenApiGraph.i.referenceResolver.resolveReferenceIfPresent(
+      requestBodyNode = RequestBodyNode(
         requestBodyJson,
-        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'requestBody')),
-        $id.jsonPointer,
+        $id.document,
+        ValidationUtils.buildPath($id.jsonPointer, 'requestBody'),
       );
-
-      // Check if node already exists (for references)
-      if (wasReference && OpenApiGraph.i.openApiNodes.containsKey(nodeId.absolutePointer)) {
-        requestBodyNode = OpenApiGraph.i.openApiNodes[nodeId.absolutePointer] as RequestBodyNode;
-      } else {
-        requestBodyNode = RequestBodyNode(nodeId, actualJson);
+      if (!OpenApiGraph.i.openApiNodes.containsKey(requestBodyNode!.$id.absolutePointer)) {
         OpenApiGraph.i.addOpenApiNode(requestBodyNode!);
+        OpenApiGraph.i.addOpenApiEdge(
+          OpenApiEdge($id.absolutePointer, requestBodyNode!.$id.absolutePointer, 'requestBody'),
+        );
         requestBodyNode!.create();
       }
-
-      OpenApiGraph.i.addOpenApiEdge(
-        OpenApiEdge($id.absolutePointer, requestBodyNode!.$id.absolutePointer, 'requestBody'),
-      );
     }
 
     // Create Response nodes

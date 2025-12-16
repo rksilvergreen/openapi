@@ -272,20 +272,10 @@ class ReferenceResolver {
     }
   }
 
-  /// Resolves a reference if present, or returns the original JSON with its ID.
-  /// Returns: (NodeId, JSON, bool wasReference) - the actual target if $ref, or original if not
-  (NodeId, Map<String, dynamic>, bool) resolveReferenceIfPresent(
-    Map<String, dynamic> json,
-    NodeId localId,
-    String currentPath,
-  ) {
-    // Check for $ref
-    if (!json.containsKey('\$ref')) {
-      return (localId, json, false);
-    }
-
-    final ref = json['\$ref'] as String;
-
+  /// Resolves a $ref string to its target NodeId and JSON.
+  /// Returns: (NodeId, JSON) - the target's ID and content
+  /// Throws ValidationException if reference is invalid or not found.
+  (NodeId, Map<String, dynamic>) resolveReference(String ref, String currentPath) {
     // Validate format
     validateRefFormat(ref, '$currentPath/\$ref');
 
@@ -297,7 +287,8 @@ class ReferenceResolver {
     if (resolved.isExternal) {
       targetDoc = loadExternalDocument(resolved.documentPath);
     } else {
-      targetDoc = OpenApiGraph.i.getLoadedDocument(localId.document);
+      // For internal references, we need to infer the document from base file
+      targetDoc = OpenApiGraph.i.getLoadedDocument(OpenApiGraph.i.rootDocumentName);
     }
 
     // Resolve pointer
@@ -312,15 +303,19 @@ class ReferenceResolver {
           severity: ValidationSeverity.critical,
         ),
       );
-      // Return original on error
-      return (localId, json, false);
+      throw OpenApiValidationException(
+        currentPath,
+        'Reference not found: $ref',
+        specReference: 'OpenAPI 3.0.0 - Reference Object',
+        severity: ValidationSeverity.critical,
+      );
     }
 
     // Get target ID
     final relativeDocPath = OpenApiGraph.i.getRelativeDocumentPath(resolved.documentPath);
     final targetId = NodeId(relativeDocPath, resolved.jsonPointer);
 
-    return (targetId, targetJson as Map<String, dynamic>, true);
+    return (targetId, targetJson as Map<String, dynamic>);
   }
 }
 
