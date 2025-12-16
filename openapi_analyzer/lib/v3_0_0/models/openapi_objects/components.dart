@@ -40,7 +40,7 @@ class ComponentsNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // All fields optional: schemas, responses, parameters, examples, requestBodies,
     // headers, securitySchemes, links, callbacks
@@ -64,7 +64,7 @@ class ComponentsNode extends OpenApiNode {
       if (json.containsKey(componentType)) {
         final componentMap = ValidationUtils.requireMap(
           json[componentType],
-          ValidationUtils.buildPath(path, componentType),
+          ValidationUtils.buildPath(jsonPointer, componentType),
         );
 
         // Validate each component key matches pattern
@@ -73,7 +73,7 @@ class ComponentsNode extends OpenApiNode {
           if (!RegExp(componentKeyPattern).hasMatch(keyStr)) {
             OpenApiGraph.i.validationContext.addException(
               OpenApiValidationException(
-                ValidationUtils.buildPath(ValidationUtils.buildPath(path, componentType), keyStr),
+                ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, componentType), keyStr),
                 'Component key "$keyStr" must match pattern: $componentKeyPattern',
                 specReference: 'OpenAPI 3.0.0 - Components Object',
                 severity: ValidationSeverity.critical,
@@ -84,14 +84,14 @@ class ComponentsNode extends OpenApiNode {
           // Validate component value is an object
           ValidationUtils.requireMap(
             componentMap[key],
-            ValidationUtils.buildPath(ValidationUtils.buildPath(path, componentType), keyStr),
+            ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, componentType), keyStr),
           );
         }
       }
     }
 
     // Validate no unknown fields
-    ValidationUtils.validateNoUnknownFields(json, componentTypes.toSet(), path, 'Components Object');
+    ValidationUtils.validateNoUnknownFields(json, componentTypes.toSet(), jsonPointer, 'Components Object');
   }
 
   void _createChildNodes() {

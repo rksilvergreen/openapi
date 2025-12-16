@@ -32,22 +32,22 @@ class LinkNode extends OpenApiNode with Referencable {
   }
 
   void _validateStructure() {
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // All fields are optional
     if (json.containsKey('operationRef')) {
-      ValidationUtils.requireString(json['operationRef'], ValidationUtils.buildPath(path, 'operationRef'));
+      ValidationUtils.requireString(json['operationRef'], ValidationUtils.buildPath(jsonPointer, 'operationRef'));
     }
 
     if (json.containsKey('operationId')) {
-      ValidationUtils.requireString(json['operationId'], ValidationUtils.buildPath(path, 'operationId'));
+      ValidationUtils.requireString(json['operationId'], ValidationUtils.buildPath(jsonPointer, 'operationId'));
     }
 
     // Validate mutual exclusivity: operationRef and operationId cannot both be present
     if (json.containsKey('operationRef') && json.containsKey('operationId')) {
       OpenApiGraph.i.validationContext.addException(
         OpenApiValidationException(
-          path,
+          jsonPointer,
           'Link Object cannot have both "operationRef" and "operationId"',
           specReference: 'OpenAPI 3.0.0 - Link Object',
           severity: ValidationSeverity.critical,
@@ -56,22 +56,22 @@ class LinkNode extends OpenApiNode with Referencable {
     }
 
     if (json.containsKey('parameters')) {
-      ValidationUtils.requireMap(json['parameters'], ValidationUtils.buildPath(path, 'parameters'));
+      ValidationUtils.requireMap(json['parameters'], ValidationUtils.buildPath(jsonPointer, 'parameters'));
     }
 
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
     }
 
     if (json.containsKey('server')) {
-      ValidationUtils.requireMap(json['server'], ValidationUtils.buildPath(path, 'server'));
+      ValidationUtils.requireMap(json['server'], ValidationUtils.buildPath(jsonPointer, 'server'));
     }
 
     // Validate no unknown fields
     ValidationUtils.validateNoUnknownFields(
       json,
       {'operationRef', 'operationId', 'parameters', 'requestBody', 'description', 'server'},
-      path,
+      jsonPointer,
       'Link Object',
     );
 

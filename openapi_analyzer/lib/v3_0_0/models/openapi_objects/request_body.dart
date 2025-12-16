@@ -32,28 +32,40 @@ class RequestBodyNode extends OpenApiNode with Referencable {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
-    // Validate required: content (map of MediaType objects)
-    final content = ValidationUtils.requireField(json, 'content', path);
-    ValidationUtils.requireMap(content, ValidationUtils.buildPath(path, 'content'));
+    _validateContent(jsonPointer);
+    _validateDescription(jsonPointer);
+    _validateRequired(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
 
-    // Validate optional: description (string)
+  void _validateContent(String jsonPointer) {
+    final content = ValidationUtils.requireField(json, 'content', jsonPointer);
+    ValidationUtils.requireMap(content, ValidationUtils.buildPath(jsonPointer, 'content'));
+  }
+
+  void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
     }
+  }
 
-    // Validate optional: required (boolean)
+  void _validateRequired(String jsonPointer) {
     if (json.containsKey('required')) {
-      ValidationUtils.requireBool(json['required'], ValidationUtils.buildPath(path, 'required'));
+      ValidationUtils.requireBool(json['required'], ValidationUtils.buildPath(jsonPointer, 'required'));
     }
+  }
 
-    // Validate no unknown fields
-    ValidationUtils.validateNoUnknownFields(json, {'description', 'content', 'required'}, path, 'Request Body Object');
+  void _validateNoUnknownFields(String jsonPointer) {
+    ValidationUtils.validateNoUnknownFields(json, {'description', 'content', 'required'}, jsonPointer, 'Request Body Object');
   }
 
   void _createChildNodes() {
-    // Create MediaType nodes for content
+    _createContentNodes();
+  }
+
+  void _createContentNodes() {
     final contentMap = json['content'] as Map<String, dynamic>;
     contentNodes = {};
     for (final entry in contentMap.entries) {

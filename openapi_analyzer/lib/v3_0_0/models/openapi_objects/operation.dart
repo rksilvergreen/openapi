@@ -37,75 +37,102 @@ class OperationNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
-    // Validate required: responses (object)
-    final responses = ValidationUtils.requireField(json, 'responses', path);
-    ValidationUtils.requireMap(responses, ValidationUtils.buildPath(path, 'responses'));
+    _validateResponses(jsonPointer);
+    _validateTags(jsonPointer);
+    _validateSummary(jsonPointer);
+    _validateDescription(jsonPointer);
+    _validateExternalDocs(jsonPointer);
+    _validateOperationId(jsonPointer);
+    _validateParameters(jsonPointer);
+    _validateRequestBody(jsonPointer);
+    _validateCallbacks(jsonPointer);
+    _validateDeprecated(jsonPointer);
+    _validateSecurity(jsonPointer);
+    _validateServers(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
 
-    // Validate optional: tags (array of strings)
+  void _validateResponses(String jsonPointer) {
+    final responses = ValidationUtils.requireField(json, 'responses', jsonPointer);
+    ValidationUtils.requireMap(responses, ValidationUtils.buildPath(jsonPointer, 'responses'));
+  }
+
+  void _validateTags(String jsonPointer) {
     if (json.containsKey('tags')) {
-      final tags = ValidationUtils.requireList(json['tags'], ValidationUtils.buildPath(path, 'tags'));
+      final tags = ValidationUtils.requireList(json['tags'], ValidationUtils.buildPath(jsonPointer, 'tags'));
       for (var i = 0; i < tags.length; i++) {
         ValidationUtils.requireString(
           tags[i],
-          ValidationUtils.buildPath(ValidationUtils.buildPath(path, 'tags'), '[$i]'),
+          ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, 'tags'), '[$i]'),
         );
       }
     }
+  }
 
-    // Validate optional: summary (string)
+  void _validateSummary(String jsonPointer) {
     if (json.containsKey('summary')) {
-      ValidationUtils.requireString(json['summary'], ValidationUtils.buildPath(path, 'summary'));
+      ValidationUtils.requireString(json['summary'], ValidationUtils.buildPath(jsonPointer, 'summary'));
     }
+  }
 
-    // Validate optional: description (string)
+  void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
     }
+  }
 
-    // Validate optional: externalDocs (object)
+  void _validateExternalDocs(String jsonPointer) {
     if (json.containsKey('externalDocs')) {
-      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPath(path, 'externalDocs'));
+      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPath(jsonPointer, 'externalDocs'));
     }
+  }
 
-    // Validate optional: operationId (string)
+  void _validateOperationId(String jsonPointer) {
     if (json.containsKey('operationId')) {
-      ValidationUtils.requireString(json['operationId'], ValidationUtils.buildPath(path, 'operationId'));
+      ValidationUtils.requireString(json['operationId'], ValidationUtils.buildPath(jsonPointer, 'operationId'));
       // Note: uniqueness validation across all operations will be done in semantic validation
     }
+  }
 
-    // Validate optional: parameters (array)
+  void _validateParameters(String jsonPointer) {
     if (json.containsKey('parameters')) {
-      ValidationUtils.requireList(json['parameters'], ValidationUtils.buildPath(path, 'parameters'));
+      ValidationUtils.requireList(json['parameters'], ValidationUtils.buildPath(jsonPointer, 'parameters'));
     }
+  }
 
-    // Validate optional: requestBody (object)
+  void _validateRequestBody(String jsonPointer) {
     if (json.containsKey('requestBody')) {
-      ValidationUtils.requireMap(json['requestBody'], ValidationUtils.buildPath(path, 'requestBody'));
+      ValidationUtils.requireMap(json['requestBody'], ValidationUtils.buildPath(jsonPointer, 'requestBody'));
     }
+  }
 
-    // Validate optional: callbacks (object)
+  void _validateCallbacks(String jsonPointer) {
     if (json.containsKey('callbacks')) {
-      ValidationUtils.requireMap(json['callbacks'], ValidationUtils.buildPath(path, 'callbacks'));
+      ValidationUtils.requireMap(json['callbacks'], ValidationUtils.buildPath(jsonPointer, 'callbacks'));
     }
+  }
 
-    // Validate optional: deprecated (boolean)
+  void _validateDeprecated(String jsonPointer) {
     if (json.containsKey('deprecated')) {
-      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPath(path, 'deprecated'));
+      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPath(jsonPointer, 'deprecated'));
     }
+  }
 
-    // Validate optional: security (array)
+  void _validateSecurity(String jsonPointer) {
     if (json.containsKey('security')) {
-      ValidationUtils.requireList(json['security'], ValidationUtils.buildPath(path, 'security'));
+      ValidationUtils.requireList(json['security'], ValidationUtils.buildPath(jsonPointer, 'security'));
     }
+  }
 
-    // Validate optional: servers (array)
+  void _validateServers(String jsonPointer) {
     if (json.containsKey('servers')) {
-      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPath(path, 'servers'));
+      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPath(jsonPointer, 'servers'));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {
@@ -122,13 +149,22 @@ class OperationNode extends OpenApiNode {
         'security',
         'servers',
       },
-      path,
+      jsonPointer,
       'Operation Object',
     );
   }
 
   void _createChildNodes() {
-    // Create ExternalDocs node
+    _createExternalDocsNode();
+    _createParametersNodes();
+    _createRequestBodyNode();
+    _createResponseNodes();
+    _createCallbackNodes();
+    _createSecurityRequirementNodes();
+    _createServerNodes();
+  }
+
+  void _createExternalDocsNode() {
     if (json.containsKey('externalDocs')) {
       final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
       externalDocsNode = ExternalDocumentationNode(
@@ -141,8 +177,9 @@ class OperationNode extends OpenApiNode {
       );
       externalDocsNode!.create();
     }
+  }
 
-    // Create Parameters nodes
+  void _createParametersNodes() {
     if (json.containsKey('parameters')) {
       final parametersList = json['parameters'] as List;
       parametersNodes = [];
@@ -163,8 +200,9 @@ class OperationNode extends OpenApiNode {
         }
       }
     }
+  }
 
-    // Create RequestBody node
+  void _createRequestBodyNode() {
     if (json.containsKey('requestBody')) {
       final requestBodyJson = json['requestBody'] as Map<String, dynamic>;
 
@@ -181,8 +219,9 @@ class OperationNode extends OpenApiNode {
         requestBodyNode!.create();
       }
     }
+  }
 
-    // Create Response nodes
+  void _createResponseNodes() {
     final responsesJson = json['responses'] as Map<String, dynamic>;
     responseNodes = {};
     for (final entry in responsesJson.entries) {
@@ -204,8 +243,9 @@ class OperationNode extends OpenApiNode {
         responseNode.create();
       }
     }
+  }
 
-    // Create Callback nodes
+  void _createCallbackNodes() {
     if (json.containsKey('callbacks')) {
       final callbacksMap = json['callbacks'] as Map<String, dynamic>;
       callbackNodes = {};
@@ -229,8 +269,9 @@ class OperationNode extends OpenApiNode {
         }
       }
     }
+  }
 
-    // Create Security Requirement nodes
+  void _createSecurityRequirementNodes() {
     if (json.containsKey('security')) {
       final securityList = json['security'] as List;
       securityRequirementNodes = [];
@@ -249,8 +290,9 @@ class OperationNode extends OpenApiNode {
         securityNode.create();
       }
     }
+  }
 
-    // Create Server nodes
+  void _createServerNodes() {
     if (json.containsKey('servers')) {
       final serversList = json['servers'] as List;
       serverNodes = [];
@@ -327,7 +369,7 @@ class Operation {
     // ;
 
     // final paths = OpenApiGraph.i.getOpenApiNodeParents(pathItem).first as PathsNode;
-    // String path = paths.content.paths.entries.firstWhere((entry) => entry.value == pathItem).key;
-    // return path.split('/').last;
+    // String jsonPointer = paths.content.paths.entries.firstWhere((entry) => entry.value == pathItem).key;
+    // return jsonPointer.split('/').last;
   }
 }

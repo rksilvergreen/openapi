@@ -23,26 +23,26 @@ class ExampleNode extends OpenApiNode with Referencable {
   }
 
   void _validateStructure() {
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // All fields are optional
     if (json.containsKey('summary')) {
-      ValidationUtils.requireString(json['summary'], ValidationUtils.buildPath(path, 'summary'));
+      ValidationUtils.requireString(json['summary'], ValidationUtils.buildPath(jsonPointer, 'summary'));
     }
 
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
     }
 
     if (json.containsKey('externalValue')) {
-      ValidationUtils.requireString(json['externalValue'], ValidationUtils.buildPath(path, 'externalValue'));
+      ValidationUtils.requireString(json['externalValue'], ValidationUtils.buildPath(jsonPointer, 'externalValue'));
     }
 
     // Validate mutual exclusivity: value and externalValue cannot both be present
     if (json.containsKey('value') && json.containsKey('externalValue')) {
       OpenApiGraph.i.validationContext.addException(
         OpenApiValidationException(
-          path,
+          jsonPointer,
           'Example Object cannot have both "value" and "externalValue"',
           specReference: 'OpenAPI 3.0.0 - Example Object',
           severity: ValidationSeverity.critical,
@@ -54,7 +54,7 @@ class ExampleNode extends OpenApiNode with Referencable {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'summary', 'description', 'value', 'externalValue'},
-      path,
+      jsonPointer,
       'Example Object',
     );
 

@@ -46,18 +46,18 @@ class SchemaNode extends Node with Referencable {
 
   void _validateStructure() {
     _isStructuralValidationPassed = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
-    _validateType(path);
-    _validateNumericConstraints(path);
-    _validateStringConstraints(path);
-    _validateArrayConstraints(path);
-    _validateObjectConstraints(path);
-    _validateCompositionKeywords(path);
-    _validateOpenApiSpecificFields(path);
+    _validateType(jsonPointer);
+    _validateNumericConstraints(jsonPointer);
+    _validateStringConstraints(jsonPointer);
+    _validateArrayConstraints(jsonPointer);
+    _validateObjectConstraints(jsonPointer);
+    _validateCompositionKeywords(jsonPointer);
+    _validateOpenApiSpecificFields(jsonPointer);
   }
 
-  void _validateType(String path) {
+  void _validateType(String jsonPointer) {
     if (json.containsKey('type')) {
       final type = json['type'];
       if (type is String) {
@@ -69,11 +69,11 @@ class SchemaNode extends Node with Referencable {
           'array',
           'object',
           'null',
-        ], ValidationUtils.buildPath(path, 'type'));
+        ], ValidationUtils.buildPath(jsonPointer, 'type'));
       } else if (type != null) {
         OpenApiGraph.i.validationContext.addException(
           OpenApiValidationException(
-            ValidationUtils.buildPath(path, 'type'),
+            ValidationUtils.buildPath(jsonPointer, 'type'),
             'type must be a string',
             specReference: 'OpenAPI 3.0.0 - Schema Object',
             severity: ValidationSeverity.critical,
@@ -83,78 +83,78 @@ class SchemaNode extends Node with Referencable {
     }
   }
 
-  void _validateNumericConstraints(String path) {
+  void _validateNumericConstraints(String jsonPointer) {
     if (json.containsKey('minimum')) {
-      ValidationUtils.requireNumber(json['minimum'], ValidationUtils.buildPath(path, 'minimum'));
+      ValidationUtils.requireNumber(json['minimum'], ValidationUtils.buildPath(jsonPointer, 'minimum'));
     }
     if (json.containsKey('maximum')) {
-      ValidationUtils.requireNumber(json['maximum'], ValidationUtils.buildPath(path, 'maximum'));
+      ValidationUtils.requireNumber(json['maximum'], ValidationUtils.buildPath(jsonPointer, 'maximum'));
     }
     if (json.containsKey('exclusiveMinimum')) {
-      ValidationUtils.requireNumber(json['exclusiveMinimum'], ValidationUtils.buildPath(path, 'exclusiveMinimum'));
+      ValidationUtils.requireNumber(json['exclusiveMinimum'], ValidationUtils.buildPath(jsonPointer, 'exclusiveMinimum'));
     }
     if (json.containsKey('exclusiveMaximum')) {
-      ValidationUtils.requireNumber(json['exclusiveMaximum'], ValidationUtils.buildPath(path, 'exclusiveMaximum'));
+      ValidationUtils.requireNumber(json['exclusiveMaximum'], ValidationUtils.buildPath(jsonPointer, 'exclusiveMaximum'));
     }
     if (json.containsKey('multipleOf')) {
-      final val = ValidationUtils.requireNumber(json['multipleOf'], ValidationUtils.buildPath(path, 'multipleOf'));
-      ValidationUtils.validatePositive(val, ValidationUtils.buildPath(path, 'multipleOf'));
+      final val = ValidationUtils.requireNumber(json['multipleOf'], ValidationUtils.buildPath(jsonPointer, 'multipleOf'));
+      ValidationUtils.validatePositive(val, ValidationUtils.buildPath(jsonPointer, 'multipleOf'));
     }
   }
 
-  void _validateStringConstraints(String path) {
+  void _validateStringConstraints(String jsonPointer) {
     if (json.containsKey('minLength')) {
-      final val = ValidationUtils.requireInt(json['minLength'], ValidationUtils.buildPath(path, 'minLength'));
-      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(path, 'minLength'));
+      final val = ValidationUtils.requireInt(json['minLength'], ValidationUtils.buildPath(jsonPointer, 'minLength'));
+      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'minLength'));
     }
     if (json.containsKey('maxLength')) {
-      final val = ValidationUtils.requireInt(json['maxLength'], ValidationUtils.buildPath(path, 'maxLength'));
-      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(path, 'maxLength'));
+      final val = ValidationUtils.requireInt(json['maxLength'], ValidationUtils.buildPath(jsonPointer, 'maxLength'));
+      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'maxLength'));
     }
     if (json.containsKey('pattern')) {
-      final pattern = ValidationUtils.requireString(json['pattern'], ValidationUtils.buildPath(path, 'pattern'));
-      ValidationUtils.validateRegexPattern(pattern, ValidationUtils.buildPath(path, 'pattern'));
+      final pattern = ValidationUtils.requireString(json['pattern'], ValidationUtils.buildPath(jsonPointer, 'pattern'));
+      ValidationUtils.validateRegexPattern(pattern, ValidationUtils.buildPath(jsonPointer, 'pattern'));
     }
   }
 
-  void _validateArrayConstraints(String path) {
+  void _validateArrayConstraints(String jsonPointer) {
     if (json.containsKey('minItems')) {
-      final val = ValidationUtils.requireInt(json['minItems'], ValidationUtils.buildPath(path, 'minItems'));
-      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(path, 'minItems'));
+      final val = ValidationUtils.requireInt(json['minItems'], ValidationUtils.buildPath(jsonPointer, 'minItems'));
+      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'minItems'));
     }
     if (json.containsKey('maxItems')) {
-      final val = ValidationUtils.requireInt(json['maxItems'], ValidationUtils.buildPath(path, 'maxItems'));
-      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(path, 'maxItems'));
+      final val = ValidationUtils.requireInt(json['maxItems'], ValidationUtils.buildPath(jsonPointer, 'maxItems'));
+      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'maxItems'));
     }
     if (json.containsKey('uniqueItems')) {
-      ValidationUtils.requireBool(json['uniqueItems'], ValidationUtils.buildPath(path, 'uniqueItems'));
+      ValidationUtils.requireBool(json['uniqueItems'], ValidationUtils.buildPath(jsonPointer, 'uniqueItems'));
     }
     if (json.containsKey('items')) {
       // items MUST be an object per OpenAPI 3.0.0 Schema Object specification
-      ValidationUtils.requireMap(json['items'], ValidationUtils.buildPath(path, 'items'));
+      ValidationUtils.requireMap(json['items'], ValidationUtils.buildPath(jsonPointer, 'items'));
     }
   }
 
-  void _validateObjectConstraints(String path) {
+  void _validateObjectConstraints(String jsonPointer) {
     if (json.containsKey('minProperties')) {
-      final val = ValidationUtils.requireInt(json['minProperties'], ValidationUtils.buildPath(path, 'minProperties'));
-      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(path, 'minProperties'));
+      final val = ValidationUtils.requireInt(json['minProperties'], ValidationUtils.buildPath(jsonPointer, 'minProperties'));
+      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'minProperties'));
     }
     if (json.containsKey('maxProperties')) {
-      final val = ValidationUtils.requireInt(json['maxProperties'], ValidationUtils.buildPath(path, 'maxProperties'));
-      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(path, 'maxProperties'));
+      final val = ValidationUtils.requireInt(json['maxProperties'], ValidationUtils.buildPath(jsonPointer, 'maxProperties'));
+      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'maxProperties'));
     }
     if (json.containsKey('required')) {
-      final required = ValidationUtils.requireList(json['required'], ValidationUtils.buildPath(path, 'required'));
+      final required = ValidationUtils.requireList(json['required'], ValidationUtils.buildPath(jsonPointer, 'required'));
       for (var i = 0; i < required.length; i++) {
         ValidationUtils.requireString(
           required[i],
-          ValidationUtils.buildPath(ValidationUtils.buildPath(path, 'required'), '[$i]'),
+          ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, 'required'), '[$i]'),
         );
       }
     }
     if (json.containsKey('properties')) {
-      ValidationUtils.requireMap(json['properties'], ValidationUtils.buildPath(path, 'properties'));
+      ValidationUtils.requireMap(json['properties'], ValidationUtils.buildPath(jsonPointer, 'properties'));
     }
     if (json.containsKey('additionalProperties')) {
       // Can be boolean or object per OpenAPI 3.0.0 Schema Object specification
@@ -162,7 +162,7 @@ class SchemaNode extends Node with Referencable {
       if (val is! bool && val is! Map) {
         OpenApiGraph.i.validationContext.addException(
           OpenApiValidationException(
-            ValidationUtils.buildPath(path, 'additionalProperties'),
+            ValidationUtils.buildPath(jsonPointer, 'additionalProperties'),
             'additionalProperties must be a boolean or object',
             specReference: 'OpenAPI 3.0.0 - Schema Object',
             severity: ValidationSeverity.critical,
@@ -172,42 +172,42 @@ class SchemaNode extends Node with Referencable {
     }
   }
 
-  void _validateCompositionKeywords(String path) {
+  void _validateCompositionKeywords(String jsonPointer) {
     if (json.containsKey('allOf')) {
-      ValidationUtils.requireList(json['allOf'], ValidationUtils.buildPath(path, 'allOf'));
+      ValidationUtils.requireList(json['allOf'], ValidationUtils.buildPath(jsonPointer, 'allOf'));
     }
     if (json.containsKey('oneOf')) {
-      ValidationUtils.requireList(json['oneOf'], ValidationUtils.buildPath(path, 'oneOf'));
+      ValidationUtils.requireList(json['oneOf'], ValidationUtils.buildPath(jsonPointer, 'oneOf'));
     }
     if (json.containsKey('anyOf')) {
-      ValidationUtils.requireList(json['anyOf'], ValidationUtils.buildPath(path, 'anyOf'));
+      ValidationUtils.requireList(json['anyOf'], ValidationUtils.buildPath(jsonPointer, 'anyOf'));
     }
     if (json.containsKey('not')) {
-      ValidationUtils.requireMap(json['not'], ValidationUtils.buildPath(path, 'not'));
+      ValidationUtils.requireMap(json['not'], ValidationUtils.buildPath(jsonPointer, 'not'));
     }
   }
 
-  void _validateOpenApiSpecificFields(String path) {
+  void _validateOpenApiSpecificFields(String jsonPointer) {
     if (json.containsKey('nullable')) {
-      ValidationUtils.requireBool(json['nullable'], ValidationUtils.buildPath(path, 'nullable'));
+      ValidationUtils.requireBool(json['nullable'], ValidationUtils.buildPath(jsonPointer, 'nullable'));
     }
     if (json.containsKey('discriminator')) {
-      ValidationUtils.requireMap(json['discriminator'], ValidationUtils.buildPath(path, 'discriminator'));
+      ValidationUtils.requireMap(json['discriminator'], ValidationUtils.buildPath(jsonPointer, 'discriminator'));
     }
     if (json.containsKey('readOnly')) {
-      ValidationUtils.requireBool(json['readOnly'], ValidationUtils.buildPath(path, 'readOnly'));
+      ValidationUtils.requireBool(json['readOnly'], ValidationUtils.buildPath(jsonPointer, 'readOnly'));
     }
     if (json.containsKey('writeOnly')) {
-      ValidationUtils.requireBool(json['writeOnly'], ValidationUtils.buildPath(path, 'writeOnly'));
+      ValidationUtils.requireBool(json['writeOnly'], ValidationUtils.buildPath(jsonPointer, 'writeOnly'));
     }
     if (json.containsKey('xml')) {
-      ValidationUtils.requireMap(json['xml'], ValidationUtils.buildPath(path, 'xml'));
+      ValidationUtils.requireMap(json['xml'], ValidationUtils.buildPath(jsonPointer, 'xml'));
     }
     if (json.containsKey('externalDocs')) {
-      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPath(path, 'externalDocs'));
+      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPath(jsonPointer, 'externalDocs'));
     }
     if (json.containsKey('deprecated')) {
-      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPath(path, 'deprecated'));
+      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPath(jsonPointer, 'deprecated'));
     }
   }
 

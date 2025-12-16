@@ -19,30 +19,30 @@ class ServerVariableNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // Validate required: default (string)
-    final defaultValue = ValidationUtils.requireField(json, 'default', path);
-    ValidationUtils.requireString(defaultValue, ValidationUtils.buildPath(path, 'default'));
+    final defaultValue = ValidationUtils.requireField(json, 'default', jsonPointer);
+    ValidationUtils.requireString(defaultValue, ValidationUtils.buildPath(jsonPointer, 'default'));
 
     // Validate optional: enum (array of strings)
     if (json.containsKey('enum')) {
-      final enumList = ValidationUtils.requireList(json['enum'], ValidationUtils.buildPath(path, 'enum'));
+      final enumList = ValidationUtils.requireList(json['enum'], ValidationUtils.buildPath(jsonPointer, 'enum'));
       for (var i = 0; i < enumList.length; i++) {
-        ValidationUtils.requireString(enumList[i], ValidationUtils.buildPath(ValidationUtils.buildPath(path, 'enum'), '[$i]'));
+        ValidationUtils.requireString(enumList[i], ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, 'enum'), '[$i]'));
       }
     }
 
     // Validate optional: description (string)
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
     }
 
     // Validate no unknown fields
     ValidationUtils.validateNoUnknownFields(
       json,
       {'enum', 'default', 'description'},
-      path,
+      jsonPointer,
       'Server Variable Object',
     );
   }

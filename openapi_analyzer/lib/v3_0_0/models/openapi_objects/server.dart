@@ -23,27 +23,27 @@ class ServerNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // Validate required: url (non-empty string)
-    final url = ValidationUtils.requireField(json, 'url', path);
-    ValidationUtils.requireNonEmptyString(url, ValidationUtils.buildPath(path, 'url'));
+    final url = ValidationUtils.requireField(json, 'url', jsonPointer);
+    ValidationUtils.requireNonEmptyString(url, ValidationUtils.buildPath(jsonPointer, 'url'));
 
     // Validate optional: description (string)
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
     }
 
     // Validate optional: variables (map of ServerVariable objects)
     if (json.containsKey('variables')) {
-      ValidationUtils.requireMap(json['variables'], ValidationUtils.buildPath(path, 'variables'));
+      ValidationUtils.requireMap(json['variables'], ValidationUtils.buildPath(jsonPointer, 'variables'));
     }
 
     // Validate no unknown fields
     ValidationUtils.validateNoUnknownFields(
       json,
       {'url', 'description', 'variables'},
-      path,
+      jsonPointer,
       'Server Object',
     );
   }

@@ -31,7 +31,7 @@ class CallbackNode extends OpenApiNode with Referencable {
   }
 
   void _validateStructure() {
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // Callback is a map of runtime expressions to PathItem objects
     // All fields should be runtime expressions or extension fields
@@ -40,7 +40,7 @@ class CallbackNode extends OpenApiNode with Referencable {
       if (!keyStr.startsWith('x-')) {
         // Runtime expression validation (should be a valid expression or path)
         // For now, just ensure the value is a map
-        ValidationUtils.requireMap(json[key], ValidationUtils.buildPath(path, keyStr));
+        ValidationUtils.requireMap(json[key], ValidationUtils.buildPath(jsonPointer, keyStr));
       }
     }
 

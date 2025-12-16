@@ -18,38 +18,38 @@ class OAuthFlowNode extends OpenApiNode {
   }
 
   void _validateStructure() {
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // Validate required: scopes
-    final scopes = ValidationUtils.requireField(json, 'scopes', path);
-    final scopesMap = ValidationUtils.requireMap(scopes, ValidationUtils.buildPath(path, 'scopes'));
+    final scopes = ValidationUtils.requireField(json, 'scopes', jsonPointer);
+    final scopesMap = ValidationUtils.requireMap(scopes, ValidationUtils.buildPath(jsonPointer, 'scopes'));
     
     // Validate scopes values are strings
     for (final entry in scopesMap.entries) {
       ValidationUtils.requireString(
         entry.value,
-        ValidationUtils.buildPath(ValidationUtils.buildPath(path, 'scopes'), entry.key.toString()),
+        ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, 'scopes'), entry.key.toString()),
       );
     }
 
     // Validate optional fields
     if (json.containsKey('authorizationUrl')) {
-      ValidationUtils.requireString(json['authorizationUrl'], ValidationUtils.buildPath(path, 'authorizationUrl'));
+      ValidationUtils.requireString(json['authorizationUrl'], ValidationUtils.buildPath(jsonPointer, 'authorizationUrl'));
     }
 
     if (json.containsKey('tokenUrl')) {
-      ValidationUtils.requireString(json['tokenUrl'], ValidationUtils.buildPath(path, 'tokenUrl'));
+      ValidationUtils.requireString(json['tokenUrl'], ValidationUtils.buildPath(jsonPointer, 'tokenUrl'));
     }
 
     if (json.containsKey('refreshUrl')) {
-      ValidationUtils.requireString(json['refreshUrl'], ValidationUtils.buildPath(path, 'refreshUrl'));
+      ValidationUtils.requireString(json['refreshUrl'], ValidationUtils.buildPath(jsonPointer, 'refreshUrl'));
     }
 
     // Validate no unknown fields
     ValidationUtils.validateNoUnknownFields(
       json,
       {'authorizationUrl', 'tokenUrl', 'refreshUrl', 'scopes'},
-      path,
+      jsonPointer,
       'OAuth Flow Object',
     );
 

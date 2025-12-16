@@ -33,66 +33,102 @@ class HeaderNode extends OpenApiNode with Referencable {
   }
 
   void _validateStructure() {
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
-    // All fields are optional
+    _validateDescription(jsonPointer);
+    _validateRequired(jsonPointer);
+    _validateDeprecated(jsonPointer);
+    _validateAllowEmptyValue(jsonPointer);
+    _validateStyle(jsonPointer);
+    _validateExplode(jsonPointer);
+    _validateAllowReserved(jsonPointer);
+    _validateSchema(jsonPointer);
+    _validateExamples(jsonPointer);
+    _validateContent(jsonPointer);
+    _validateExampleMutualExclusivity(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+
+    _structureValidated = true;
+  }
+
+  void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
     }
+  }
 
+  void _validateRequired(String jsonPointer) {
     if (json.containsKey('required')) {
-      ValidationUtils.requireBool(json['required'], ValidationUtils.buildPath(path, 'required'));
+      ValidationUtils.requireBool(json['required'], ValidationUtils.buildPath(jsonPointer, 'required'));
     }
+  }
 
+  void _validateDeprecated(String jsonPointer) {
     if (json.containsKey('deprecated')) {
-      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPath(path, 'deprecated'));
+      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPath(jsonPointer, 'deprecated'));
     }
+  }
 
+  void _validateAllowEmptyValue(String jsonPointer) {
     if (json.containsKey('allowEmptyValue')) {
-      ValidationUtils.requireBool(json['allowEmptyValue'], ValidationUtils.buildPath(path, 'allowEmptyValue'));
+      ValidationUtils.requireBool(json['allowEmptyValue'], ValidationUtils.buildPath(jsonPointer, 'allowEmptyValue'));
     }
+  }
 
+  void _validateStyle(String jsonPointer) {
     if (json.containsKey('style')) {
       ValidationUtils.validateEnum(
-        ValidationUtils.requireString(json['style'], ValidationUtils.buildPath(path, 'style')),
+        ValidationUtils.requireString(json['style'], ValidationUtils.buildPath(jsonPointer, 'style')),
         ['simple'],
-        ValidationUtils.buildPath(path, 'style'),
+        ValidationUtils.buildPath(jsonPointer, 'style'),
       );
     }
+  }
 
+  void _validateExplode(String jsonPointer) {
     if (json.containsKey('explode')) {
-      ValidationUtils.requireBool(json['explode'], ValidationUtils.buildPath(path, 'explode'));
+      ValidationUtils.requireBool(json['explode'], ValidationUtils.buildPath(jsonPointer, 'explode'));
     }
+  }
 
+  void _validateAllowReserved(String jsonPointer) {
     if (json.containsKey('allowReserved')) {
-      ValidationUtils.requireBool(json['allowReserved'], ValidationUtils.buildPath(path, 'allowReserved'));
+      ValidationUtils.requireBool(json['allowReserved'], ValidationUtils.buildPath(jsonPointer, 'allowReserved'));
     }
+  }
 
+  void _validateSchema(String jsonPointer) {
     if (json.containsKey('schema')) {
-      ValidationUtils.requireMap(json['schema'], ValidationUtils.buildPath(path, 'schema'));
+      ValidationUtils.requireMap(json['schema'], ValidationUtils.buildPath(jsonPointer, 'schema'));
     }
+  }
 
+  void _validateExamples(String jsonPointer) {
     if (json.containsKey('examples')) {
-      ValidationUtils.requireMap(json['examples'], ValidationUtils.buildPath(path, 'examples'));
+      ValidationUtils.requireMap(json['examples'], ValidationUtils.buildPath(jsonPointer, 'examples'));
     }
+  }
 
+  void _validateContent(String jsonPointer) {
     if (json.containsKey('content')) {
-      ValidationUtils.requireMap(json['content'], ValidationUtils.buildPath(path, 'content'));
+      ValidationUtils.requireMap(json['content'], ValidationUtils.buildPath(jsonPointer, 'content'));
     }
+  }
 
-    // Validate mutual exclusivity: example and examples cannot both be present
+  void _validateExampleMutualExclusivity(String jsonPointer) {
     if (json.containsKey('example') && json.containsKey('examples')) {
       OpenApiGraph.i.validationContext.addException(
         OpenApiValidationException(
-          path,
+          jsonPointer,
           'Header Object cannot have both "example" and "examples"',
           specReference: 'OpenAPI 3.0.0 - Header Object',
           severity: ValidationSeverity.critical,
         ),
       );
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {
@@ -108,15 +144,18 @@ class HeaderNode extends OpenApiNode with Referencable {
         'examples',
         'content',
       },
-      path,
+      jsonPointer,
       'Header Object',
     );
-
-    _structureValidated = true;
   }
 
   void _createChildNodes() {
-    // Create Schema node (with RootEdge)
+    _createSchemaNode();
+    _createExamplesNodes();
+    _createContentNodes();
+  }
+
+  void _createSchemaNode() {
     if (json.containsKey('schema')) {
       final schemaJson = json['schema'] as Map<String, dynamic>;
       schemaNode = SchemaNode(schemaJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, 'schema'));
@@ -126,8 +165,9 @@ class HeaderNode extends OpenApiNode with Referencable {
         schemaNode!.create();
       }
     }
+  }
 
-    // Create Example nodes
+  void _createExamplesNodes() {
     if (json.containsKey('examples')) {
       final examplesMap = json['examples'] as Map<String, dynamic>;
       examplesNodes = {};
@@ -151,8 +191,9 @@ class HeaderNode extends OpenApiNode with Referencable {
         }
       }
     }
+  }
 
-    // Create Content nodes (MediaType)
+  void _createContentNodes() {
     if (json.containsKey('content')) {
       final contentMap = json['content'] as Map<String, dynamic>;
       contentNodes = {};

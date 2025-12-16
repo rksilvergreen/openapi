@@ -24,7 +24,7 @@ class PathsNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // Validate keys are valid path patterns (start with / or are extension fields)
     for (final key in json.keys) {
@@ -38,7 +38,7 @@ class PathsNode extends OpenApiNode {
       // Validate path starts with /
       if (!keyStr.startsWith('/')) {
         OpenApiGraph.i.validationContext.addException(OpenApiValidationException(
-          ValidationUtils.buildPath(path, keyStr),
+          ValidationUtils.buildPath(jsonPointer, keyStr),
           'Path must start with "/"',
           specReference: 'OpenAPI 3.0.0 - Paths Object',
           severity: ValidationSeverity.critical,
@@ -46,7 +46,7 @@ class PathsNode extends OpenApiNode {
       }
 
       // Validate value is object (will be PathItem or Reference)
-      ValidationUtils.requireMap(json[key], ValidationUtils.buildPath(path, keyStr));
+      ValidationUtils.requireMap(json[key], ValidationUtils.buildPath(jsonPointer, keyStr));
     }
   }
   void _createChildNodes() {

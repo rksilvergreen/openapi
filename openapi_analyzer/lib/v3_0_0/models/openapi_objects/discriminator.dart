@@ -18,27 +18,27 @@ class DiscriminatorNode extends OpenApiNode {
   }
 
   void _validateStructure() {
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // Validate required: propertyName
     ValidationUtils.requireString(
-      ValidationUtils.requireField(json, 'propertyName', path),
-      ValidationUtils.buildPath(path, 'propertyName'),
+      ValidationUtils.requireField(json, 'propertyName', jsonPointer),
+      ValidationUtils.buildPath(jsonPointer, 'propertyName'),
     );
 
     // Validate optional: mapping (map of strings to strings)
     if (json.containsKey('mapping')) {
-      final mapping = ValidationUtils.requireMap(json['mapping'], ValidationUtils.buildPath(path, 'mapping'));
+      final mapping = ValidationUtils.requireMap(json['mapping'], ValidationUtils.buildPath(jsonPointer, 'mapping'));
       for (final entry in mapping.entries) {
         ValidationUtils.requireString(
           entry.value,
-          ValidationUtils.buildPath(ValidationUtils.buildPath(path, 'mapping'), entry.key.toString()),
+          ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, 'mapping'), entry.key.toString()),
         );
       }
     }
 
     // Validate no unknown fields
-    ValidationUtils.validateNoUnknownFields(json, {'propertyName', 'mapping'}, path, 'Discriminator Object');
+    ValidationUtils.validateNoUnknownFields(json, {'propertyName', 'mapping'}, jsonPointer, 'Discriminator Object');
 
     _structureValidated = true;
   }

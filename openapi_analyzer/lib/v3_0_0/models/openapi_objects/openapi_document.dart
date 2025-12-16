@@ -35,62 +35,90 @@ class OpenApiDocumentNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
-    // Validate required: openapi (string, pattern ^3\.0\.\d+$)
-    final openapi = ValidationUtils.requireField(json, 'openapi', path);
-    ValidationUtils.requireString(openapi, ValidationUtils.buildPath(path, 'openapi'));
+    _validateOpenapi(jsonPointer);
+    _validateInfo(jsonPointer);
+    _validatePaths(jsonPointer);
+    _validateServers(jsonPointer);
+    _validateComponents(jsonPointer);
+    _validateSecurity(jsonPointer);
+    _validateTags(jsonPointer);
+    _validateExternalDocs(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateOpenapi(String jsonPointer) {
+    final openapi = ValidationUtils.requireField(json, 'openapi', jsonPointer);
+    ValidationUtils.requireString(openapi, ValidationUtils.buildPath(jsonPointer, 'openapi'));
     ValidationUtils.validatePattern(
       openapi as String,
       r'^3\.0\.\d+$',
-      ValidationUtils.buildPath(path, 'openapi'),
+      ValidationUtils.buildPath(jsonPointer, 'openapi'),
       description: 'OpenAPI version must match pattern 3.0.x',
     );
+  }
 
-    // Validate required: info (object)
-    final info = ValidationUtils.requireField(json, 'info', path);
-    ValidationUtils.requireMap(info, ValidationUtils.buildPath(path, 'info'));
+  void _validateInfo(String jsonPointer) {
+    final info = ValidationUtils.requireField(json, 'info', jsonPointer);
+    ValidationUtils.requireMap(info, ValidationUtils.buildPath(jsonPointer, 'info'));
+  }
 
-    // Validate required: paths (object)
-    final paths = ValidationUtils.requireField(json, 'paths', path);
-    ValidationUtils.requireMap(paths, ValidationUtils.buildPath(path, 'paths'));
+  void _validatePaths(String jsonPointer) {
+    final paths = ValidationUtils.requireField(json, 'paths', jsonPointer);
+    ValidationUtils.requireMap(paths, ValidationUtils.buildPath(jsonPointer, 'paths'));
+  }
 
-    // Validate optional: servers (array)
+  void _validateServers(String jsonPointer) {
     if (json.containsKey('servers')) {
-      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPath(path, 'servers'));
+      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPath(jsonPointer, 'servers'));
     }
+  }
 
-    // Validate optional: components (object)
+  void _validateComponents(String jsonPointer) {
     if (json.containsKey('components')) {
-      ValidationUtils.requireMap(json['components'], ValidationUtils.buildPath(path, 'components'));
+      ValidationUtils.requireMap(json['components'], ValidationUtils.buildPath(jsonPointer, 'components'));
     }
+  }
 
-    // Validate optional: security (array)
+  void _validateSecurity(String jsonPointer) {
     if (json.containsKey('security')) {
-      ValidationUtils.requireList(json['security'], ValidationUtils.buildPath(path, 'security'));
+      ValidationUtils.requireList(json['security'], ValidationUtils.buildPath(jsonPointer, 'security'));
     }
+  }
 
-    // Validate optional: tags (array)
+  void _validateTags(String jsonPointer) {
     if (json.containsKey('tags')) {
-      ValidationUtils.requireList(json['tags'], ValidationUtils.buildPath(path, 'tags'));
+      ValidationUtils.requireList(json['tags'], ValidationUtils.buildPath(jsonPointer, 'tags'));
     }
+  }
 
-    // Validate optional: externalDocs (object)
+  void _validateExternalDocs(String jsonPointer) {
     if (json.containsKey('externalDocs')) {
-      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPath(path, 'externalDocs'));
+      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPath(jsonPointer, 'externalDocs'));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'openapi', 'info', 'servers', 'paths', 'components', 'security', 'tags', 'externalDocs'},
-      path,
+      jsonPointer,
       'OpenAPI Object',
     );
   }
 
   void _createChildNodes() {
-    // Create Info node
+    _createInfoNode();
+    _createServersNodes();
+    _createPathsNode();
+    _createComponentsNode();
+    _createSecurityNodes();
+    _createTagsNodes();
+    _createExternalDocsNode();
+  }
+
+  void _createInfoNode() {
     if (json.containsKey('info')) {
       final infoJson = json['info'] as Map<String, dynamic>;
       infoNode = InfoNode(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'info')), infoJson);
@@ -98,8 +126,9 @@ class OpenApiDocumentNode extends OpenApiNode {
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, infoNode.$id.absolutePointer, 'info'));
       infoNode.create();
     }
+  }
 
-    // Create Servers nodes
+  void _createServersNodes() {
     if (json.containsKey('servers')) {
       final serversList = json['servers'] as List;
       serversNode = [];
@@ -118,8 +147,9 @@ class OpenApiDocumentNode extends OpenApiNode {
         serverNodeInstance.create();
       }
     }
+  }
 
-    // Create Paths node
+  void _createPathsNode() {
     if (json.containsKey('paths')) {
       final pathsJson = json['paths'] as Map<String, dynamic>;
       pathsNode = PathsNode(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'paths')), pathsJson);
@@ -127,8 +157,9 @@ class OpenApiDocumentNode extends OpenApiNode {
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, pathsNode.$id.absolutePointer, 'paths'));
       pathsNode.create();
     }
+  }
 
-    // Create Components node
+  void _createComponentsNode() {
     if (json.containsKey('components')) {
       final componentsJson = json['components'] as Map<String, dynamic>;
       componentsNode = ComponentsNode(
@@ -139,8 +170,9 @@ class OpenApiDocumentNode extends OpenApiNode {
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, componentsNode!.$id.absolutePointer, 'components'));
       componentsNode!.create();
     }
+  }
 
-    // Create Security nodes
+  void _createSecurityNodes() {
     if (json.containsKey('security')) {
       final securityList = json['security'] as List;
       securityNode = [];
@@ -159,8 +191,9 @@ class OpenApiDocumentNode extends OpenApiNode {
         securityNodeInstance.create();
       }
     }
+  }
 
-    // Create Tags nodes
+  void _createTagsNodes() {
     if (json.containsKey('tags')) {
       final tagsList = json['tags'] as List;
       tagsNode = [];
@@ -176,8 +209,9 @@ class OpenApiDocumentNode extends OpenApiNode {
         tagNodeInstance.create();
       }
     }
+  }
 
-    // Create ExternalDocs node
+  void _createExternalDocsNode() {
     if (json.containsKey('externalDocs')) {
       final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
       externalDocsNode = ExternalDocumentationNode(

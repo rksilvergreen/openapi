@@ -29,45 +29,60 @@ class MediaTypeNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
-    // All fields optional: schema, example, examples, encoding
+    _validateSchema(jsonPointer);
+    _validateExamples(jsonPointer);
+    _validateEncoding(jsonPointer);
+    _validateExampleMutualExclusivity(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
 
-    // Validate optional: schema (object)
+  void _validateSchema(String jsonPointer) {
     if (json.containsKey('schema')) {
-      ValidationUtils.requireMap(json['schema'], ValidationUtils.buildPath(path, 'schema'));
+      ValidationUtils.requireMap(json['schema'], ValidationUtils.buildPath(jsonPointer, 'schema'));
     }
+  }
 
-    // Validate optional: examples (object)
+  void _validateExamples(String jsonPointer) {
     if (json.containsKey('examples')) {
-      ValidationUtils.requireMap(json['examples'], ValidationUtils.buildPath(path, 'examples'));
+      ValidationUtils.requireMap(json['examples'], ValidationUtils.buildPath(jsonPointer, 'examples'));
     }
+  }
 
-    // Validate optional: encoding (object)
+  void _validateEncoding(String jsonPointer) {
     if (json.containsKey('encoding')) {
-      ValidationUtils.requireMap(json['encoding'], ValidationUtils.buildPath(path, 'encoding'));
+      ValidationUtils.requireMap(json['encoding'], ValidationUtils.buildPath(jsonPointer, 'encoding'));
     }
+  }
 
-    // Validate mutual exclusivity: cannot have both example and examples
+  void _validateExampleMutualExclusivity(String jsonPointer) {
     if (json.containsKey('example') && json.containsKey('examples')) {
       OpenApiGraph.i.validationContext.addException(OpenApiValidationException(
-        path,
+        jsonPointer,
         'Media Type Object cannot have both "example" and "examples" fields',
         specReference: 'OpenAPI 3.0.0 - Media Type Object',
         severity: ValidationSeverity.critical,
       ));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'schema', 'example', 'examples', 'encoding'},
-      path,
+      jsonPointer,
       'Media Type Object',
     );
   }
+
   void _createChildNodes() {
-    // Create Schema node (with RootEdge to mark it as a schema root)
+    _createSchemaNode();
+    _createExamplesNodes();
+    _createEncodingNodes();
+  }
+
+  void _createSchemaNode() {
     if (json.containsKey('schema')) {
       final schemaJson = json['schema'] as Map<String, dynamic>;
       schemaNode = SchemaNode(
@@ -82,8 +97,9 @@ class MediaTypeNode extends OpenApiNode {
         schemaNode!.create();
       }
     }
+  }
 
-    // Create Example nodes
+  void _createExamplesNodes() {
     if (json.containsKey('examples')) {
       final examplesMap = json['examples'] as Map<String, dynamic>;
       examplesNodes = {};
@@ -105,8 +121,9 @@ class MediaTypeNode extends OpenApiNode {
         }
       }
     }
+  }
 
-    // Create Encoding nodes
+  void _createEncodingNodes() {
     if (json.containsKey('encoding')) {
       final encodingMap = json['encoding'] as Map<String, dynamic>;
       encodingNodes = {};

@@ -23,38 +23,38 @@ class EncodingNode extends OpenApiNode {
   }
 
   void _validateStructure() {
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // All fields are optional
     if (json.containsKey('contentType')) {
-      ValidationUtils.requireString(json['contentType'], ValidationUtils.buildPath(path, 'contentType'));
+      ValidationUtils.requireString(json['contentType'], ValidationUtils.buildPath(jsonPointer, 'contentType'));
     }
 
     if (json.containsKey('headers')) {
-      ValidationUtils.requireMap(json['headers'], ValidationUtils.buildPath(path, 'headers'));
+      ValidationUtils.requireMap(json['headers'], ValidationUtils.buildPath(jsonPointer, 'headers'));
     }
 
     if (json.containsKey('style')) {
       ValidationUtils.validateEnum(
-        ValidationUtils.requireString(json['style'], ValidationUtils.buildPath(path, 'style')),
+        ValidationUtils.requireString(json['style'], ValidationUtils.buildPath(jsonPointer, 'style')),
         ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'],
-        ValidationUtils.buildPath(path, 'style'),
+        ValidationUtils.buildPath(jsonPointer, 'style'),
       );
     }
 
     if (json.containsKey('explode')) {
-      ValidationUtils.requireBool(json['explode'], ValidationUtils.buildPath(path, 'explode'));
+      ValidationUtils.requireBool(json['explode'], ValidationUtils.buildPath(jsonPointer, 'explode'));
     }
 
     if (json.containsKey('allowReserved')) {
-      ValidationUtils.requireBool(json['allowReserved'], ValidationUtils.buildPath(path, 'allowReserved'));
+      ValidationUtils.requireBool(json['allowReserved'], ValidationUtils.buildPath(jsonPointer, 'allowReserved'));
     }
 
     // Validate no unknown fields
     ValidationUtils.validateNoUnknownFields(
       json,
       {'contentType', 'headers', 'style', 'explode', 'allowReserved'},
-      path,
+      jsonPointer,
       'Encoding Object',
     );
 

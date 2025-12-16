@@ -19,22 +19,22 @@ class LicenseNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // Validate required: name (non-empty string)
-    final name = ValidationUtils.requireField(json, 'name', path);
-    ValidationUtils.requireNonEmptyString(name, ValidationUtils.buildPath(path, 'name'));
+    final name = ValidationUtils.requireField(json, 'name', jsonPointer);
+    ValidationUtils.requireNonEmptyString(name, ValidationUtils.buildPath(jsonPointer, 'name'));
 
     // Validate optional: url (string)
     if (json.containsKey('url')) {
-      ValidationUtils.requireString(json['url'], ValidationUtils.buildPath(path, 'url'));
+      ValidationUtils.requireString(json['url'], ValidationUtils.buildPath(jsonPointer, 'url'));
     }
 
     // Validate no unknown fields
     ValidationUtils.validateNoUnknownFields(
       json,
       {'name', 'url'},
-      path,
+      jsonPointer,
       'License Object',
     );
   }

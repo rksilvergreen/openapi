@@ -43,47 +43,66 @@ class PathItemNode extends OpenApiNode with Referencable {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
-    // Validate optional HTTP method fields (objects)
+    _validateHttpMethods(jsonPointer);
+    _validateSummary(jsonPointer);
+    _validateDescription(jsonPointer);
+    _validateServers(jsonPointer);
+    _validateParameters(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateHttpMethods(String jsonPointer) {
     final httpMethods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
     for (final method in httpMethods) {
       if (json.containsKey(method)) {
-        ValidationUtils.requireMap(json[method], ValidationUtils.buildPath(path, method));
+        ValidationUtils.requireMap(json[method], ValidationUtils.buildPath(jsonPointer, method));
       }
     }
+  }
 
-    // Validate optional: summary (string)
+  void _validateSummary(String jsonPointer) {
     if (json.containsKey('summary')) {
-      ValidationUtils.requireString(json['summary'], ValidationUtils.buildPath(path, 'summary'));
+      ValidationUtils.requireString(json['summary'], ValidationUtils.buildPath(jsonPointer, 'summary'));
     }
+  }
 
-    // Validate optional: description (string)
+  void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
     }
+  }
 
-    // Validate optional: servers (array)
+  void _validateServers(String jsonPointer) {
     if (json.containsKey('servers')) {
-      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPath(path, 'servers'));
+      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPath(jsonPointer, 'servers'));
     }
+  }
 
-    // Validate optional: parameters (array)
+  void _validateParameters(String jsonPointer) {
     if (json.containsKey('parameters')) {
-      ValidationUtils.requireList(json['parameters'], ValidationUtils.buildPath(path, 'parameters'));
+      ValidationUtils.requireList(json['parameters'], ValidationUtils.buildPath(jsonPointer, 'parameters'));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace', 
        'summary', 'description', 'servers', 'parameters', '\$ref'},
-      path,
+      jsonPointer,
       'Path Item Object',
     );
   }
+
   void _createChildNodes() {
-    // Create Operation nodes for each HTTP method
+    _createOperationNodes();
+    _createServersNodes();
+    _createParametersNodes();
+  }
+
+  void _createOperationNodes() {
     final httpMethods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
     
     for (final method in httpMethods) {
@@ -126,8 +145,9 @@ class PathItemNode extends OpenApiNode with Referencable {
         operationNode.create();
       }
     }
+  }
 
-    // Create Servers nodes
+  void _createServersNodes() {
     if (json.containsKey('servers')) {
       final serversList = json['servers'] as List;
       serversNodes = [];
@@ -143,8 +163,9 @@ class PathItemNode extends OpenApiNode with Referencable {
         serverNode.create();
       }
     }
+  }
 
-    // Create Parameters nodes
+  void _createParametersNodes() {
     if (json.containsKey('parameters')) {
       final parametersList = json['parameters'] as List;
       parametersNodes = [];

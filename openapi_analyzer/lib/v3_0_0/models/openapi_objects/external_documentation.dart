@@ -19,22 +19,22 @@ class ExternalDocumentationNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // Validate required: url (non-empty string)
-    final url = ValidationUtils.requireField(json, 'url', path);
-    ValidationUtils.requireNonEmptyString(url, ValidationUtils.buildPath(path, 'url'));
+    final url = ValidationUtils.requireField(json, 'url', jsonPointer);
+    ValidationUtils.requireNonEmptyString(url, ValidationUtils.buildPath(jsonPointer, 'url'));
 
     // Validate optional: description (string)
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
     }
 
     // Validate no unknown fields
     ValidationUtils.validateNoUnknownFields(
       json,
       {'description', 'url'},
-      path,
+      jsonPointer,
       'External Documentation Object',
     );
   }

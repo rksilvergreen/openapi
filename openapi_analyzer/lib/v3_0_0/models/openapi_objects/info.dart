@@ -25,41 +25,41 @@ class InfoNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // Validate required: title (non-empty string)
-    final title = ValidationUtils.requireField(json, 'title', path);
-    ValidationUtils.requireNonEmptyString(title, ValidationUtils.buildPath(path, 'title'));
+    final title = ValidationUtils.requireField(json, 'title', jsonPointer);
+    ValidationUtils.requireNonEmptyString(title, ValidationUtils.buildPath(jsonPointer, 'title'));
 
     // Validate required: version (non-empty string)
-    final version = ValidationUtils.requireField(json, 'version', path);
-    ValidationUtils.requireNonEmptyString(version, ValidationUtils.buildPath(path, 'version'));
+    final version = ValidationUtils.requireField(json, 'version', jsonPointer);
+    ValidationUtils.requireNonEmptyString(version, ValidationUtils.buildPath(jsonPointer, 'version'));
 
     // Validate optional: description (string)
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
     }
 
     // Validate optional: termsOfService (string)
     if (json.containsKey('termsOfService')) {
-      ValidationUtils.requireString(json['termsOfService'], ValidationUtils.buildPath(path, 'termsOfService'));
+      ValidationUtils.requireString(json['termsOfService'], ValidationUtils.buildPath(jsonPointer, 'termsOfService'));
     }
 
     // Validate optional: contact (object)
     if (json.containsKey('contact')) {
-      ValidationUtils.requireMap(json['contact'], ValidationUtils.buildPath(path, 'contact'));
+      ValidationUtils.requireMap(json['contact'], ValidationUtils.buildPath(jsonPointer, 'contact'));
     }
 
     // Validate optional: license (object)
     if (json.containsKey('license')) {
-      ValidationUtils.requireMap(json['license'], ValidationUtils.buildPath(path, 'license'));
+      ValidationUtils.requireMap(json['license'], ValidationUtils.buildPath(jsonPointer, 'license'));
     }
 
     // Validate no unknown fields
     ValidationUtils.validateNoUnknownFields(
       json,
       {'title', 'description', 'termsOfService', 'contact', 'license', 'version'},
-      path,
+      jsonPointer,
       'Info Object',
     );
   }

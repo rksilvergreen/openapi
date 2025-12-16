@@ -39,106 +39,140 @@ class ParameterNode extends OpenApiNode with Referencable {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
-    // Validate required: name (string)
-    final name = ValidationUtils.requireField(json, 'name', path);
-    ValidationUtils.requireString(name, ValidationUtils.buildPath(path, 'name'));
+    _validateName(jsonPointer);
+    _validateIn(jsonPointer);
+    _validateDescription(jsonPointer);
+    _validateRequired(jsonPointer);
+    _validateDeprecated(jsonPointer);
+    _validateAllowEmptyValue(jsonPointer);
+    _validateSchema(jsonPointer);
+    _validateStyle(jsonPointer);
+    _validateExplode(jsonPointer);
+    _validateAllowReserved(jsonPointer);
+    _validateExamples(jsonPointer);
+    _validateContent(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
 
-    // Validate required: in (enum: query, header, path, cookie)
-    final inValue = ValidationUtils.requireField(json, 'in', path);
-    ValidationUtils.requireString(inValue, ValidationUtils.buildPath(path, 'in'));
+  void _validateName(String jsonPointer) {
+    final name = ValidationUtils.requireField(json, 'name', jsonPointer);
+    ValidationUtils.requireString(name, ValidationUtils.buildPath(jsonPointer, 'name'));
+  }
+
+  void _validateIn(String jsonPointer) {
+    final inValue = ValidationUtils.requireField(json, 'in', jsonPointer);
+    ValidationUtils.requireString(inValue, ValidationUtils.buildPath(jsonPointer, 'in'));
     ValidationUtils.validateEnum(inValue as String, ['query', 'header', 'path', 'cookie'], 
-        ValidationUtils.buildPath(path, 'in'));
+        ValidationUtils.buildPath(jsonPointer, 'in'));
 
     // If in=path, required must be true
     if (inValue == 'path') {
       if (!json.containsKey('required') || json['required'] != true) {
         OpenApiGraph.i.validationContext.addException(OpenApiValidationException(
-          ValidationUtils.buildPath(path, 'required'),
+          ValidationUtils.buildPath(jsonPointer, 'required'),
           'Parameter with in=path must have required=true',
           specReference: 'OpenAPI 3.0.0 - Parameter Object',
           severity: ValidationSeverity.critical,
         ));
       }
     }
+  }
 
-    // Validate optional: description (string)
+  void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(path, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
     }
+  }
 
-    // Validate optional: required (boolean)
+  void _validateRequired(String jsonPointer) {
     if (json.containsKey('required')) {
-      ValidationUtils.requireBool(json['required'], ValidationUtils.buildPath(path, 'required'));
+      ValidationUtils.requireBool(json['required'], ValidationUtils.buildPath(jsonPointer, 'required'));
     }
+  }
 
-    // Validate optional: deprecated (boolean)
+  void _validateDeprecated(String jsonPointer) {
     if (json.containsKey('deprecated')) {
-      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPath(path, 'deprecated'));
+      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPath(jsonPointer, 'deprecated'));
     }
+  }
 
-    // Validate optional: allowEmptyValue (boolean)
+  void _validateAllowEmptyValue(String jsonPointer) {
     if (json.containsKey('allowEmptyValue')) {
-      ValidationUtils.requireBool(json['allowEmptyValue'], ValidationUtils.buildPath(path, 'allowEmptyValue'));
+      ValidationUtils.requireBool(json['allowEmptyValue'], ValidationUtils.buildPath(jsonPointer, 'allowEmptyValue'));
     }
+  }
 
-    // Validate optional: schema (object)
+  void _validateSchema(String jsonPointer) {
     if (json.containsKey('schema')) {
-      ValidationUtils.requireMap(json['schema'], ValidationUtils.buildPath(path, 'schema'));
+      ValidationUtils.requireMap(json['schema'], ValidationUtils.buildPath(jsonPointer, 'schema'));
     }
+  }
 
-    // Validate optional: style (string)
+  void _validateStyle(String jsonPointer) {
     if (json.containsKey('style')) {
-      ValidationUtils.requireString(json['style'], ValidationUtils.buildPath(path, 'style'));
+      ValidationUtils.requireString(json['style'], ValidationUtils.buildPath(jsonPointer, 'style'));
     }
+  }
 
-    // Validate optional: explode (boolean)
+  void _validateExplode(String jsonPointer) {
     if (json.containsKey('explode')) {
-      ValidationUtils.requireBool(json['explode'], ValidationUtils.buildPath(path, 'explode'));
+      ValidationUtils.requireBool(json['explode'], ValidationUtils.buildPath(jsonPointer, 'explode'));
     }
+  }
 
-    // Validate optional: allowReserved (boolean)
+  void _validateAllowReserved(String jsonPointer) {
     if (json.containsKey('allowReserved')) {
-      ValidationUtils.requireBool(json['allowReserved'], ValidationUtils.buildPath(path, 'allowReserved'));
+      ValidationUtils.requireBool(json['allowReserved'], ValidationUtils.buildPath(jsonPointer, 'allowReserved'));
     }
+  }
 
-    // Validate optional: examples (object)
+  void _validateExamples(String jsonPointer) {
     if (json.containsKey('examples')) {
-      ValidationUtils.requireMap(json['examples'], ValidationUtils.buildPath(path, 'examples'));
+      ValidationUtils.requireMap(json['examples'], ValidationUtils.buildPath(jsonPointer, 'examples'));
     }
+  }
 
-    // Validate optional: content (object)
+  void _validateContent(String jsonPointer) {
     if (json.containsKey('content')) {
-      ValidationUtils.requireMap(json['content'], ValidationUtils.buildPath(path, 'content'));
+      ValidationUtils.requireMap(json['content'], ValidationUtils.buildPath(jsonPointer, 'content'));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'name', 'in', 'description', 'required', 'deprecated', 'allowEmptyValue', 
        'style', 'explode', 'allowReserved', 'schema', 'example', 'examples', 'content'},
-      path,
+      jsonPointer,
       'Parameter Object',
     );
   }
-  void _createChildNodes() {
-    // Create Schema node (with RootEdge)
-      if (json.containsKey('schema')) {
-        final schemaJson = json['schema'] as Map<String, dynamic>;
-        schemaNode = SchemaNode(
-          schemaJson,
-          $id.document,
-          ValidationUtils.buildPath($id.jsonPointer, 'schema'),
-        );
-        if (!OpenApiGraph.i.schemaNodes.containsKey(schemaNode!.$id.absolutePointer)) {
-          OpenApiGraph.i.addSchemaNode(schemaNode!);
-          OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePointer, schemaNode!.$id.absolutePointer));
-          schemaNode!.create();
-        }
-      }
 
-    // Create Example nodes
+  void _createChildNodes() {
+    _createSchemaNode();
+    _createExamplesNodes();
+    _createContentNodes();
+  }
+
+  void _createSchemaNode() {
+    if (json.containsKey('schema')) {
+      final schemaJson = json['schema'] as Map<String, dynamic>;
+      schemaNode = SchemaNode(
+        schemaJson,
+        $id.document,
+        ValidationUtils.buildPath($id.jsonPointer, 'schema'),
+      );
+      if (!OpenApiGraph.i.schemaNodes.containsKey(schemaNode!.$id.absolutePointer)) {
+        OpenApiGraph.i.addSchemaNode(schemaNode!);
+        OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePointer, schemaNode!.$id.absolutePointer));
+        schemaNode!.create();
+      }
+    }
+  }
+
+  void _createExamplesNodes() {
     if (json.containsKey('examples')) {
       final examplesMap = json['examples'] as Map<String, dynamic>;
       examplesNodes = {};
@@ -160,8 +194,9 @@ class ParameterNode extends OpenApiNode with Referencable {
         }
       }
     }
+  }
 
-    // Create Content nodes (MediaType)
+  void _createContentNodes() {
     if (json.containsKey('content')) {
       final contentMap = json['content'] as Map<String, dynamic>;
       contentNodes = {};

@@ -36,37 +36,54 @@ class ResponseNode extends OpenApiNode with Referencable {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
-    // Validate required: description (string)
-    final description = ValidationUtils.requireField(json, 'description', path);
-    ValidationUtils.requireString(description, ValidationUtils.buildPath(path, 'description'));
+    _validateDescription(jsonPointer);
+    _validateHeaders(jsonPointer);
+    _validateContent(jsonPointer);
+    _validateLinks(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
 
-    // Validate optional: headers (object)
+  void _validateDescription(String jsonPointer) {
+    final description = ValidationUtils.requireField(json, 'description', jsonPointer);
+    ValidationUtils.requireString(description, ValidationUtils.buildPath(jsonPointer, 'description'));
+  }
+
+  void _validateHeaders(String jsonPointer) {
     if (json.containsKey('headers')) {
-      ValidationUtils.requireMap(json['headers'], ValidationUtils.buildPath(path, 'headers'));
+      ValidationUtils.requireMap(json['headers'], ValidationUtils.buildPath(jsonPointer, 'headers'));
     }
+  }
 
-    // Validate optional: content (object)
+  void _validateContent(String jsonPointer) {
     if (json.containsKey('content')) {
-      ValidationUtils.requireMap(json['content'], ValidationUtils.buildPath(path, 'content'));
+      ValidationUtils.requireMap(json['content'], ValidationUtils.buildPath(jsonPointer, 'content'));
     }
+  }
 
-    // Validate optional: links (object)
+  void _validateLinks(String jsonPointer) {
     if (json.containsKey('links')) {
-      ValidationUtils.requireMap(json['links'], ValidationUtils.buildPath(path, 'links'));
+      ValidationUtils.requireMap(json['links'], ValidationUtils.buildPath(jsonPointer, 'links'));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'description', 'headers', 'content', 'links'},
-      path,
+      jsonPointer,
       'Response Object',
     );
   }
+
   void _createChildNodes() {
-    // Create Header nodes
+    _createHeadersNodes();
+    _createContentNodes();
+    _createLinksNodes();
+  }
+
+  void _createHeadersNodes() {
     if (json.containsKey('headers')) {
       final headersMap = json['headers'] as Map<String, dynamic>;
       headersNodes = {};
@@ -88,8 +105,9 @@ class ResponseNode extends OpenApiNode with Referencable {
         }
       }
     }
+  }
 
-    // Create MediaType nodes for content
+  void _createContentNodes() {
     if (json.containsKey('content')) {
       final contentMap = json['content'] as Map<String, dynamic>;
       contentNodes = {};
@@ -106,8 +124,9 @@ class ResponseNode extends OpenApiNode with Referencable {
         mediaTypeNode.create();
       }
     }
+  }
 
-    // Create Link nodes
+  void _createLinksNodes() {
     if (json.containsKey('links')) {
       final linksMap = json['links'] as Map<String, dynamic>;
       linksNodes = {};

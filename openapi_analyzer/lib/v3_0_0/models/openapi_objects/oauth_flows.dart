@@ -25,30 +25,30 @@ class OAuthFlowsNode extends OpenApiNode {
   }
 
   void _validateStructure() {
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // All flow types are optional
     if (json.containsKey('implicit')) {
-      ValidationUtils.requireMap(json['implicit'], ValidationUtils.buildPath(path, 'implicit'));
+      ValidationUtils.requireMap(json['implicit'], ValidationUtils.buildPath(jsonPointer, 'implicit'));
     }
 
     if (json.containsKey('password')) {
-      ValidationUtils.requireMap(json['password'], ValidationUtils.buildPath(path, 'password'));
+      ValidationUtils.requireMap(json['password'], ValidationUtils.buildPath(jsonPointer, 'password'));
     }
 
     if (json.containsKey('clientCredentials')) {
-      ValidationUtils.requireMap(json['clientCredentials'], ValidationUtils.buildPath(path, 'clientCredentials'));
+      ValidationUtils.requireMap(json['clientCredentials'], ValidationUtils.buildPath(jsonPointer, 'clientCredentials'));
     }
 
     if (json.containsKey('authorizationCode')) {
-      ValidationUtils.requireMap(json['authorizationCode'], ValidationUtils.buildPath(path, 'authorizationCode'));
+      ValidationUtils.requireMap(json['authorizationCode'], ValidationUtils.buildPath(jsonPointer, 'authorizationCode'));
     }
 
     // Validate no unknown fields
     ValidationUtils.validateNoUnknownFields(
       json,
       {'implicit', 'password', 'clientCredentials', 'authorizationCode'},
-      path,
+      jsonPointer,
       'OAuth Flows Object',
     );
 

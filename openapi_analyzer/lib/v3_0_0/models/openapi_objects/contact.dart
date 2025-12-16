@@ -19,26 +19,26 @@ class ContactNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // All fields optional: name, url, email
     if (json.containsKey('name')) {
-      ValidationUtils.requireString(json['name'], ValidationUtils.buildPath(path, 'name'));
+      ValidationUtils.requireString(json['name'], ValidationUtils.buildPath(jsonPointer, 'name'));
     }
 
     if (json.containsKey('url')) {
-      ValidationUtils.requireString(json['url'], ValidationUtils.buildPath(path, 'url'));
+      ValidationUtils.requireString(json['url'], ValidationUtils.buildPath(jsonPointer, 'url'));
     }
 
     if (json.containsKey('email')) {
-      ValidationUtils.requireString(json['email'], ValidationUtils.buildPath(path, 'email'));
+      ValidationUtils.requireString(json['email'], ValidationUtils.buildPath(jsonPointer, 'email'));
     }
 
     // Validate no unknown fields
     ValidationUtils.validateNoUnknownFields(
       json,
       {'name', 'url', 'email'},
-      path,
+      jsonPointer,
       'Contact Object',
     );
   }

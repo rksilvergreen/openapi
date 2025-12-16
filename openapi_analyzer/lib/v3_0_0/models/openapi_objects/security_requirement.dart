@@ -20,7 +20,7 @@ class SecurityRequirementNode extends OpenApiNode {
 
   void _validateStructure() {
     _structureValidated = true;
-    final path = $id.jsonPointer;
+    final jsonPointer = $id.jsonPointer;
 
     // Validate structure: map of string to array of strings
     for (final entry in json.entries) {
@@ -28,11 +28,11 @@ class SecurityRequirementNode extends OpenApiNode {
       if (entry.value is List) {
         final list = entry.value as List;
         for (var i = 0; i < list.length; i++) {
-          ValidationUtils.requireString(list[i], ValidationUtils.buildPath(ValidationUtils.buildPath(path, key), '[$i]'));
+          ValidationUtils.requireString(list[i], ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, key), '[$i]'));
         }
       } else if (entry.value != null) {
         OpenApiGraph.i.validationContext.addException(OpenApiValidationException(
-          ValidationUtils.buildPath(path, key),
+          ValidationUtils.buildPath(jsonPointer, key),
           'Security Requirement value must be an array of strings',
           specReference: 'OpenAPI 3.0.0 - Security Requirement Object',
           severity: ValidationSeverity.critical,
