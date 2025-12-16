@@ -2,6 +2,7 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 import '../referencable.dart';
+import '../node_creation_helpers.dart';
 import 'enums.dart';
 import 'schema/schema_node.dart';
 import 'schema/effective_schema/effective_schema.dart';
@@ -12,12 +13,7 @@ class ParameterNode extends OpenApiNode with Referencable {
   ParameterNode._(super.$id, super.json);
 
   factory ParameterNode(Map<String, dynamic> json, String document, String jsonPointer) =>
-      Referencable.getNode<ParameterNode>(
-        json,
-        document,
-        jsonPointer,
-        (nodeId, json) => ParameterNode._(nodeId, json),
-      );
+      Referencable.getNode<ParameterNode>(json, document, jsonPointer, (nodeId, json) => ParameterNode._(nodeId, json));
 
   void create() {
     _validateStructure();
@@ -64,18 +60,24 @@ class ParameterNode extends OpenApiNode with Referencable {
   void _validateIn(String jsonPointer) {
     final inValue = ValidationUtils.requireField(json, 'in', jsonPointer);
     ValidationUtils.requireString(inValue, ValidationUtils.buildPath(jsonPointer, 'in'));
-    ValidationUtils.validateEnum(inValue as String, ['query', 'header', 'path', 'cookie'], 
-        ValidationUtils.buildPath(jsonPointer, 'in'));
+    ValidationUtils.validateEnum(inValue as String, [
+      'query',
+      'header',
+      'path',
+      'cookie',
+    ], ValidationUtils.buildPath(jsonPointer, 'in'));
 
     // If in=path, required must be true
     if (inValue == 'path') {
       if (!json.containsKey('required') || json['required'] != true) {
-        OpenApiGraph.i.validationContext.addException(OpenApiValidationException(
-          ValidationUtils.buildPath(jsonPointer, 'required'),
-          'Parameter with in=path must have required=true',
-          specReference: 'OpenAPI 3.0.0 - Parameter Object',
-          severity: ValidationSeverity.critical,
-        ));
+        OpenApiGraph.i.validationContext.addException(
+          OpenApiValidationException(
+            ValidationUtils.buildPath(jsonPointer, 'required'),
+            'Parameter with in=path must have required=true',
+            specReference: 'OpenAPI 3.0.0 - Parameter Object',
+            severity: ValidationSeverity.critical,
+          ),
+        );
       }
     }
   }
@@ -143,8 +145,21 @@ class ParameterNode extends OpenApiNode with Referencable {
   void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
-      {'name', 'in', 'description', 'required', 'deprecated', 'allowEmptyValue', 
-       'style', 'explode', 'allowReserved', 'schema', 'example', 'examples', 'content'},
+      {
+        'name',
+        'in',
+        'description',
+        'required',
+        'deprecated',
+        'allowEmptyValue',
+        'style',
+        'explode',
+        'allowReserved',
+        'schema',
+        'example',
+        'examples',
+        'content',
+      },
       jsonPointer,
       'Parameter Object',
     );
@@ -159,11 +174,7 @@ class ParameterNode extends OpenApiNode with Referencable {
   void _createSchemaNode() {
     if (json.containsKey('schema')) {
       final schemaJson = json['schema'] as Map<String, dynamic>;
-      schemaNode = SchemaNode(
-        schemaJson,
-        $id.document,
-        ValidationUtils.buildPath($id.jsonPointer, 'schema'),
-      );
+      schemaNode = SchemaNode(schemaJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, 'schema'));
       if (!OpenApiGraph.i.schemaNodes.containsKey(schemaNode!.$id.absolutePointer)) {
         OpenApiGraph.i.addSchemaNode(schemaNode!);
         OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePointer, schemaNode!.$id.absolutePointer));
@@ -173,47 +184,15 @@ class ParameterNode extends OpenApiNode with Referencable {
   }
 
   void _createExamplesNodes() {
-    if (json.containsKey('examples')) {
-      final examplesMap = json['examples'] as Map<String, dynamic>;
-      examplesNodes = {};
-      for (final entry in examplesMap.entries) {
-        final exampleName = entry.key.toString();
-
-        final exampleJson = entry.value as Map<String, dynamic>;
-        final exampleNode = ExampleNode(
-          exampleJson,
-          $id.document,
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'examples'), exampleName),
-        );
-        examplesNodes![exampleName] = exampleNode;
-        if (!OpenApiGraph.i.openApiNodes.containsKey(exampleNode.$id.absolutePointer)) {
-          OpenApiGraph.i.addOpenApiNode(exampleNode);
-          OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, exampleNode.$id.absolutePointer, 'examples/$exampleName'));
-          exampleNode.create();
-        }
-      }
-    }
+    examplesNodes = createReferencableMapNode<ExampleNode>(
+      jsonKey: 'examples',
+      factory: (json, document, jsonPointer) => ExampleNode(json, document, jsonPointer),
+    );
   }
 
   void _createContentNodes() {
-    if (json.containsKey('content')) {
-      final contentMap = json['content'] as Map<String, dynamic>;
-      contentNodes = {};
-      for (final entry in contentMap.entries) {
-        final mediaType = entry.key.toString();
-        final mediaTypeJson = entry.value as Map<String, dynamic>;
-        final mediaTypeNode = MediaTypeNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'content'), mediaType)),
-          mediaTypeJson,
-        );
-        contentNodes![mediaType] = mediaTypeNode;
-        OpenApiGraph.i.addOpenApiNode(mediaTypeNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, mediaTypeNode.$id.absolutePointer, 'content/$mediaType'));
-        mediaTypeNode.create();
-      }
-    }
+    contentNodes = createMapNode<MediaTypeNode>(jsonKey: 'content', factory: (id, json) => MediaTypeNode(id, json));
   }
-
 
   void _createContent() {
     content = Parameter._(
@@ -224,9 +203,7 @@ class ParameterNode extends OpenApiNode with Referencable {
       required_: json['required'],
       deprecated: json['deprecated'],
       allowEmptyValue: json['allowEmptyValue'],
-      style: json['style'] != null
-          ? ParameterStyle.values.firstWhere((e) => e.value == json['style'])
-          : null,
+      style: json['style'] != null ? ParameterStyle.values.firstWhere((e) => e.value == json['style']) : null,
       explode: json['explode'],
       allowReserved: json['allowReserved'],
       example: json['example'],

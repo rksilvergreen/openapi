@@ -1,5 +1,6 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
+import '../node_creation_helpers.dart';
 import 'enums.dart';
 import 'header.dart';
 
@@ -62,29 +63,14 @@ class EncodingNode extends OpenApiNode {
   }
 
   void _createChildNodes() {
-    // Create Header nodes
-    if (json.containsKey('headers')) {
-      final headersMap = json['headers'] as Map<String, dynamic>;
-      headersNodes = {};
-      for (final entry in headersMap.entries) {
-        final headerName = entry.key.toString();
+    _createHeadersNodes();
+  }
 
-        final headerJson = entry.value as Map<String, dynamic>;
-        final headerNode = HeaderNode(
-          headerJson,
-          $id.document,
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'headers'), headerName),
-        );
-        headersNodes![headerName] = headerNode;
-        if (!OpenApiGraph.i.openApiNodes.containsKey(headerNode.$id.absolutePointer)) {
-          OpenApiGraph.i.addOpenApiNode(headerNode);
-          OpenApiGraph.i.addOpenApiEdge(
-            OpenApiEdge($id.absolutePointer, headerNode.$id.absolutePointer, 'headers/$headerName'),
-          );
-          headerNode.create();
-        }
-      }
-    }
+  void _createHeadersNodes() {
+    headersNodes = createReferencableMapNode<HeaderNode>(
+      jsonKey: 'headers',
+      factory: (json, document, jsonPointer) => HeaderNode(json, document, jsonPointer),
+    );
   }
 
   void _createContent() {

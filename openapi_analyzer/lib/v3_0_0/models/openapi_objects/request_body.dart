@@ -1,5 +1,6 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
+import '../node_creation_helpers.dart';
 import 'media_type.dart';
 import '../referencable.dart';
 
@@ -58,7 +59,12 @@ class RequestBodyNode extends OpenApiNode with Referencable {
   }
 
   void _validateNoUnknownFields(String jsonPointer) {
-    ValidationUtils.validateNoUnknownFields(json, {'description', 'content', 'required'}, jsonPointer, 'Request Body Object');
+    ValidationUtils.validateNoUnknownFields(
+      json,
+      {'description', 'content', 'required'},
+      jsonPointer,
+      'Request Body Object',
+    );
   }
 
   void _createChildNodes() {
@@ -66,25 +72,11 @@ class RequestBodyNode extends OpenApiNode with Referencable {
   }
 
   void _createContentNodes() {
-    final contentMap = json['content'] as Map<String, dynamic>;
-    contentNodes = {};
-    for (final entry in contentMap.entries) {
-      final mediaType = entry.key.toString();
-      final mediaTypeJson = entry.value as Map<String, dynamic>;
-      final mediaTypeNode = MediaTypeNode(
-        NodeId(
-          $id.document,
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'content'), mediaType),
-        ),
-        mediaTypeJson,
-      );
-      contentNodes[mediaType] = mediaTypeNode;
-      OpenApiGraph.i.addOpenApiNode(mediaTypeNode);
-      OpenApiGraph.i.addOpenApiEdge(
-        OpenApiEdge($id.absolutePointer, mediaTypeNode.$id.absolutePointer, 'content/$mediaType'),
-      );
-      mediaTypeNode.create();
-    }
+    contentNodes = createMapNode<MediaTypeNode>(
+      jsonKey: 'content',
+      required: true,
+      factory: (id, json) => MediaTypeNode(id, json),
+    );
   }
 
   void _createContent() {

@@ -1,5 +1,6 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
+import '../node_creation_helpers.dart';
 import 'server_variable.dart';
 
 class ServerNode extends OpenApiNode {
@@ -49,24 +50,14 @@ class ServerNode extends OpenApiNode {
   }
 
   void _createChildNodes() {
-    // Create ServerVariable nodes
-    if (json.containsKey('variables')) {
-      final variablesMap = json['variables'] as Map<String, dynamic>;
-      variablesNodes = {};
-      for (final entry in variablesMap.entries) {
-        final variableName = entry.key.toString();
+    _createServerVariableNodes();
+  }
 
-        final variableJson = entry.value as Map<String, dynamic>;
-        final variableNode = ServerVariableNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'variables'), variableName)),
-          variableJson,
-        );
-        variablesNodes![variableName] = variableNode;
-        OpenApiGraph.i.addOpenApiNode(variableNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, variableNode.$id.absolutePointer, 'variables/$variableName'));
-        variableNode.create();
-      }
-    }
+  void _createServerVariableNodes() {
+    variablesNodes = createMapNode<ServerVariableNode>(
+      jsonKey: 'variables',
+      factory: (id, json) => ServerVariableNode(id, json),
+    );
   }
 
   void _createContent() {

@@ -2,6 +2,7 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 import '../referencable.dart';
+import '../node_creation_helpers.dart';
 import 'enums.dart';
 import 'schema/schema_node.dart';
 import 'schema/effective_schema/effective_schema.dart';
@@ -168,52 +169,14 @@ class HeaderNode extends OpenApiNode with Referencable {
   }
 
   void _createExamplesNodes() {
-    if (json.containsKey('examples')) {
-      final examplesMap = json['examples'] as Map<String, dynamic>;
-      examplesNodes = {};
-      for (final entry in examplesMap.entries) {
-        final exampleName = entry.key.toString();
-
-        final exampleJson = entry.value as Map<String, dynamic>;
-        final exampleNode = ExampleNode(
-          exampleJson,
-          $id.document,
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'examples'), exampleName),
-        );
-        examplesNodes![exampleName] = exampleNode;
-        if (!OpenApiGraph.i.openApiNodes.containsKey(exampleNode.$id.absolutePointer)) {
-          OpenApiGraph.i.addOpenApiNode(exampleNode);
-          OpenApiGraph.i.addOpenApiEdge(
-            OpenApiEdge($id.absolutePointer, exampleNode.$id.absolutePointer, 'examples/$exampleName'),
-          );
-          exampleNode.create();
-        }
-      }
-    }
+    examplesNodes = createReferencableMapNode<ExampleNode>(
+      jsonKey: 'examples',
+      factory: (json, document, jsonPointer) => ExampleNode(json, document, jsonPointer),
+    );
   }
 
   void _createContentNodes() {
-    if (json.containsKey('content')) {
-      final contentMap = json['content'] as Map<String, dynamic>;
-      contentNodes = {};
-      for (final entry in contentMap.entries) {
-        final mediaType = entry.key.toString();
-        final mediaTypeJson = entry.value as Map<String, dynamic>;
-        final mediaTypeNode = MediaTypeNode(
-          NodeId(
-            $id.document,
-            ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'content'), mediaType),
-          ),
-          mediaTypeJson,
-        );
-        contentNodes![mediaType] = mediaTypeNode;
-        OpenApiGraph.i.addOpenApiNode(mediaTypeNode);
-        OpenApiGraph.i.addOpenApiEdge(
-          OpenApiEdge($id.absolutePointer, mediaTypeNode.$id.absolutePointer, 'content/$mediaType'),
-        );
-        mediaTypeNode.create();
-      }
-    }
+    contentNodes = createMapNode<MediaTypeNode>(jsonKey: 'content', factory: (id, json) => MediaTypeNode(id, json));
   }
 
   void _createContent() {

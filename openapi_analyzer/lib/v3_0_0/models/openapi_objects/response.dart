@@ -1,6 +1,7 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../referencable.dart';
+import '../node_creation_helpers.dart';
 import 'header.dart';
 import 'media_type.dart';
 import 'link.dart';
@@ -79,77 +80,21 @@ class ResponseNode extends OpenApiNode with Referencable {
   }
 
   void _createHeadersNodes() {
-    if (json.containsKey('headers')) {
-      final headersMap = json['headers'] as Map<String, dynamic>;
-      headersNodes = {};
-      for (final entry in headersMap.entries) {
-        final headerName = entry.key.toString();
-
-        final headerJson = entry.value as Map<String, dynamic>;
-        final headerNode = HeaderNode(
-          headerJson,
-          $id.document,
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'headers'), headerName),
-        );
-        headersNodes![headerName] = headerNode;
-        if (!OpenApiGraph.i.openApiNodes.containsKey(headerNode.$id.absolutePointer)) {
-          OpenApiGraph.i.addOpenApiNode(headerNode);
-          OpenApiGraph.i.addOpenApiEdge(
-            OpenApiEdge($id.absolutePointer, headerNode.$id.absolutePointer, 'headers/$headerName'),
-          );
-          headerNode.create();
-        }
-      }
-    }
+    headersNodes = createReferencableMapNode<HeaderNode>(
+      jsonKey: 'headers',
+      factory: (json, document, jsonPointer) => HeaderNode(json, document, jsonPointer),
+    );
   }
 
   void _createContentNodes() {
-    if (json.containsKey('content')) {
-      final contentMap = json['content'] as Map<String, dynamic>;
-      contentNodes = {};
-      for (final entry in contentMap.entries) {
-        final mediaType = entry.key.toString();
-        final mediaTypeJson = entry.value as Map<String, dynamic>;
-        final mediaTypeNode = MediaTypeNode(
-          NodeId(
-            $id.document,
-            ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'content'), mediaType),
-          ),
-          mediaTypeJson,
-        );
-        contentNodes![mediaType] = mediaTypeNode;
-        OpenApiGraph.i.addOpenApiNode(mediaTypeNode);
-        OpenApiGraph.i.addOpenApiEdge(
-          OpenApiEdge($id.absolutePointer, mediaTypeNode.$id.absolutePointer, 'content/$mediaType'),
-        );
-        mediaTypeNode.create();
-      }
-    }
+    contentNodes = createMapNode<MediaTypeNode>(jsonKey: 'content', factory: (id, json) => MediaTypeNode(id, json));
   }
 
   void _createLinksNodes() {
-    if (json.containsKey('links')) {
-      final linksMap = json['links'] as Map<String, dynamic>;
-      linksNodes = {};
-      for (final entry in linksMap.entries) {
-        final linkName = entry.key.toString();
-
-        final linkJson = entry.value as Map<String, dynamic>;
-        final linkNode = LinkNode(
-          linkJson,
-          $id.document,
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'links'), linkName),
-        );
-        linksNodes![linkName] = linkNode;
-        if (!OpenApiGraph.i.openApiNodes.containsKey(linkNode.$id.absolutePointer)) {
-          OpenApiGraph.i.addOpenApiNode(linkNode);
-          OpenApiGraph.i.addOpenApiEdge(
-            OpenApiEdge($id.absolutePointer, linkNode.$id.absolutePointer, 'links/$linkName'),
-          );
-          linkNode.create();
-        }
-      }
-    }
+    linksNodes = createReferencableMapNode<LinkNode>(
+      jsonKey: 'links',
+      factory: (json, document, jsonPointer) => LinkNode(json, document, jsonPointer),
+    );
   }
 
   void _createContent() {

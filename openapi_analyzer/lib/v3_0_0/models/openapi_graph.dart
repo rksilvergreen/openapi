@@ -35,6 +35,7 @@ abstract class OpenApiNode extends Node {
 
   bool get structureValidated;
   bool get contentCreated;
+  void create();
 }
 
 class OpenApiGraph {

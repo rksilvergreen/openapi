@@ -1,6 +1,7 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
+import '../node_creation_helpers.dart';
 import 'schema/schema_node.dart';
 import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
@@ -58,12 +59,14 @@ class MediaTypeNode extends OpenApiNode {
 
   void _validateExampleMutualExclusivity(String jsonPointer) {
     if (json.containsKey('example') && json.containsKey('examples')) {
-      OpenApiGraph.i.validationContext.addException(OpenApiValidationException(
-        jsonPointer,
-        'Media Type Object cannot have both "example" and "examples" fields',
-        specReference: 'OpenAPI 3.0.0 - Media Type Object',
-        severity: ValidationSeverity.critical,
-      ));
+      OpenApiGraph.i.validationContext.addException(
+        OpenApiValidationException(
+          jsonPointer,
+          'Media Type Object cannot have both "example" and "examples" fields',
+          specReference: 'OpenAPI 3.0.0 - Media Type Object',
+          severity: ValidationSeverity.critical,
+        ),
+      );
     }
   }
 
@@ -85,11 +88,7 @@ class MediaTypeNode extends OpenApiNode {
   void _createSchemaNode() {
     if (json.containsKey('schema')) {
       final schemaJson = json['schema'] as Map<String, dynamic>;
-      schemaNode = SchemaNode(
-        schemaJson,
-        $id.document,
-        ValidationUtils.buildPath($id.jsonPointer, 'schema'),
-      );
+      schemaNode = SchemaNode(schemaJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, 'schema'));
       if (!OpenApiGraph.i.schemaNodes.containsKey(schemaNode!.$id.absolutePointer)) {
         OpenApiGraph.i.addSchemaNode(schemaNode!);
         // Use RootEdge to mark this as a schema root
@@ -100,46 +99,14 @@ class MediaTypeNode extends OpenApiNode {
   }
 
   void _createExamplesNodes() {
-    if (json.containsKey('examples')) {
-      final examplesMap = json['examples'] as Map<String, dynamic>;
-      examplesNodes = {};
-      for (final entry in examplesMap.entries) {
-        final exampleName = entry.key.toString();
-
-        final exampleJson = entry.value as Map<String, dynamic>;
-        final exampleNode = ExampleNode(
-          exampleJson,
-          $id.document,
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'examples'), exampleName),
-        );
-        examplesNodes![exampleName] = exampleNode;
-        if (!OpenApiGraph.i.openApiNodes.containsKey(exampleNode.$id.absolutePointer)) {
-          OpenApiGraph.i.addOpenApiNode(exampleNode);
-          OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, exampleNode.$id.absolutePointer, 'examples/$exampleName'));
-          exampleNode.create();
-        }
-      }
-    }
+    examplesNodes = createReferencableMapNode<ExampleNode>(
+      jsonKey: 'examples',
+      factory: (json, document, jsonPointer) => ExampleNode(json, document, jsonPointer),
+    );
   }
 
   void _createEncodingNodes() {
-    if (json.containsKey('encoding')) {
-      final encodingMap = json['encoding'] as Map<String, dynamic>;
-      encodingNodes = {};
-      for (final entry in encodingMap.entries) {
-        final propertyName = entry.key.toString();
-
-        final encodingJson = entry.value as Map<String, dynamic>;
-        final encodingNode = EncodingNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'encoding'), propertyName)),
-          encodingJson,
-        );
-        encodingNodes![propertyName] = encodingNode;
-        OpenApiGraph.i.addOpenApiNode(encodingNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, encodingNode.$id.absolutePointer, 'encoding/$propertyName'));
-        encodingNode.create();
-      }
-    }
+    encodingNodes = createMapNode<EncodingNode>(jsonKey: 'encoding', factory: (id, json) => EncodingNode(id, json));
   }
 
   void _createContent() {

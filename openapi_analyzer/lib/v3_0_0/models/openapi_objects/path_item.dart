@@ -1,6 +1,7 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../referencable.dart';
+import '../node_creation_helpers.dart';
 import 'operation.dart';
 import 'server.dart';
 import 'parameter.dart';
@@ -148,42 +149,17 @@ class PathItemNode extends OpenApiNode with Referencable {
   }
 
   void _createServersNodes() {
-    if (json.containsKey('servers')) {
-      final serversList = json['servers'] as List;
-      serversNodes = [];
-      for (var i = 0; i < serversList.length; i++) {
-        final serverJson = serversList[i] as Map<String, dynamic>;
-        final serverNode = ServerNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'servers'), '[$i]')),
-          serverJson,
-        );
-        serversNodes!.add(serverNode);
-        OpenApiGraph.i.addOpenApiNode(serverNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, serverNode.$id.absolutePointer, 'servers'));
-        serverNode.create();
-      }
-    }
+    serversNodes = createListNode<ServerNode>(
+      jsonKey: 'servers',
+      factory: (id, json) => ServerNode(id, json),
+    );
   }
 
   void _createParametersNodes() {
-    if (json.containsKey('parameters')) {
-      final parametersList = json['parameters'] as List;
-      parametersNodes = [];
-      for (var i = 0; i < parametersList.length; i++) {
-        final parameterJson = parametersList[i] as Map<String, dynamic>;
-        final parameterNode = ParameterNode(
-          parameterJson,
-          $id.document,
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'parameters'), '[$i]'),
-        );
-        parametersNodes!.add(parameterNode);
-        if (!OpenApiGraph.i.openApiNodes.containsKey(parameterNode.$id.absolutePointer)) {
-          OpenApiGraph.i.addOpenApiNode(parameterNode);
-          OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, parameterNode.$id.absolutePointer, 'parameters'));
-          parameterNode.create();
-        }
-      }
-    }
+    parametersNodes = createReferencableListNode<ParameterNode>(
+      jsonKey: 'parameters',
+      factory: (json, document, jsonPointer) => ParameterNode(json, document, jsonPointer),
+    );
   }
 
   void _createContent() {

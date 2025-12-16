@@ -1,5 +1,6 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
+import '../node_creation_helpers.dart';
 import 'info.dart';
 import 'server.dart';
 import 'paths.dart';
@@ -119,109 +120,37 @@ class OpenApiDocumentNode extends OpenApiNode {
   }
 
   void _createInfoNode() {
-    if (json.containsKey('info')) {
-      final infoJson = json['info'] as Map<String, dynamic>;
-      infoNode = InfoNode(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'info')), infoJson);
-      OpenApiGraph.i.addOpenApiNode(infoNode);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, infoNode.$id.absolutePointer, 'info'));
-      infoNode.create();
-    }
+    infoNode = createNode<InfoNode>(jsonKey: 'info', required: true, factory: (id, json) => InfoNode(id, json))!;
   }
 
   void _createServersNodes() {
-    if (json.containsKey('servers')) {
-      final serversList = json['servers'] as List;
-      serversNode = [];
-      for (var i = 0; i < serversList.length; i++) {
-        final serverJson = serversList[i] as Map<String, dynamic>;
-        final serverNodeInstance = ServerNode(
-          NodeId(
-            $id.document,
-            ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'servers'), '[$i]'),
-          ),
-          serverJson,
-        );
-        serversNode!.add(serverNodeInstance);
-        OpenApiGraph.i.addOpenApiNode(serverNodeInstance);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, serverNodeInstance.$id.absolutePointer, 'servers'));
-        serverNodeInstance.create();
-      }
-    }
+    serversNode = createListNode<ServerNode>(jsonKey: 'servers', factory: (id, json) => ServerNode(id, json));
   }
 
   void _createPathsNode() {
-    if (json.containsKey('paths')) {
-      final pathsJson = json['paths'] as Map<String, dynamic>;
-      pathsNode = PathsNode(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'paths')), pathsJson);
-      OpenApiGraph.i.addOpenApiNode(pathsNode);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, pathsNode.$id.absolutePointer, 'paths'));
-      pathsNode.create();
-    }
+    pathsNode = createNode<PathsNode>(jsonKey: 'paths', required: true, factory: (id, json) => PathsNode(id, json))!;
   }
 
   void _createComponentsNode() {
-    if (json.containsKey('components')) {
-      final componentsJson = json['components'] as Map<String, dynamic>;
-      componentsNode = ComponentsNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'components')),
-        componentsJson,
-      );
-      OpenApiGraph.i.addOpenApiNode(componentsNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, componentsNode!.$id.absolutePointer, 'components'));
-      componentsNode!.create();
-    }
+    componentsNode = createNode<ComponentsNode>(jsonKey: 'components', factory: (id, json) => ComponentsNode(id, json));
   }
 
   void _createSecurityNodes() {
-    if (json.containsKey('security')) {
-      final securityList = json['security'] as List;
-      securityNode = [];
-      for (var i = 0; i < securityList.length; i++) {
-        final securityJson = securityList[i] as Map<String, dynamic>;
-        final securityNodeInstance = SecurityRequirementNode(
-          NodeId(
-            $id.document,
-            ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'security'), '[$i]'),
-          ),
-          securityJson,
-        );
-        securityNode!.add(securityNodeInstance);
-        OpenApiGraph.i.addOpenApiNode(securityNodeInstance);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, securityNodeInstance.$id.absolutePointer, 'security'));
-        securityNodeInstance.create();
-      }
-    }
+    securityNode = createListNode<SecurityRequirementNode>(
+      jsonKey: 'security',
+      factory: (id, json) => SecurityRequirementNode(id, json),
+    );
   }
 
   void _createTagsNodes() {
-    if (json.containsKey('tags')) {
-      final tagsList = json['tags'] as List;
-      tagsNode = [];
-      for (var i = 0; i < tagsList.length; i++) {
-        final tagJson = tagsList[i] as Map<String, dynamic>;
-        final tagNodeInstance = TagNode(
-          NodeId($id.document, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'tags'), '[$i]')),
-          tagJson,
-        );
-        tagsNode!.add(tagNodeInstance);
-        OpenApiGraph.i.addOpenApiNode(tagNodeInstance);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, tagNodeInstance.$id.absolutePointer, 'tags'));
-        tagNodeInstance.create();
-      }
-    }
+    tagsNode = createListNode<TagNode>(jsonKey: 'tags', factory: (id, json) => TagNode(id, json));
   }
 
   void _createExternalDocsNode() {
-    if (json.containsKey('externalDocs')) {
-      final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
-      externalDocsNode = ExternalDocumentationNode(
-        NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, 'externalDocs')),
-        externalDocsJson,
-      );
-      OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, externalDocsNode!.$id.absolutePointer, 'externalDocs'));
-      externalDocsNode!.create();
-    }
+    externalDocsNode = createNode<ExternalDocumentationNode>(
+      jsonKey: 'externalDocs',
+      factory: (id, json) => ExternalDocumentationNode(id, json),
+    );
   }
 
   void _createContent() {
