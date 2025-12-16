@@ -82,18 +82,21 @@ class ResponseNode extends OpenApiNode with Referencable {
   void _createHeadersNodes() {
     headersNodes = createReferencableMapNode<HeaderNode>(
       jsonKey: 'headers',
-      factory: (json, document, jsonPointer) => HeaderNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) => HeaderNode(json, document, jsonPointer),
     );
   }
 
   void _createContentNodes() {
-    contentNodes = createMapNode<MediaTypeNode>(jsonKey: 'content', factory: (id, json) => MediaTypeNode(id, json));
+    contentNodes = createMapNode<MediaTypeNode>(
+      jsonKey: 'content',
+      factory: ({required id, required json}) => MediaTypeNode(id, json),
+    );
   }
 
   void _createLinksNodes() {
     linksNodes = createReferencableMapNode<LinkNode>(
       jsonKey: 'links',
-      factory: (json, document, jsonPointer) => LinkNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) => LinkNode(json, document, jsonPointer),
     );
   }
 

@@ -9,7 +9,8 @@ extension NodeCreationHelpers on OpenApiNode {
   /// Returns the existing node if it was already created, otherwise creates and returns a new one.
   T? createReferencableNode<T extends OpenApiNode>({
     required String jsonKey,
-    required T Function(Map<String, dynamic> json, String document, String jsonPointer) factory,
+    required T Function({required Map<String, dynamic> json, required String document, required String jsonPointer})
+    factory,
     bool required = false,
   }) {
     if (!json.containsKey(jsonKey)) {
@@ -28,7 +29,12 @@ extension NodeCreationHelpers on OpenApiNode {
 
     final childJson = json[jsonKey] as Map<String, dynamic>;
     final childNode =
-        factory(childJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, jsonKey)) as OpenApiNode;
+        factory(
+              json: childJson,
+              document: $id.document,
+              jsonPointer: ValidationUtils.buildPath($id.jsonPointer, jsonKey),
+            )
+            as OpenApiNode;
 
     if (OpenApiGraph.i.openApiNodes.containsKey(childNode.$id.absolutePointer)) {
       return OpenApiGraph.i.openApiNodes[childNode.$id.absolutePointer] as T;
@@ -43,7 +49,7 @@ extension NodeCreationHelpers on OpenApiNode {
   /// Creates a single non-referencable node (always creates a new instance).
   T? createNode<T extends OpenApiNode>({
     required String jsonKey,
-    required T Function(NodeId id, Map<String, dynamic> json) factory,
+    required T Function({required NodeId id, required Map<String, dynamic> json}) factory,
     bool required = false,
   }) {
     if (!json.containsKey(jsonKey)) {
@@ -62,7 +68,8 @@ extension NodeCreationHelpers on OpenApiNode {
 
     final childJson = json[jsonKey] as Map<String, dynamic>;
     final childNode =
-        factory(NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, jsonKey)), childJson) as OpenApiNode;
+        factory(id: NodeId($id.document, ValidationUtils.buildPath($id.jsonPointer, jsonKey)), json: childJson)
+            as OpenApiNode;
 
     OpenApiGraph.i.addOpenApiNode(childNode);
     OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, childNode.$id.absolutePointer, jsonKey));
@@ -73,7 +80,8 @@ extension NodeCreationHelpers on OpenApiNode {
   /// Creates a list of referencable nodes (handles $ref resolution and node reuse).
   List<T> createReferencableListNode<T extends OpenApiNode>({
     required String jsonKey,
-    required T Function(Map<String, dynamic> json, String document, String jsonPointer) factory,
+    required T Function({required Map<String, dynamic> json, required String document, required String jsonPointer})
+    factory,
     bool required = false,
   }) {
     if (!json.containsKey(jsonKey)) {
@@ -97,9 +105,9 @@ extension NodeCreationHelpers on OpenApiNode {
       final childJson = list[i] as Map<String, dynamic>;
       final childNode =
           factory(
-                childJson,
-                $id.document,
-                ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), '[$i]'),
+                json: childJson,
+                document: $id.document,
+                jsonPointer: ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), '[$i]'),
               )
               as OpenApiNode;
 
@@ -120,7 +128,7 @@ extension NodeCreationHelpers on OpenApiNode {
   /// Creates a list of non-referencable nodes (always creates new instances).
   List<T> createListNode<T extends OpenApiNode>({
     required String jsonKey,
-    required T Function(NodeId id, Map<String, dynamic> json) factory,
+    required T Function({required NodeId id, required Map<String, dynamic> json}) factory,
     bool required = false,
   }) {
     if (!json.containsKey(jsonKey)) {
@@ -144,11 +152,11 @@ extension NodeCreationHelpers on OpenApiNode {
       final childJson = list[i] as Map<String, dynamic>;
       final childNode =
           factory(
-                NodeId(
+                id: NodeId(
                   $id.document,
                   ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), '[$i]'),
                 ),
-                childJson,
+                json: childJson,
               )
               as OpenApiNode;
 
@@ -164,7 +172,8 @@ extension NodeCreationHelpers on OpenApiNode {
   /// Creates a map of referencable nodes (handles $ref resolution and node reuse).
   Map<String, T> createReferencableMapNode<T extends OpenApiNode>({
     required String jsonKey,
-    required T Function(Map<String, dynamic> json, String document, String jsonPointer) factory,
+    required T Function({required Map<String, dynamic> json, required String document, required String jsonPointer})
+    factory,
     bool required = false,
   }) {
     if (!json.containsKey(jsonKey)) {
@@ -188,7 +197,7 @@ extension NodeCreationHelpers on OpenApiNode {
   /// Creates a map of non-referencable nodes (always creates new instances).
   Map<String, T> createMapNode<T extends OpenApiNode>({
     required String jsonKey,
-    required T Function(NodeId id, Map<String, dynamic> json) factory,
+    required T Function({required NodeId id, required Map<String, dynamic> json}) factory,
     bool required = false,
   }) {
     if (!json.containsKey(jsonKey)) {
@@ -213,7 +222,7 @@ extension NodeCreationHelpers on OpenApiNode {
   Map<String, T> processReferencableMapEntries<T extends OpenApiNode>(
     Map<String, dynamic> map,
     String jsonKey,
-    T Function(Map<String, dynamic> json, String document, String jsonPointer) factory,
+    T Function({required Map<String, dynamic> json, required String document, required String jsonPointer}) factory,
   ) {
     final nodes = <String, T>{};
 
@@ -222,9 +231,9 @@ extension NodeCreationHelpers on OpenApiNode {
       final childJson = entry.value as Map<String, dynamic>;
       final childNode =
           factory(
-                childJson,
-                $id.document,
-                ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), key),
+                json: childJson,
+                document: $id.document,
+                jsonPointer: ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), key),
               )
               as OpenApiNode;
 
@@ -245,7 +254,7 @@ extension NodeCreationHelpers on OpenApiNode {
   Map<String, T> processMapEntries<T extends OpenApiNode>(
     Map<String, dynamic> map,
     String jsonKey,
-    T Function(NodeId id, Map<String, dynamic> json) factory,
+    T Function({required NodeId id, required Map<String, dynamic> json}) factory,
   ) {
     final nodes = <String, T>{};
 
@@ -254,11 +263,11 @@ extension NodeCreationHelpers on OpenApiNode {
       final childJson = entry.value as Map<String, dynamic>;
       final childNode =
           factory(
-                NodeId(
+                id: NodeId(
                   $id.document,
                   ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), key),
                 ),
-                childJson,
+                json: childJson,
               )
               as OpenApiNode;
 

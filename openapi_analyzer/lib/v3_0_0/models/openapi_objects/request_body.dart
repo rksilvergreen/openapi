@@ -75,7 +75,7 @@ class RequestBodyNode extends OpenApiNode with Referencable {
     contentNodes = createMapNode<MediaTypeNode>(
       jsonKey: 'content',
       required: true,
-      factory: (id, json) => MediaTypeNode(id, json),
+      factory: ({required id, required json}) => MediaTypeNode(id, json),
     );
   }
 

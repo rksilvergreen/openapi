@@ -168,21 +168,22 @@ class OperationNode extends OpenApiNode {
   void _createExternalDocsNode() {
     externalDocsNode = createNode<ExternalDocumentationNode>(
       jsonKey: 'externalDocs',
-      factory: (id, json) => ExternalDocumentationNode(id, json),
+      factory: ({required id, required json}) => ExternalDocumentationNode(id, json),
     );
   }
 
   void _createParametersNodes() {
     parametersNodes = createReferencableListNode<ParameterNode>(
       jsonKey: 'parameters',
-      factory: (json, document, jsonPointer) => ParameterNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) => ParameterNode(json, document, jsonPointer),
     );
   }
 
   void _createRequestBodyNode() {
     requestBodyNode = createReferencableNode<RequestBodyNode>(
       jsonKey: 'requestBody',
-      factory: (json, document, jsonPointer) => RequestBodyNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) =>
+          RequestBodyNode(json, document, jsonPointer),
     );
   }
 
@@ -190,26 +191,29 @@ class OperationNode extends OpenApiNode {
     responseNodes = createReferencableMapNode<ResponseNode>(
       jsonKey: 'responses',
       required: true,
-      factory: (json, document, jsonPointer) => ResponseNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) => ResponseNode(json, document, jsonPointer),
     );
   }
 
   void _createCallbackNodes() {
     callbackNodes = createReferencableMapNode<CallbackNode>(
       jsonKey: 'callbacks',
-      factory: (json, document, jsonPointer) => CallbackNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) => CallbackNode(json, document, jsonPointer),
     );
   }
 
   void _createSecurityRequirementNodes() {
     securityRequirementNodes = createListNode<SecurityRequirementNode>(
       jsonKey: 'security',
-      factory: (id, json) => SecurityRequirementNode(id, json),
+      factory: ({required id, required json}) => SecurityRequirementNode(id, json),
     );
   }
 
   void _createServerNodes() {
-    serverNodes = createListNode<ServerNode>(jsonKey: 'servers', factory: (id, json) => ServerNode(id, json));
+    serverNodes = createListNode<ServerNode>(
+      jsonKey: 'servers',
+      factory: ({required id, required json}) => ServerNode(id, json),
+    );
   }
 
   void _createContent() {

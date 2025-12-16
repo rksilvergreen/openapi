@@ -120,36 +120,50 @@ class OpenApiDocumentNode extends OpenApiNode {
   }
 
   void _createInfoNode() {
-    infoNode = createNode<InfoNode>(jsonKey: 'info', required: true, factory: (id, json) => InfoNode(id, json))!;
+    infoNode = createNode<InfoNode>(
+      jsonKey: 'info',
+      required: true,
+      factory: ({required id, required json}) => InfoNode(id, json),
+    )!;
   }
 
   void _createServersNodes() {
-    serversNode = createListNode<ServerNode>(jsonKey: 'servers', factory: (id, json) => ServerNode(id, json));
+    serversNode = createListNode<ServerNode>(
+      jsonKey: 'servers',
+      factory: ({required id, required json}) => ServerNode(id, json),
+    );
   }
 
   void _createPathsNode() {
-    pathsNode = createNode<PathsNode>(jsonKey: 'paths', required: true, factory: (id, json) => PathsNode(id, json))!;
+    pathsNode = createNode<PathsNode>(
+      jsonKey: 'paths',
+      required: true,
+      factory: ({required id, required json}) => PathsNode(id, json),
+    )!;
   }
 
   void _createComponentsNode() {
-    componentsNode = createNode<ComponentsNode>(jsonKey: 'components', factory: (id, json) => ComponentsNode(id, json));
+    componentsNode = createNode<ComponentsNode>(
+      jsonKey: 'components',
+      factory: ({required id, required json}) => ComponentsNode(id, json),
+    );
   }
 
   void _createSecurityNodes() {
     securityNode = createListNode<SecurityRequirementNode>(
       jsonKey: 'security',
-      factory: (id, json) => SecurityRequirementNode(id, json),
+      factory: ({required id, required json}) => SecurityRequirementNode(id, json),
     );
   }
 
   void _createTagsNodes() {
-    tagsNode = createListNode<TagNode>(jsonKey: 'tags', factory: (id, json) => TagNode(id, json));
+    tagsNode = createListNode<TagNode>(jsonKey: 'tags', factory: ({required id, required json}) => TagNode(id, json));
   }
 
   void _createExternalDocsNode() {
     externalDocsNode = createNode<ExternalDocumentationNode>(
       jsonKey: 'externalDocs',
-      factory: (id, json) => ExternalDocumentationNode(id, json),
+      factory: ({required id, required json}) => ExternalDocumentationNode(id, json),
     );
   }
 

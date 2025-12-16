@@ -121,49 +121,51 @@ class ComponentsNode extends OpenApiNode {
     // Create Response nodes
     responsesNodes = createReferencableMapNode<ResponseNode>(
       jsonKey: 'responses',
-      factory: (json, document, jsonPointer) => ResponseNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) => ResponseNode(json, document, jsonPointer),
     );
 
     // Create Parameter nodes
     parametersNodes = createReferencableMapNode<ParameterNode>(
       jsonKey: 'parameters',
-      factory: (json, document, jsonPointer) => ParameterNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) => ParameterNode(json, document, jsonPointer),
     );
 
     // Create Example nodes
     examplesNodes = createReferencableMapNode<ExampleNode>(
       jsonKey: 'examples',
-      factory: (json, document, jsonPointer) => ExampleNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) => ExampleNode(json, document, jsonPointer),
     );
 
     // Create RequestBody nodes
     requestBodiesNodes = createReferencableMapNode<RequestBodyNode>(
       jsonKey: 'requestBodies',
-      factory: (json, document, jsonPointer) => RequestBodyNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) =>
+          RequestBodyNode(json, document, jsonPointer),
     );
 
     // Create Header nodes
     headersNodes = createReferencableMapNode<HeaderNode>(
       jsonKey: 'headers',
-      factory: (json, document, jsonPointer) => HeaderNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) => HeaderNode(json, document, jsonPointer),
     );
 
     // Create SecurityScheme nodes
     securitySchemesNodes = createReferencableMapNode<SecuritySchemeNode>(
       jsonKey: 'securitySchemes',
-      factory: (json, document, jsonPointer) => SecuritySchemeNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) =>
+          SecuritySchemeNode(json, document, jsonPointer),
     );
 
     // Create Link nodes
     linksNodes = createReferencableMapNode<LinkNode>(
       jsonKey: 'links',
-      factory: (json, document, jsonPointer) => LinkNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) => LinkNode(json, document, jsonPointer),
     );
 
     // Create Callback nodes
     callbacksNodes = createReferencableMapNode<CallbackNode>(
       jsonKey: 'callbacks',
-      factory: (json, document, jsonPointer) => CallbackNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) => CallbackNode(json, document, jsonPointer),
     );
   }
 

@@ -41,12 +41,7 @@ class ServerNode extends OpenApiNode {
     }
 
     // Validate no unknown fields
-    ValidationUtils.validateNoUnknownFields(
-      json,
-      {'url', 'description', 'variables'},
-      jsonPointer,
-      'Server Object',
-    );
+    ValidationUtils.validateNoUnknownFields(json, {'url', 'description', 'variables'}, jsonPointer, 'Server Object');
   }
 
   void _createChildNodes() {
@@ -56,7 +51,7 @@ class ServerNode extends OpenApiNode {
   void _createServerVariableNodes() {
     variablesNodes = createMapNode<ServerVariableNode>(
       jsonKey: 'variables',
-      factory: (id, json) => ServerVariableNode(id, json),
+      factory: ({required id, required json}) => ServerVariableNode(id, json),
     );
   }
 

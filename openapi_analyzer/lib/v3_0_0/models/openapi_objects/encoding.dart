@@ -69,7 +69,7 @@ class EncodingNode extends OpenApiNode {
   void _createHeadersNodes() {
     headersNodes = createReferencableMapNode<HeaderNode>(
       jsonKey: 'headers',
-      factory: (json, document, jsonPointer) => HeaderNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) => HeaderNode(json, document, jsonPointer),
     );
   }
 

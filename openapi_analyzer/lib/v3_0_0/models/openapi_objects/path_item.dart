@@ -151,14 +151,14 @@ class PathItemNode extends OpenApiNode with Referencable {
   void _createServersNodes() {
     serversNodes = createListNode<ServerNode>(
       jsonKey: 'servers',
-      factory: (id, json) => ServerNode(id, json),
+      factory: ({required id, required json}) => ServerNode(id, json),
     );
   }
 
   void _createParametersNodes() {
     parametersNodes = createReferencableListNode<ParameterNode>(
       jsonKey: 'parameters',
-      factory: (json, document, jsonPointer) => ParameterNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) => ParameterNode(json, document, jsonPointer),
     );
   }
 
