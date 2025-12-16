@@ -1,4 +1,5 @@
 import '../../validation_exception.dart';
+import '../models/openapi_graph.dart';
 
 /// Utility class for common validation operations.
 class ValidationUtils {
@@ -245,5 +246,124 @@ class ValidationUtils {
       );
     }
   }
-}
 
+  /// Validates the format of a $ref string according to OpenAPI 3.0.0 and JSON Reference specs.
+  /// Checks for proper URI format, JSON pointer syntax, and encoding.
+  static void validateRefFormat(String ref, String path) {
+    if (ref.isEmpty) {
+      OpenApiGraph.i.validationContext.addException(
+        OpenApiValidationException(
+          path,
+          '\$ref cannot be an empty string',
+          specReference: 'OpenAPI 3.0.0 - Reference Object',
+          severity: ValidationSeverity.critical,
+        ),
+      );
+      return;
+    }
+
+    if (ref.startsWith('#')) {
+      // Internal reference - validate JSON pointer format
+      if (ref.length == 1) {
+        OpenApiGraph.i.validationContext.addException(
+          OpenApiValidationException(
+            path,
+            '\$ref "#" is invalid - must include JSON pointer',
+            specReference: 'RFC 6901 - JSON Pointer',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+        return;
+      }
+
+      final jsonPointer = ref.substring(1);
+      if (!jsonPointer.startsWith('/')) {
+        OpenApiGraph.i.validationContext.addException(
+          OpenApiValidationException(
+            path,
+            '\$ref "$ref" is invalid - JSON pointer must start with "/" after "#"',
+            specReference: 'RFC 6901 - JSON Pointer',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+      }
+
+      // Validate JSON pointer encoding
+      _validateJsonPointerEncoding(jsonPointer, path, ref);
+    } else {
+      // External reference - validate URI and optional fragment
+      if (ref.contains('#')) {
+        final parts = ref.split('#');
+        if (parts[0].isEmpty) {
+          OpenApiGraph.i.validationContext.addException(
+            OpenApiValidationException(
+              path,
+              '\$ref "$ref" is invalid - document path cannot be empty before "#"',
+              specReference: 'OpenAPI 3.0.0 - Reference Object',
+              severity: ValidationSeverity.critical,
+            ),
+          );
+          return;
+        }
+
+        if (parts.length > 1 && parts[1].isNotEmpty && !parts[1].startsWith('/')) {
+          OpenApiGraph.i.validationContext.addException(
+            OpenApiValidationException(
+              path,
+              '\$ref "$ref" is invalid - fragment must be a valid JSON pointer starting with "/"',
+              specReference: 'RFC 6901 - JSON Pointer',
+              severity: ValidationSeverity.critical,
+            ),
+          );
+        }
+
+        // Validate JSON pointer in fragment if present
+        if (parts.length > 1 && parts[1].isNotEmpty) {
+          _validateJsonPointerEncoding(parts[1], path, ref);
+        }
+      }
+
+      // Validate file extension (moderate severity, not critical)
+      final filePath = ref.split('#')[0];
+      if (!filePath.endsWith('.yaml') && !filePath.endsWith('.yml') && !filePath.endsWith('.json')) {
+        OpenApiGraph.i.validationContext.addException(
+          OpenApiValidationException(
+            path,
+            '\$ref "$ref" should reference a .yaml, .yml, or .json file',
+            specReference: 'OpenAPI 3.0.0 - Reference Object',
+            severity: ValidationSeverity.moderate,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Validates JSON pointer encoding according to RFC 6901.
+  /// JSON pointers can only use ~0 (for ~) and ~1 (for /) escape sequences.
+  static void _validateJsonPointerEncoding(String pointer, String path, String fullRef) {
+    // Check for invalid escape sequences (~ not followed by 0 or 1)
+    final invalidEscape = RegExp(r'~(?![01])');
+    if (invalidEscape.hasMatch(pointer)) {
+      OpenApiGraph.i.validationContext.addException(
+        OpenApiValidationException(
+          path,
+          '\$ref "$fullRef" contains invalid escape sequence in JSON pointer - only ~0 and ~1 are allowed',
+          specReference: 'RFC 6901 - JSON Pointer',
+          severity: ValidationSeverity.critical,
+        ),
+      );
+    }
+
+    // Check for trailing ~ without 0 or 1
+    if (pointer.endsWith('~')) {
+      OpenApiGraph.i.validationContext.addException(
+        OpenApiValidationException(
+          path,
+          '\$ref "$fullRef" contains incomplete escape sequence at end of JSON pointer',
+          specReference: 'RFC 6901 - JSON Pointer',
+          severity: ValidationSeverity.critical,
+        ),
+      );
+    }
+  }
+}

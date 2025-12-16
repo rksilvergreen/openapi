@@ -186,7 +186,8 @@ class SchemaNode extends Node {
 
   void _validateRef(String path) {
     if (json.containsKey('\$ref')) {
-      ValidationUtils.requireString(json['\$ref'], ValidationUtils.buildPath(path, '\$ref'));
+      final refValue = ValidationUtils.requireString(json['\$ref'], ValidationUtils.buildPath(path, '\$ref'));
+      ValidationUtils.validateRefFormat(refValue, ValidationUtils.buildPath(path, '\$ref'));
     }
   }
 
