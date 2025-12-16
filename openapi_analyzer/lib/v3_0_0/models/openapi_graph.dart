@@ -30,7 +30,7 @@ class NodeId {
   const NodeId(this.document, this.relativePath) : absolutePath = '$document$relativePath';
 }
 
-abstract class OpenApiNode<T> extends Node {
+abstract class OpenApiNode extends Node {
   OpenApiNode(super.$id, super.json);
 
   bool get structureValidated;
