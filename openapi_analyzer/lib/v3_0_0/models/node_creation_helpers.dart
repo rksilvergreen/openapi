@@ -6,14 +6,44 @@ import 'referencable.dart';
 /// Extension providing helper methods for creating child nodes.
 /// These methods handle the common patterns of node creation, edge addition, and node reuse.
 extension NodeCreationHelpers on OpenApiNode {
-  /// Creates a single node (handles $ref resolution and node reuse for referencable nodes).
-  /// Returns the existing node if it was already created (for referencable nodes), otherwise creates and returns a new one.
-  T? createNode<T extends OpenApiNode>({
-    required String jsonKey,
+  /// Helper method to create a child node, handling $ref resolution and node reuse.
+  /// Returns: (childNode, existingNode) where existingNode is non-null if the node already exists.
+  T _createResolvedNode<T extends OpenApiNode>({
+    required Map<String, dynamic> childJson,
+    required String document,
+    required String jsonPointer,
     required T Function({required Map<String, dynamic> json, required String document, required String jsonPointer})
     factory,
-    bool required = false,
   }) {
+    late final T childNode;
+
+    if (T is Referencable && childJson.containsKey('\$ref')) {
+      final ref = ValidationUtils.requireString(childJson['\$ref'], ValidationUtils.buildPath(jsonPointer, '\$ref'));
+      ValidationUtils.validateNoUnknownFields(childJson, {'\$ref'}, jsonPointer, 'Reference Object');
+      final (referencedJson, referencedDocument, referencedJsonPointer) = OpenApiGraph.i.referenceResolver
+          .resolveReference(ref, jsonPointer);
+      childNode = factory(json: referencedJson, document: referencedDocument, jsonPointer: referencedJsonPointer);
+    } else {
+      childNode = factory(json: childJson, document: document, jsonPointer: jsonPointer);
+    }
+
+    return childNode;
+  }
+
+  /// Registers a node in the graph, checking for existing nodes and creating edges.
+  /// Returns the existing node if it was already registered, otherwise registers and returns the new node.
+  T _registerNode<T extends OpenApiNode>({required T childNode, required String jsonKey}) {
+    // Check if node is referencable and already exists
+    if (OpenApiGraph.i.openApiNodes.containsKey(childNode.$id.absolutePointer)) {
+      return OpenApiGraph.i.openApiNodes[childNode.$id.absolutePointer] as T;
+    }
+    OpenApiGraph.i.addOpenApiNode(childNode);
+    OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, childNode.$id.absolutePointer, jsonKey));
+    childNode.create();
+    return childNode;
+  }
+
+  bool _containsKey(String jsonKey, bool required) {
     if (!json.containsKey(jsonKey)) {
       if (required) {
         OpenApiGraph.i.validationContext.addException(
@@ -25,42 +55,33 @@ extension NodeCreationHelpers on OpenApiNode {
           ),
         );
       }
+      return false;
+    }
+    return true;
+  }
+
+  /// Creates a single node (handles $ref resolution and node reuse for referencable nodes).
+  /// Returns the existing node if it was already created (for referencable nodes), otherwise creates and returns a new one.
+  T? createNode<T extends OpenApiNode>({
+    required String jsonKey,
+    required T Function({required Map<String, dynamic> json, required String document, required String jsonPointer})
+    factory,
+    bool required = false,
+  }) {
+    if (!_containsKey(jsonKey, required)) {
       return null;
     }
 
     var childJson = json[jsonKey] as Map<String, dynamic>;
-    late final T childNode;
+    final jsonPointer = ValidationUtils.buildPath($id.jsonPointer, jsonKey);
+    final childNode = _createResolvedNode<T>(
+      childJson: childJson,
+      document: $id.document,
+      jsonPointer: jsonPointer,
+      factory: factory,
+    );
 
-    if (T is Referencable && childJson.containsKey('\$ref')) {
-      final ref = ValidationUtils.requireString(
-        childJson['\$ref'],
-        ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), '\$ref'),
-      );
-      ValidationUtils.validateNoUnknownFields(
-        childJson,
-        {'\$ref'},
-        ValidationUtils.buildPath($id.jsonPointer, jsonKey),
-        'Reference Object',
-      );
-      final (referencedJson, referencedDocument, referencedJsonPointer) = OpenApiGraph.i.referenceResolver
-          .resolveReference(ref, ValidationUtils.buildPath($id.jsonPointer, jsonKey));
-      childNode = factory(json: referencedJson, document: referencedDocument, jsonPointer: referencedJsonPointer);
-      // Check if node is referencable and already exists
-      if (OpenApiGraph.i.openApiNodes.containsKey(childNode.$id.absolutePointer)) {
-        return OpenApiGraph.i.openApiNodes[childNode.$id.absolutePointer] as T;
-      }
-    } else {
-      childNode = factory(
-        json: childJson,
-        document: $id.document,
-        jsonPointer: ValidationUtils.buildPath($id.jsonPointer, jsonKey),
-      );
-    }
-
-    OpenApiGraph.i.addOpenApiNode(childNode);
-    OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, childNode.$id.absolutePointer, jsonKey));
-    childNode.create();
-    return childNode;
+    return _registerNode<T>(childNode: childNode, jsonKey: jsonKey);
   }
 
   /// Creates a list of nodes (handles $ref resolution and node reuse for referencable nodes).
@@ -70,17 +91,7 @@ extension NodeCreationHelpers on OpenApiNode {
     factory,
     bool required = false,
   }) {
-    if (!json.containsKey(jsonKey)) {
-      if (required) {
-        OpenApiGraph.i.validationContext.addException(
-          OpenApiValidationException(
-            ValidationUtils.buildPath($id.jsonPointer, jsonKey),
-            'Required field "$jsonKey" is missing',
-            specReference: 'OpenAPI 3.0.0 Specification',
-            severity: ValidationSeverity.critical,
-          ),
-        );
-      }
+    if (!_containsKey(jsonKey, required)) {
       return null;
     }
 
@@ -89,45 +100,16 @@ extension NodeCreationHelpers on OpenApiNode {
 
     for (var i = 0; i < list.length; i++) {
       final childJson = list[i] as Map<String, dynamic>;
-      late final T childNode;
+      final jsonPointer = ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), '[$i]');
+      final childNode = _createResolvedNode<T>(
+        childJson: childJson,
+        document: $id.document,
+        jsonPointer: jsonPointer,
+        factory: factory,
+      );
 
-      if (T is Referencable && childJson.containsKey('\$ref')) {
-        final ref = ValidationUtils.requireString(
-          childJson['\$ref'],
-          ValidationUtils.buildPath(
-            ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), '[$i]'),
-            '\$ref',
-          ),
-        );
-        ValidationUtils.validateNoUnknownFields(
-          childJson,
-          {'\$ref'},
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), '[$i]'),
-          'Reference Object',
-        );
-        final (referencedJson, referencedDocument, referencedJsonPointer) = OpenApiGraph.i.referenceResolver
-            .resolveReference(
-              ref,
-              ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), '[$i]'),
-            );
-        childNode = factory(json: referencedJson, document: referencedDocument, jsonPointer: referencedJsonPointer);
-        // Check if node is referencable and already exists
-        if (OpenApiGraph.i.openApiNodes.containsKey(childNode.$id.absolutePointer)) {
-          nodes.add(OpenApiGraph.i.openApiNodes[childNode.$id.absolutePointer] as T);
-          continue;
-        }
-      } else {
-        childNode = factory(
-          json: childJson,
-          document: $id.document,
-          jsonPointer: ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), '[$i]'),
-        );
-      }
-
-      nodes.add(childNode);
-      OpenApiGraph.i.addOpenApiNode(childNode);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, childNode.$id.absolutePointer, jsonKey));
-      childNode.create();
+      final registeredNode = _registerNode<T>(childNode: childNode, jsonKey: jsonKey);
+      nodes.add(registeredNode);
     }
 
     return nodes;
@@ -140,17 +122,7 @@ extension NodeCreationHelpers on OpenApiNode {
     factory,
     bool required = false,
   }) {
-    if (!json.containsKey(jsonKey)) {
-      if (required) {
-        OpenApiGraph.i.validationContext.addException(
-          OpenApiValidationException(
-            ValidationUtils.buildPath($id.jsonPointer, jsonKey),
-            'Required field "$jsonKey" is missing',
-            specReference: 'OpenAPI 3.0.0 Specification',
-            severity: ValidationSeverity.critical,
-          ),
-        );
-      }
+    if (!_containsKey(jsonKey, required)) {
       return null;
     }
 
@@ -160,42 +132,16 @@ extension NodeCreationHelpers on OpenApiNode {
     for (final entry in map.entries) {
       final key = entry.key.toString();
       final childJson = entry.value as Map<String, dynamic>;
-      late final T childNode;
+      final jsonPointer = ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), key);
+      final childNode = _createResolvedNode<T>(
+        childJson: childJson,
+        document: $id.document,
+        jsonPointer: jsonPointer,
+        factory: factory,
+      );
 
-      if (T is Referencable && childJson.containsKey('\$ref')) {
-        final ref = ValidationUtils.requireString(
-          childJson['\$ref'],
-          ValidationUtils.buildPath(
-            ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), key),
-            '\$ref',
-          ),
-        );
-        ValidationUtils.validateNoUnknownFields(
-          childJson,
-          {'\$ref'},
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), key),
-          'Reference Object',
-        );
-        final (referencedJson, referencedDocument, referencedJsonPointer) = OpenApiGraph.i.referenceResolver
-            .resolveReference(ref, ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), key));
-        childNode = factory(json: referencedJson, document: referencedDocument, jsonPointer: referencedJsonPointer);
-        // Check if node is referencable and already exists
-        if (OpenApiGraph.i.openApiNodes.containsKey(childNode.$id.absolutePointer)) {
-          nodes[key] = OpenApiGraph.i.openApiNodes[childNode.$id.absolutePointer] as T;
-          continue;
-        }
-      } else {
-        childNode = factory(
-          json: childJson,
-          document: $id.document,
-          jsonPointer: ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), key),
-        );
-      }
-
-      nodes[key] = childNode;
-      OpenApiGraph.i.addOpenApiNode(childNode);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, childNode.$id.absolutePointer, '$jsonKey/$key'));
-      childNode.create();
+      final registeredNode = _registerNode<T>(childNode: childNode, jsonKey: '$jsonKey/$key');
+      nodes[key] = registeredNode;
     }
 
     return nodes;
