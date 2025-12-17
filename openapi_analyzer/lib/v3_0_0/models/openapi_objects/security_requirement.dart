@@ -2,25 +2,14 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 
-class SecurityRequirementNode extends OpenApiNode {
+class SecurityRequirementNode extends OpenApiNode with LeafNode {
   SecurityRequirementNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final SecurityRequirement content;
 
-  void create() {
-    _validateStructure();
-    _createContent();
-  }
-
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // Validate structure: map of string to array of strings
@@ -29,19 +18,23 @@ class SecurityRequirementNode extends OpenApiNode {
       if (entry.value is List) {
         final list = entry.value as List;
         for (var i = 0; i < list.length; i++) {
-          ValidationUtils.requireString(list[i],           ValidationUtils.buildPointer([jsonPointer, key, '[$i]']));
+          ValidationUtils.requireString(list[i], ValidationUtils.buildPointer([jsonPointer, key, '[$i]']));
         }
       } else if (entry.value != null) {
-        OpenApiGraph.i.validationContext.addException(OpenApiValidationException(
-          ValidationUtils.buildPointer([jsonPointer, key]),
-          'Security Requirement value must be an array of strings',
-          specReference: 'OpenAPI 3.0.0 - Security Requirement Object',
-          severity: ValidationSeverity.critical,
-        ));
+        OpenApiGraph.i.validationContext.addException(
+          OpenApiValidationException(
+            ValidationUtils.buildPointer([jsonPointer, key]),
+            'Security Requirement value must be an array of strings',
+            specReference: 'OpenAPI 3.0.0 - Security Requirement Object',
+            severity: ValidationSeverity.critical,
+          ),
+        );
       }
     }
   }
-  void _createContent() {
+
+  @override
+  void createContent() {
     final requirements = <String, List<String>>{};
     for (final entry in json.entries) {
       final key = entry.key.toString();

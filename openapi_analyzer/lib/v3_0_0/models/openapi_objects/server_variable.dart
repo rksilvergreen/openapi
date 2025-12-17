@@ -1,25 +1,14 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
-class ServerVariableNode extends OpenApiNode {
+class ServerVariableNode extends OpenApiNode with LeafNode {
   ServerVariableNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final ServerVariable content;
 
-  void create() {
-    _validateStructure();
-    _createContent();
-  }
-
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // Validate required: default (string)
@@ -47,7 +36,9 @@ class ServerVariableNode extends OpenApiNode {
       'Server Variable Object',
     );
   }
-  void _createContent() {
+
+  @override
+  void createContent() {
     content = ServerVariable._(
       $node: this,
       enum_: json['enum'],
@@ -55,7 +46,6 @@ class ServerVariableNode extends OpenApiNode {
       description: json['description'],
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

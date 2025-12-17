@@ -3,28 +3,16 @@ import '../../validation/validation_utils.dart';
 import '../node_creation_helpers.dart';
 import 'server_variable.dart';
 
-class ServerNode extends OpenApiNode {
+class ServerNode extends OpenApiNode with InternalNode {
   ServerNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
 
   late final Map<String, ServerVariableNode>? variablesNodes;
 
   late final Server content;
 
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // Validate required: url (non-empty string)
@@ -45,26 +33,26 @@ class ServerNode extends OpenApiNode {
     ValidationUtils.validateNoUnknownFields(json, {'url', 'description', 'variables'}, jsonPointer, 'Server Object');
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     _createServerVariableNodes();
   }
 
   void _createServerVariableNodes() {
     variablesNodes = createMapNode<ServerVariableNode>(
       jsonKey: 'variables',
-      factory: ({required json, required document, required jsonPointer}) =>
-          ServerVariableNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ServerVariableNode(json, document, jsonPointer),
     );
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = Server._(
       $node: this,
       url: json['url'],
       description: json['description'],
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

@@ -9,15 +9,9 @@ import 'security_requirement.dart';
 import 'tag.dart';
 import 'external_documentation.dart';
 
-class OpenApiDocumentNode extends OpenApiNode {
+class OpenApiDocumentNode extends OpenApiNode with InternalNode {
   OpenApiDocumentNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
 
   late final InfoNode infoNode;
   late final List<ServerNode>? serversNode;
@@ -29,14 +23,8 @@ class OpenApiDocumentNode extends OpenApiNode {
 
   late final OpenApiDocument content;
 
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     _validateOpenapi(jsonPointer);
@@ -110,7 +98,8 @@ class OpenApiDocumentNode extends OpenApiNode {
     );
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     _createInfoNode();
     _createServersNodes();
     _createPathsNode();
@@ -124,14 +113,14 @@ class OpenApiDocumentNode extends OpenApiNode {
     infoNode = createNode<InfoNode>(
       jsonKey: 'info',
       required: true,
-      factory: ({required json, required document, required jsonPointer}) => InfoNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => InfoNode(json, document, jsonPointer),
     )!;
   }
 
   void _createServersNodes() {
     serversNode = createListNode<ServerNode>(
       jsonKey: 'servers',
-      factory: ({required json, required document, required jsonPointer}) => ServerNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ServerNode(json, document, jsonPointer),
     );
   }
 
@@ -139,44 +128,41 @@ class OpenApiDocumentNode extends OpenApiNode {
     pathsNode = createNode<PathsNode>(
       jsonKey: 'paths',
       required: true,
-      factory: ({required json, required document, required jsonPointer}) => PathsNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => PathsNode(json, document, jsonPointer),
     )!;
   }
 
   void _createComponentsNode() {
     componentsNode = createNode<ComponentsNode>(
       jsonKey: 'components',
-      factory: ({required json, required document, required jsonPointer}) =>
-          ComponentsNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ComponentsNode(json, document, jsonPointer),
     );
   }
 
   void _createSecurityNodes() {
     securityNode = createListNode<SecurityRequirementNode>(
       jsonKey: 'security',
-      factory: ({required json, required document, required jsonPointer}) =>
-          SecurityRequirementNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => SecurityRequirementNode(json, document, jsonPointer),
     );
   }
 
   void _createTagsNodes() {
     tagsNode = createListNode<TagNode>(
       jsonKey: 'tags',
-      factory: ({required json, required document, required jsonPointer}) => TagNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => TagNode(json, document, jsonPointer),
     );
   }
 
   void _createExternalDocsNode() {
     externalDocsNode = createNode<ExternalDocumentationNode>(
       jsonKey: 'externalDocs',
-      factory: ({required json, required document, required jsonPointer}) =>
-          ExternalDocumentationNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ExternalDocumentationNode(json, document, jsonPointer),
     );
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = OpenApiDocument._($node: this, openapi: json['openapi'], extensions: extractExtensions(json));
-    _contentCreated = true;
   }
 }
 

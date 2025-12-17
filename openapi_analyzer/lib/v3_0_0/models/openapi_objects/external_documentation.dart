@@ -1,25 +1,14 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
-class ExternalDocumentationNode extends OpenApiNode {
+class ExternalDocumentationNode extends OpenApiNode with LeafNode {
   ExternalDocumentationNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
-
   late final ExternalDocumentation content;
-
-  void create() {
-    _validateStructure();
-    _createContent();
-  }
-
-  void _validateStructure() {
-    _structureValidated = true;
+  
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // Validate required: url (non-empty string)
@@ -35,14 +24,14 @@ class ExternalDocumentationNode extends OpenApiNode {
     ValidationUtils.validateNoUnknownFields(json, {'description', 'url'}, jsonPointer, 'External Documentation Object');
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = ExternalDocumentation._(
       $node: this,
       description: json['description'],
       url: json['url'],
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

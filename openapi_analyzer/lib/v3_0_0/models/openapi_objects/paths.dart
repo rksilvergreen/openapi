@@ -1,30 +1,19 @@
 import '../openapi_graph.dart';
+import '../node_creation_helpers.dart';
 import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 import 'path_item.dart';
 
-class PathsNode extends OpenApiNode {
+class PathsNode extends OpenApiNode with InternalNode {
   PathsNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final Map<String, PathItemNode> pathItemNodes;
 
   late final Paths content;
 
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // Validate keys are valid path patterns (start with / or are extension fields)
@@ -48,27 +37,16 @@ class PathsNode extends OpenApiNode {
     }
   }
 
-  void _createChildNodes() {
-    pathItemNodes = {};
-
-    for (final entry in json.entries) {
-      final key = entry.key.toString();
-
-      // Create PathItem node for each path
-      final pathItemJson = entry.value as Map<String, dynamic>;
-      final pathItemNode = PathItemNode(pathItemJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, key]));
-      pathItemNodes[key] = pathItemNode;
-      if (!OpenApiGraph.i.openApiNodes.containsKey(pathItemNode.$id.absolutePointer)) {
-        OpenApiGraph.i.addOpenApiNode(pathItemNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, pathItemNode.$id.absolutePointer, key));
-        pathItemNode.create();
-      }
-    }
+  @override
+  void createChildNodes() {
+    pathItemNodes = createMapNode2<PathItemNode>(
+      factory: (json, document, jsonPointer) => PathItemNode(json, document, jsonPointer),
+    )!;
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = Paths._($node: this, extensions: extractExtensions(json));
-    _contentCreated = true;
   }
 }
 

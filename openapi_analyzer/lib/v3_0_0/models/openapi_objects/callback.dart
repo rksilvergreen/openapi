@@ -3,37 +3,25 @@ import '../../validation/validation_utils.dart';
 import '../referencable.dart';
 import 'path_item.dart';
 
-class CallbackNode extends OpenApiNode with Referencable {
+class CallbackNode extends OpenApiNode with InternalNode, Referencable {
   CallbackNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final Map<String, PathItemNode> expressionsNodes;
 
   late final Callback content;
 
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  void _validateStructure() {
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
     for (final key in json.keys) {
       final keyStr = key.toString();
-        ValidationUtils.requireMap(json[key], ValidationUtils.buildPointer([jsonPointer, keyStr]));
+      ValidationUtils.requireMap(json[key], ValidationUtils.buildPointer([jsonPointer, keyStr]));
     }
-    _structureValidated = true;
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     expressionsNodes = {};
 
     for (final entry in json.entries) {
@@ -54,9 +42,9 @@ class CallbackNode extends OpenApiNode with Referencable {
     }
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = Callback._($node: this, extensions: extractExtensions(json));
-    _contentCreated = true;
   }
 }
 

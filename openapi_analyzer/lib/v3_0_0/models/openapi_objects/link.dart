@@ -4,27 +4,15 @@ import '../../../validation_exception.dart';
 import '../referencable.dart';
 import 'server.dart';
 
-class LinkNode extends OpenApiNode with Referencable {
-  LinkNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+class LinkNode extends OpenApiNode with InternalNode, Referencable {
+  LinkNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
 
   late final ServerNode? serverNode;
 
   late final Link content;
 
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  void _validateStructure() {
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // All fields are optional
@@ -67,11 +55,10 @@ class LinkNode extends OpenApiNode with Referencable {
       jsonPointer,
       'Link Object',
     );
-
-    _structureValidated = true;
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     // Create Server node
     if (json.containsKey('server')) {
       final serverJson = json['server'] as Map<String, dynamic>;
@@ -82,8 +69,8 @@ class LinkNode extends OpenApiNode with Referencable {
     }
   }
 
-
-  void _createContent() {
+  @override
+  void createContent() {
     content = Link._(
       $node: this,
       operationRef: json['operationRef'],
@@ -93,7 +80,6 @@ class LinkNode extends OpenApiNode with Referencable {
       description: json['description'],
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

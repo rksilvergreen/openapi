@@ -6,21 +6,9 @@ import 'header.dart';
 import 'media_type.dart';
 import 'link.dart';
 
-class ResponseNode extends OpenApiNode with Referencable {
+class ResponseNode extends OpenApiNode with InternalNode, Referencable {
   ResponseNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
-
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
 
   late final Map<String, HeaderNode>? headersNodes;
   late final Map<String, MediaTypeNode>? contentNodes;
@@ -28,8 +16,8 @@ class ResponseNode extends OpenApiNode with Referencable {
 
   late final Response content;
 
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     _validateDescription(jsonPointer);
@@ -71,7 +59,8 @@ class ResponseNode extends OpenApiNode with Referencable {
     );
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     _createHeadersNodes();
     _createContentNodes();
     _createLinksNodes();
@@ -80,27 +69,27 @@ class ResponseNode extends OpenApiNode with Referencable {
   void _createHeadersNodes() {
     headersNodes = createMapNode<HeaderNode>(
       jsonKey: 'headers',
-      factory: ({required json, required document, required jsonPointer}) => HeaderNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => HeaderNode(json, document, jsonPointer),
     );
   }
 
   void _createContentNodes() {
     contentNodes = createMapNode<MediaTypeNode>(
       jsonKey: 'content',
-      factory: ({required json, required document, required jsonPointer}) => MediaTypeNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => MediaTypeNode(json, document, jsonPointer),
     );
   }
 
   void _createLinksNodes() {
     linksNodes = createMapNode<LinkNode>(
       jsonKey: 'links',
-      factory: ({required json, required document, required jsonPointer}) => LinkNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => LinkNode(json, document, jsonPointer),
     );
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = Response._($node: this, description: json['description'], extensions: extractExtensions(json));
-    _contentCreated = true;
   }
 }
 

@@ -12,21 +12,9 @@ import 'security_scheme.dart';
 import 'link.dart';
 import 'callback.dart';
 
-class ComponentsNode extends OpenApiNode {
+class ComponentsNode extends OpenApiNode with InternalNode {
   ComponentsNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
-
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
 
   late final Map<String, SchemaNode>? schemasNodes;
   late final Map<String, ResponseNode>? responsesNodes;
@@ -40,12 +28,9 @@ class ComponentsNode extends OpenApiNode {
 
   late final Components content;
 
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
-
-    // All fields optional: schemas, responses, parameters, examples, requestBodies,
-    // headers, securitySchemes, links, callbacks
 
     final componentTypes = [
       'schemas',
@@ -59,7 +44,6 @@ class ComponentsNode extends OpenApiNode {
       'callbacks',
     ];
 
-    // Component key pattern: ^[a-zA-Z0-9\.\-_]+$
     final componentKeyPattern = r'^[a-zA-Z0-9\.\-_]+$';
 
     for (final componentType in componentTypes) {
@@ -96,7 +80,8 @@ class ComponentsNode extends OpenApiNode {
     ValidationUtils.validateNoUnknownFields(json, componentTypes.toSet(), jsonPointer, 'Components Object');
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     // Create Schema nodes
     if (json.containsKey('schemas')) {
       final schemasMap = json['schemas'] as Map<String, dynamic>;
@@ -122,57 +107,55 @@ class ComponentsNode extends OpenApiNode {
     // Create Response nodes
     responsesNodes = createMapNode<ResponseNode>(
       jsonKey: 'responses',
-      factory: ({required json, required document, required jsonPointer}) => ResponseNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ResponseNode(json, document, jsonPointer),
     );
 
     // Create Parameter nodes
     parametersNodes = createMapNode<ParameterNode>(
       jsonKey: 'parameters',
-      factory: ({required json, required document, required jsonPointer}) => ParameterNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ParameterNode(json, document, jsonPointer),
     );
 
     // Create Example nodes
     examplesNodes = createMapNode<ExampleNode>(
       jsonKey: 'examples',
-      factory: ({required json, required document, required jsonPointer}) => ExampleNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ExampleNode(json, document, jsonPointer),
     );
 
     // Create RequestBody nodes
     requestBodiesNodes = createMapNode<RequestBodyNode>(
       jsonKey: 'requestBodies',
-      factory: ({required json, required document, required jsonPointer}) =>
-          RequestBodyNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => RequestBodyNode(json, document, jsonPointer),
     );
 
     // Create Header nodes
     headersNodes = createMapNode<HeaderNode>(
       jsonKey: 'headers',
-      factory: ({required json, required document, required jsonPointer}) => HeaderNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => HeaderNode(json, document, jsonPointer),
     );
 
     // Create SecurityScheme nodes
     securitySchemesNodes = createMapNode<SecuritySchemeNode>(
       jsonKey: 'securitySchemes',
-      factory: ({required json, required document, required jsonPointer}) =>
-          SecuritySchemeNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => SecuritySchemeNode(json, document, jsonPointer),
     );
 
     // Create Link nodes
     linksNodes = createMapNode<LinkNode>(
       jsonKey: 'links',
-      factory: ({required json, required document, required jsonPointer}) => LinkNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => LinkNode(json, document, jsonPointer),
     );
 
     // Create Callback nodes
     callbacksNodes = createMapNode<CallbackNode>(
       jsonKey: 'callbacks',
-      factory: ({required json, required document, required jsonPointer}) => CallbackNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => CallbackNode(json, document, jsonPointer),
     );
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = Components._($node: this, extensions: extractExtensions(json));
-    _contentCreated = true;
   }
 }
 

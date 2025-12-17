@@ -30,4 +30,9 @@ components:
           type: string
         bark:
           type: boolean
+  responses:
+    567:
+      description: Response 1
+    Response2:
+      description: Response 2
 

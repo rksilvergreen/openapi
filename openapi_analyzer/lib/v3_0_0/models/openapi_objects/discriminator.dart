@@ -1,24 +1,14 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
-class DiscriminatorNode extends OpenApiNode {
+class DiscriminatorNode extends OpenApiNode with LeafNode {
   DiscriminatorNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final Discriminator content;
 
-  void create() {
-    _validateStructure();
-    _createContent();
-  }
-
-  void _validateStructure() {
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // Validate required: propertyName
@@ -29,7 +19,10 @@ class DiscriminatorNode extends OpenApiNode {
 
     // Validate optional: mapping (map of strings to strings)
     if (json.containsKey('mapping')) {
-      final mapping = ValidationUtils.requireMap(json['mapping'], ValidationUtils.buildPointer([jsonPointer, 'mapping']));
+      final mapping = ValidationUtils.requireMap(
+        json['mapping'],
+        ValidationUtils.buildPointer([jsonPointer, 'mapping']),
+      );
       for (final entry in mapping.entries) {
         ValidationUtils.requireString(
           entry.value,
@@ -40,18 +33,16 @@ class DiscriminatorNode extends OpenApiNode {
 
     // Validate no unknown fields
     ValidationUtils.validateNoUnknownFields(json, {'propertyName', 'mapping'}, jsonPointer, 'Discriminator Object');
-
-    _structureValidated = true;
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = Discriminator._(
       $node: this,
       propertyName: json['propertyName'],
       mapping: json['mapping'] != null ? Map<String, String>.from(json['mapping']) : null,
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

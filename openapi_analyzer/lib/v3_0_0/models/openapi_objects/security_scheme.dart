@@ -4,28 +4,16 @@ import '../referencable.dart';
 import 'enums.dart';
 import 'oauth_flows.dart';
 
-class SecuritySchemeNode extends OpenApiNode with Referencable {
+class SecuritySchemeNode extends OpenApiNode with InternalNode, Referencable {
   SecuritySchemeNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final OAuthFlowsNode? flowsNode;
 
   late final SecurityScheme content;
 
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // Validate required: type (enum: apiKey, http, oauth2, openIdConnect)
@@ -58,7 +46,10 @@ class SecuritySchemeNode extends OpenApiNode with Referencable {
       ValidationUtils.requireMap(json['flows'], ValidationUtils.buildPointer([jsonPointer, 'flows']));
     } else if (type == 'openIdConnect') {
       ValidationUtils.requireField(json, 'openIdConnectUrl', jsonPointer);
-      ValidationUtils.requireString(json['openIdConnectUrl'], ValidationUtils.buildPointer([jsonPointer, 'openIdConnectUrl']));
+      ValidationUtils.requireString(
+        json['openIdConnectUrl'],
+        ValidationUtils.buildPointer([jsonPointer, 'openIdConnectUrl']),
+      );
     }
 
     // Validate optional: description (string)
@@ -75,7 +66,8 @@ class SecuritySchemeNode extends OpenApiNode with Referencable {
     );
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     // Create OAuthFlows node
     if (json.containsKey('flows')) {
       final flowsJson = json['flows'] as Map<String, dynamic>;
@@ -86,8 +78,8 @@ class SecuritySchemeNode extends OpenApiNode with Referencable {
     }
   }
 
-
-  void _createContent() {
+  @override
+  void createContent() {
     content = SecurityScheme._(
       $node: this,
       type: SecuritySchemeType.values.firstWhere((e) => e.value == json['type']),
@@ -99,7 +91,6 @@ class SecuritySchemeNode extends OpenApiNode with Referencable {
       openIdConnectUrl: json['openIdConnectUrl'],
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

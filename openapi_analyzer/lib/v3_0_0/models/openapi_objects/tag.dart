@@ -2,28 +2,15 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import 'external_documentation.dart';
 
-class TagNode extends OpenApiNode {
-  TagNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+class TagNode extends OpenApiNode with InternalNode {
+  TagNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
 
   late final ExternalDocumentationNode? externalDocsNode;
 
   late final Tag content;
 
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // Validate required: name (non-empty string)
@@ -41,14 +28,11 @@ class TagNode extends OpenApiNode {
     }
 
     // Validate no unknown fields
-    ValidationUtils.validateNoUnknownFields(
-      json,
-      {'name', 'description', 'externalDocs'},
-      jsonPointer,
-      'Tag Object',
-    );
+    ValidationUtils.validateNoUnknownFields(json, {'name', 'description', 'externalDocs'}, jsonPointer, 'Tag Object');
   }
-  void _createChildNodes() {
+
+  @override
+  void createChildNodes() {
     // Create ExternalDocs node
     if (json.containsKey('externalDocs')) {
       final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
@@ -58,19 +42,21 @@ class TagNode extends OpenApiNode {
         ValidationUtils.buildPointer([$id.jsonPointer, 'externalDocs']),
       );
       OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, externalDocsNode!.$id.absolutePointer, 'externalDocs'));
+      OpenApiGraph.i.addOpenApiEdge(
+        OpenApiEdge($id.absolutePointer, externalDocsNode!.$id.absolutePointer, 'externalDocs'),
+      );
       externalDocsNode!.create();
     }
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = Tag._(
       $node: this,
       name: json['name'],
       description: json['description'],
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

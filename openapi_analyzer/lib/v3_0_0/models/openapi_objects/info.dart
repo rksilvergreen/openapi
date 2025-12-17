@@ -3,29 +3,16 @@ import '../../validation/validation_utils.dart';
 import 'contact.dart';
 import 'license.dart';
 
-class InfoNode extends OpenApiNode {
-  InfoNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+class InfoNode extends OpenApiNode with InternalNode {
+  InfoNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
 
   late final ContactNode? contactNode;
   late final LicenseNode? licenseNode;
 
   late final Info content;
 
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // Validate required: title (non-empty string)
@@ -43,7 +30,10 @@ class InfoNode extends OpenApiNode {
 
     // Validate optional: termsOfService (string)
     if (json.containsKey('termsOfService')) {
-      ValidationUtils.requireString(json['termsOfService'], ValidationUtils.buildPointer([jsonPointer, 'termsOfService']));
+      ValidationUtils.requireString(
+        json['termsOfService'],
+        ValidationUtils.buildPointer([jsonPointer, 'termsOfService']),
+      );
     }
 
     // Validate optional: contact (object)
@@ -65,15 +55,12 @@ class InfoNode extends OpenApiNode {
     );
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     // Create Contact node
     if (json.containsKey('contact')) {
       final contactJson = json['contact'] as Map<String, dynamic>;
-      contactNode = ContactNode(
-        contactJson,
-        $id.document,
-        ValidationUtils.buildPointer([$id.jsonPointer, 'contact']),
-      );
+      contactNode = ContactNode(contactJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'contact']));
       OpenApiGraph.i.addOpenApiNode(contactNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, contactNode!.$id.absolutePointer, 'contact'));
       contactNode!.create();
@@ -82,18 +69,15 @@ class InfoNode extends OpenApiNode {
     // Create License node
     if (json.containsKey('license')) {
       final licenseJson = json['license'] as Map<String, dynamic>;
-      licenseNode = LicenseNode(
-        licenseJson,
-        $id.document,
-        ValidationUtils.buildPointer([$id.jsonPointer, 'license']),
-      );
+      licenseNode = LicenseNode(licenseJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'license']));
       OpenApiGraph.i.addOpenApiNode(licenseNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, licenseNode!.$id.absolutePointer, 'license'));
       licenseNode!.create();
     }
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = Info._(
       $node: this,
       title: json['title'],
@@ -102,7 +86,6 @@ class InfoNode extends OpenApiNode {
       version: json['version'],
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

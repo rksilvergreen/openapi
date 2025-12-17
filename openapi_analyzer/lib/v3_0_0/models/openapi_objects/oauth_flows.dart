@@ -2,15 +2,9 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import 'oauth_flow.dart';
 
-class OAuthFlowsNode extends OpenApiNode {
+class OAuthFlowsNode extends OpenApiNode with InternalNode {
   OAuthFlowsNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final OAuthFlowNode? implicitNode;
   late final OAuthFlowNode? passwordNode;
@@ -19,13 +13,8 @@ class OAuthFlowsNode extends OpenApiNode {
 
   late final OAuthFlows content;
 
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  void _validateStructure() {
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // All flow types are optional
@@ -38,11 +27,17 @@ class OAuthFlowsNode extends OpenApiNode {
     }
 
     if (json.containsKey('clientCredentials')) {
-      ValidationUtils.requireMap(json['clientCredentials'], ValidationUtils.buildPointer([jsonPointer, 'clientCredentials']));
+      ValidationUtils.requireMap(
+        json['clientCredentials'],
+        ValidationUtils.buildPointer([jsonPointer, 'clientCredentials']),
+      );
     }
 
     if (json.containsKey('authorizationCode')) {
-      ValidationUtils.requireMap(json['authorizationCode'], ValidationUtils.buildPointer([jsonPointer, 'authorizationCode']));
+      ValidationUtils.requireMap(
+        json['authorizationCode'],
+        ValidationUtils.buildPointer([jsonPointer, 'authorizationCode']),
+      );
     }
 
     // Validate no unknown fields
@@ -52,11 +47,10 @@ class OAuthFlowsNode extends OpenApiNode {
       jsonPointer,
       'OAuth Flows Object',
     );
-
-    _structureValidated = true;
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     // Create implicit flow node
     if (json.containsKey('implicit')) {
       final implicitJson = json['implicit'] as Map<String, dynamic>;
@@ -92,7 +86,9 @@ class OAuthFlowsNode extends OpenApiNode {
         ValidationUtils.buildPointer([$id.jsonPointer, 'clientCredentials']),
       );
       OpenApiGraph.i.addOpenApiNode(clientCredentialsNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, clientCredentialsNode!.$id.absolutePointer, 'clientCredentials'));
+      OpenApiGraph.i.addOpenApiEdge(
+        OpenApiEdge($id.absolutePointer, clientCredentialsNode!.$id.absolutePointer, 'clientCredentials'),
+      );
       clientCredentialsNode!.create();
     }
 
@@ -105,14 +101,16 @@ class OAuthFlowsNode extends OpenApiNode {
         ValidationUtils.buildPointer([$id.jsonPointer, 'authorizationCode']),
       );
       OpenApiGraph.i.addOpenApiNode(authorizationCodeNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, authorizationCodeNode!.$id.absolutePointer, 'authorizationCode'));
+      OpenApiGraph.i.addOpenApiEdge(
+        OpenApiEdge($id.absolutePointer, authorizationCodeNode!.$id.absolutePointer, 'authorizationCode'),
+      );
       authorizationCodeNode!.create();
     }
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = OAuthFlows._($node: this, extensions: extractExtensions(json));
-    _contentCreated = true;
   }
 }
 

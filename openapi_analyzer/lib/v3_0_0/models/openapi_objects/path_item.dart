@@ -6,15 +6,9 @@ import 'operation.dart';
 import 'server.dart';
 import 'parameter.dart';
 
-class PathItemNode extends OpenApiNode with Referencable {
+class PathItemNode extends OpenApiNode with InternalNode, Referencable {
   PathItemNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final OperationNode? getNode;
   late final OperationNode? putNode;
@@ -29,14 +23,8 @@ class PathItemNode extends OpenApiNode with Referencable {
 
   late final PathItem content;
 
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     _validateHttpMethods(jsonPointer);
@@ -83,14 +71,28 @@ class PathItemNode extends OpenApiNode with Referencable {
   void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
-      {'get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace', 
-       'summary', 'description', 'servers', 'parameters', '\$ref'},
+      {
+        'get',
+        'put',
+        'post',
+        'delete',
+        'options',
+        'head',
+        'patch',
+        'trace',
+        'summary',
+        'description',
+        'servers',
+        'parameters',
+        '\$ref',
+      },
       jsonPointer,
       'Path Item Object',
     );
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     _createOperationNodes();
     _createServersNodes();
     _createParametersNodes();
@@ -98,7 +100,7 @@ class PathItemNode extends OpenApiNode with Referencable {
 
   void _createOperationNodes() {
     final httpMethods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
-    
+
     for (final method in httpMethods) {
       if (json.containsKey(method)) {
         final operationJson = json[method] as Map<String, dynamic>;
@@ -107,7 +109,7 @@ class PathItemNode extends OpenApiNode with Referencable {
           $id.document,
           ValidationUtils.buildPointer([$id.jsonPointer, method]),
         );
-        
+
         switch (method) {
           case 'get':
             getNode = operationNode;
@@ -134,7 +136,7 @@ class PathItemNode extends OpenApiNode with Referencable {
             traceNode = operationNode;
             break;
         }
-        
+
         OpenApiGraph.i.addOpenApiNode(operationNode);
         OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, operationNode.$id.absolutePointer, method));
         operationNode.create();
@@ -145,25 +147,25 @@ class PathItemNode extends OpenApiNode with Referencable {
   void _createServersNodes() {
     serversNodes = createListNode<ServerNode>(
       jsonKey: 'servers',
-      factory: ({required json, required document, required jsonPointer}) => ServerNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ServerNode(json, document, jsonPointer),
     );
   }
 
   void _createParametersNodes() {
     parametersNodes = createListNode<ParameterNode>(
       jsonKey: 'parameters',
-      factory: ({required json, required document, required jsonPointer}) => ParameterNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ParameterNode(json, document, jsonPointer),
     );
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = PathItem._(
       $node: this,
       summary: json['summary'],
       description: json['description'],
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

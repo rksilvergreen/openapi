@@ -4,28 +4,16 @@ import '../node_creation_helpers.dart';
 import 'media_type.dart';
 import '../referencable.dart';
 
-class RequestBodyNode extends OpenApiNode with Referencable {
+class RequestBodyNode extends OpenApiNode with InternalNode, Referencable {
   RequestBodyNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final Map<String, MediaTypeNode> contentNodes;
 
   late final RequestBody content;
 
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     _validateContent(jsonPointer);
@@ -60,7 +48,8 @@ class RequestBodyNode extends OpenApiNode with Referencable {
     );
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     _createContentNodes();
   }
 
@@ -68,18 +57,18 @@ class RequestBodyNode extends OpenApiNode with Referencable {
     contentNodes = createMapNode<MediaTypeNode>(
       jsonKey: 'content',
       required: true,
-      factory: ({required json, required document, required jsonPointer}) => MediaTypeNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => MediaTypeNode(json, document, jsonPointer),
     )!;
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = RequestBody._(
       $node: this,
       description: json['description'],
       required_: json['required'],
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

@@ -1,30 +1,20 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
-class OAuthFlowNode extends OpenApiNode {
+class OAuthFlowNode extends OpenApiNode with LeafNode {
   OAuthFlowNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final OAuthFlow content;
 
-  void create() {
-    _validateStructure();
-    _createContent();
-  }
-
-  void _validateStructure() {
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // Validate required: scopes
     final scopes = ValidationUtils.requireField(json, 'scopes', jsonPointer);
-    final scopesMap =       ValidationUtils.requireMap(scopes, ValidationUtils.buildPointer([jsonPointer, 'scopes']));
-    
+    final scopesMap = ValidationUtils.requireMap(scopes, ValidationUtils.buildPointer([jsonPointer, 'scopes']));
+
     // Validate scopes values are strings
     for (final entry in scopesMap.entries) {
       ValidationUtils.requireString(
@@ -35,7 +25,10 @@ class OAuthFlowNode extends OpenApiNode {
 
     // Validate optional fields
     if (json.containsKey('authorizationUrl')) {
-      ValidationUtils.requireString(json['authorizationUrl'], ValidationUtils.buildPointer([jsonPointer, 'authorizationUrl']));
+      ValidationUtils.requireString(
+        json['authorizationUrl'],
+        ValidationUtils.buildPointer([jsonPointer, 'authorizationUrl']),
+      );
     }
 
     if (json.containsKey('tokenUrl')) {
@@ -53,11 +46,10 @@ class OAuthFlowNode extends OpenApiNode {
       jsonPointer,
       'OAuth Flow Object',
     );
-
-    _structureValidated = true;
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = OAuthFlow._(
       $node: this,
       authorizationUrl: json['authorizationUrl'],
@@ -66,7 +58,6 @@ class OAuthFlowNode extends OpenApiNode {
       scopes: json['scopes'] != null ? Map<String, String>.from(json['scopes']) : {},
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

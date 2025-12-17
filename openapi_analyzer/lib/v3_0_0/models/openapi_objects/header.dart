@@ -9,16 +9,9 @@ import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
 import 'media_type.dart';
 
-class HeaderNode extends OpenApiNode with Referencable {
+class HeaderNode extends OpenApiNode with InternalNode, Referencable {
   HeaderNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final SchemaNode? schemaNode;
   late final Map<String, ExampleNode>? examplesNodes;
@@ -26,13 +19,8 @@ class HeaderNode extends OpenApiNode with Referencable {
 
   late final Header content;
 
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  void _validateStructure() {
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     _validateDescription(jsonPointer);
@@ -47,8 +35,6 @@ class HeaderNode extends OpenApiNode with Referencable {
     _validateContent(jsonPointer);
     _validateExampleMutualExclusivity(jsonPointer);
     _validateNoUnknownFields(jsonPointer);
-
-    _structureValidated = true;
   }
 
   void _validateDescription(String jsonPointer) {
@@ -71,7 +57,10 @@ class HeaderNode extends OpenApiNode with Referencable {
 
   void _validateAllowEmptyValue(String jsonPointer) {
     if (json.containsKey('allowEmptyValue')) {
-      ValidationUtils.requireBool(json['allowEmptyValue'], ValidationUtils.buildPointer([jsonPointer, 'allowEmptyValue']));
+      ValidationUtils.requireBool(
+        json['allowEmptyValue'],
+        ValidationUtils.buildPointer([jsonPointer, 'allowEmptyValue']),
+      );
     }
   }
 
@@ -149,7 +138,8 @@ class HeaderNode extends OpenApiNode with Referencable {
     );
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     _createSchemaNode();
     _createExamplesNodes();
     _createContentNodes();
@@ -170,18 +160,19 @@ class HeaderNode extends OpenApiNode with Referencable {
   void _createExamplesNodes() {
     examplesNodes = createMapNode<ExampleNode>(
       jsonKey: 'examples',
-      factory: ({required json, required document, required jsonPointer}) => ExampleNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ExampleNode(json, document, jsonPointer),
     );
   }
 
   void _createContentNodes() {
     contentNodes = createMapNode<MediaTypeNode>(
       jsonKey: 'content',
-      factory: ({required json, required document, required jsonPointer}) => MediaTypeNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => MediaTypeNode(json, document, jsonPointer),
     );
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = Header._(
       $node: this,
       description: json['description'],
@@ -194,7 +185,6 @@ class HeaderNode extends OpenApiNode with Referencable {
       example: json['example'],
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

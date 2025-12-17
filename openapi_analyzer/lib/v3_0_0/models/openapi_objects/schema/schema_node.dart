@@ -9,10 +9,8 @@ import '../external_documentation.dart';
 import '../xml.dart';
 
 class SchemaNode extends Node with Referencable {
-  SchemaNode._(super.$id, super.json);
-
-  factory SchemaNode(Map<String, dynamic> json, String document, String jsonPointer) =>
-      Referencable.getNode<SchemaNode>(json, document, jsonPointer, (nodeId, json) => SchemaNode._(nodeId, json));
+  SchemaNode(Map<String, dynamic> json, String document, String jsonPointer)
+    : super(NodeId(document, jsonPointer), json);
 
   void create() {
     _validateStructure();

@@ -7,21 +7,9 @@ import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
 import 'encoding.dart';
 
-class MediaTypeNode extends OpenApiNode {
+class MediaTypeNode extends OpenApiNode with InternalNode {
   MediaTypeNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final SchemaNode? schemaNode;
   late final Map<String, ExampleNode>? examplesNodes;
@@ -29,8 +17,8 @@ class MediaTypeNode extends OpenApiNode {
 
   late final MediaType content;
 
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     _validateSchema(jsonPointer);
@@ -80,7 +68,8 @@ class MediaTypeNode extends OpenApiNode {
     );
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     _createSchemaNode();
     _createExamplesNodes();
     _createEncodingNodes();
@@ -102,20 +91,20 @@ class MediaTypeNode extends OpenApiNode {
   void _createExamplesNodes() {
     examplesNodes = createMapNode<ExampleNode>(
       jsonKey: 'examples',
-      factory: ({required json, required document, required jsonPointer}) => ExampleNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ExampleNode(json, document, jsonPointer),
     );
   }
 
   void _createEncodingNodes() {
     encodingNodes = createMapNode<EncodingNode>(
       jsonKey: 'encoding',
-      factory: ({required json, required document, required jsonPointer}) => EncodingNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => EncodingNode(json, document, jsonPointer),
     );
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = MediaType._($node: this, example: json['example'], extensions: extractExtensions(json));
-    _contentCreated = true;
   }
 }
 

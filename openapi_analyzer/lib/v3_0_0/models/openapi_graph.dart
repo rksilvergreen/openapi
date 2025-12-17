@@ -20,6 +20,8 @@ abstract class Node {
     }
     return extensions.isEmpty ? null : extensions;
   }
+
+  void create();
 }
 
 class NodeId {
@@ -33,9 +35,33 @@ class NodeId {
 abstract class OpenApiNode extends Node {
   OpenApiNode(super.$id, super.json);
 
-  bool get structureValidated;
-  bool get contentCreated;
-  void create();
+  dynamic get content;
+
+  
+}
+
+mixin InternalNode on Node {
+  @override
+  void create() {
+    validateStructure();
+    createChildNodes();
+    createContent();
+  }
+
+  void validateStructure();
+  void createChildNodes();
+  void createContent();
+}
+
+mixin LeafNode on Node {
+  @override
+  void create() {
+    validateStructure();
+    createContent();
+  }
+
+  void validateStructure();
+  void createContent();
 }
 
 class OpenApiGraph {

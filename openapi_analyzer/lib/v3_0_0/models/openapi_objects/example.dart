@@ -3,25 +3,14 @@ import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 import '../referencable.dart';
 
-class ExampleNode extends OpenApiNode with Referencable {
+class ExampleNode extends OpenApiNode with LeafNode, Referencable {
   ExampleNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final Example content;
 
-  void create() {
-    _validateStructure();
-    _createContent();
-  }
-
-  void _validateStructure() {
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // All fields are optional
@@ -34,7 +23,10 @@ class ExampleNode extends OpenApiNode with Referencable {
     }
 
     if (json.containsKey('externalValue')) {
-      ValidationUtils.requireString(json['externalValue'], ValidationUtils.buildPointer([jsonPointer, 'externalValue']));
+      ValidationUtils.requireString(
+        json['externalValue'],
+        ValidationUtils.buildPointer([jsonPointer, 'externalValue']),
+      );
     }
 
     // Validate mutual exclusivity: value and externalValue cannot both be present
@@ -56,11 +48,10 @@ class ExampleNode extends OpenApiNode with Referencable {
       jsonPointer,
       'Example Object',
     );
-
-    _structureValidated = true;
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = Example._(
       $node: this,
       summary: json['summary'],
@@ -69,7 +60,6 @@ class ExampleNode extends OpenApiNode with Referencable {
       externalValue: json['externalValue'],
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

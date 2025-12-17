@@ -1,25 +1,14 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
-class LicenseNode extends OpenApiNode {
+class LicenseNode extends OpenApiNode with LeafNode {
   LicenseNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final License content;
 
-  void create() {
-    _validateStructure();
-    _createContent();
-  }
-
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // Validate required: name (non-empty string)
@@ -32,16 +21,12 @@ class LicenseNode extends OpenApiNode {
     }
 
     // Validate no unknown fields
-    ValidationUtils.validateNoUnknownFields(
-      json,
-      {'name', 'url'},
-      jsonPointer,
-      'License Object',
-    );
+    ValidationUtils.validateNoUnknownFields(json, {'name', 'url'}, jsonPointer, 'License Object');
   }
-  void _createContent() {
+
+  @override
+  void createContent() {
     content = License._($node: this, name: json['name'], url: json['url'], extensions: extractExtensions(json));
-    _contentCreated = true;
   }
 }
 

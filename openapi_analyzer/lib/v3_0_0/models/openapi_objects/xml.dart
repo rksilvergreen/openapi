@@ -1,24 +1,13 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
-class XMLNode extends OpenApiNode {
-  XMLNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+class XMLNode extends OpenApiNode with LeafNode {
+  XMLNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
 
   late final XML content;
 
-  void create() {
-    _validateStructure();
-    _createContent();
-  }
-
-  void _validateStructure() {
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     // All fields are optional
@@ -49,11 +38,10 @@ class XMLNode extends OpenApiNode {
       jsonPointer,
       'XML Object',
     );
-
-    _structureValidated = true;
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = XML._(
       $node: this,
       name: json['name'],
@@ -63,7 +51,6 @@ class XMLNode extends OpenApiNode {
       wrapped: json['wrapped'] ?? false,
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

@@ -11,21 +11,9 @@ import 'server.dart';
 // import 'path_item.dart';
 // import 'paths.dart';
 
-class OperationNode extends OpenApiNode {
+class OperationNode extends OpenApiNode with InternalNode {
   OperationNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
-
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
 
   late final ExternalDocumentationNode? externalDocsNode;
   late final List<ParameterNode>? parametersNodes;
@@ -37,8 +25,8 @@ class OperationNode extends OpenApiNode {
 
   late final Operation content;
 
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     _validateResponses(jsonPointer);
@@ -153,7 +141,8 @@ class OperationNode extends OpenApiNode {
     );
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     _createExternalDocsNode();
     _createParametersNodes();
     _createRequestBodyNode();
@@ -166,23 +155,21 @@ class OperationNode extends OpenApiNode {
   void _createExternalDocsNode() {
     externalDocsNode = createNode<ExternalDocumentationNode>(
       jsonKey: 'externalDocs',
-      factory: ({required json, required document, required jsonPointer}) =>
-          ExternalDocumentationNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ExternalDocumentationNode(json, document, jsonPointer),
     );
   }
 
   void _createParametersNodes() {
     parametersNodes = createListNode<ParameterNode>(
       jsonKey: 'parameters',
-      factory: ({required json, required document, required jsonPointer}) => ParameterNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ParameterNode(json, document, jsonPointer),
     );
   }
 
   void _createRequestBodyNode() {
     requestBodyNode = createNode<RequestBodyNode>(
       jsonKey: 'requestBody',
-      factory: ({required json, required document, required jsonPointer}) =>
-          RequestBodyNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => RequestBodyNode(json, document, jsonPointer),
     );
   }
 
@@ -190,33 +177,33 @@ class OperationNode extends OpenApiNode {
     responseNodes = createMapNode<ResponseNode>(
       jsonKey: 'responses',
       required: true,
-      factory: ({required json, required document, required jsonPointer}) => ResponseNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ResponseNode(json, document, jsonPointer),
     )!;
   }
 
   void _createCallbackNodes() {
     callbackNodes = createMapNode<CallbackNode>(
       jsonKey: 'callbacks',
-      factory: ({required json, required document, required jsonPointer}) => CallbackNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => CallbackNode(json, document, jsonPointer),
     );
   }
 
   void _createSecurityRequirementNodes() {
     securityRequirementNodes = createListNode<SecurityRequirementNode>(
       jsonKey: 'security',
-      factory: ({required json, required document, required jsonPointer}) =>
-          SecurityRequirementNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => SecurityRequirementNode(json, document, jsonPointer),
     );
   }
 
   void _createServerNodes() {
     serverNodes = createListNode<ServerNode>(
       jsonKey: 'servers',
-      factory: ({required json, required document, required jsonPointer}) => ServerNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ServerNode(json, document, jsonPointer),
     );
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = Operation._(
       $node: this,
       tags: json['tags'],
@@ -225,7 +212,6 @@ class OperationNode extends OpenApiNode {
       operationId: json['operationId'],
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 

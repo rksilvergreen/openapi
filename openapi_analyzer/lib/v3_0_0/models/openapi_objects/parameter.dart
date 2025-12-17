@@ -9,21 +9,9 @@ import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
 import 'media_type.dart';
 
-class ParameterNode extends OpenApiNode with Referencable {
+class ParameterNode extends OpenApiNode with InternalNode, Referencable {
   ParameterNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
-
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
-
-  bool _structureValidated = false;
-  bool _contentCreated = false;
-
-  bool get structureValidated => _structureValidated;
-  bool get contentCreated => _contentCreated;
+    : super(NodeId(document, jsonPointer), json);
 
   late final SchemaNode? schemaNode;
   late final Map<String, ExampleNode>? examplesNodes;
@@ -31,8 +19,8 @@ class ParameterNode extends OpenApiNode with Referencable {
 
   late final Parameter content;
 
-  void _validateStructure() {
-    _structureValidated = true;
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
     _validateName(jsonPointer);
@@ -100,7 +88,10 @@ class ParameterNode extends OpenApiNode with Referencable {
 
   void _validateAllowEmptyValue(String jsonPointer) {
     if (json.containsKey('allowEmptyValue')) {
-      ValidationUtils.requireBool(json['allowEmptyValue'], ValidationUtils.buildPointer([jsonPointer, 'allowEmptyValue']));
+      ValidationUtils.requireBool(
+        json['allowEmptyValue'],
+        ValidationUtils.buildPointer([jsonPointer, 'allowEmptyValue']),
+      );
     }
   }
 
@@ -163,7 +154,8 @@ class ParameterNode extends OpenApiNode with Referencable {
     );
   }
 
-  void _createChildNodes() {
+  @override
+  void createChildNodes() {
     _createSchemaNode();
     _createExamplesNodes();
     _createContentNodes();
@@ -184,18 +176,19 @@ class ParameterNode extends OpenApiNode with Referencable {
   void _createExamplesNodes() {
     examplesNodes = createMapNode<ExampleNode>(
       jsonKey: 'examples',
-      factory: ({required json, required document, required jsonPointer}) => ExampleNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => ExampleNode(json, document, jsonPointer),
     );
   }
 
   void _createContentNodes() {
     contentNodes = createMapNode<MediaTypeNode>(
       jsonKey: 'content',
-      factory: ({required json, required document, required jsonPointer}) => MediaTypeNode(json, document, jsonPointer),
+      factory: (json, document, jsonPointer) => MediaTypeNode(json, document, jsonPointer),
     );
   }
 
-  void _createContent() {
+  @override
+  void createContent() {
     content = Parameter._(
       $node: this,
       name: json['name'],
@@ -211,7 +204,6 @@ class ParameterNode extends OpenApiNode with Referencable {
       content: json['content'],
       extensions: extractExtensions(json),
     );
-    _contentCreated = true;
   }
 }
 
