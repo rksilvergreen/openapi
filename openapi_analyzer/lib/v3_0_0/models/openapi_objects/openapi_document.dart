@@ -11,7 +11,7 @@ import 'external_documentation.dart';
 
 class OpenApiDocumentNode extends OpenApiNode {
   OpenApiDocumentNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
+    : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -52,52 +52,52 @@ class OpenApiDocumentNode extends OpenApiNode {
 
   void _validateOpenapi(String jsonPointer) {
     final openapi = ValidationUtils.requireField(json, 'openapi', jsonPointer);
-    ValidationUtils.requireString(openapi, ValidationUtils.buildPath(jsonPointer, 'openapi'));
+    ValidationUtils.requireString(openapi, ValidationUtils.buildPointer([jsonPointer, 'openapi']));
     ValidationUtils.validatePattern(
       openapi as String,
       r'^3\.0\.\d+$',
-      ValidationUtils.buildPath(jsonPointer, 'openapi'),
+      ValidationUtils.buildPointer([jsonPointer, 'openapi']),
       description: 'OpenAPI version must match pattern 3.0.x',
     );
   }
 
   void _validateInfo(String jsonPointer) {
     final info = ValidationUtils.requireField(json, 'info', jsonPointer);
-    ValidationUtils.requireMap(info, ValidationUtils.buildPath(jsonPointer, 'info'));
+    ValidationUtils.requireMap(info, ValidationUtils.buildPointer([jsonPointer, 'info']));
   }
 
   void _validatePaths(String jsonPointer) {
     final paths = ValidationUtils.requireField(json, 'paths', jsonPointer);
-    ValidationUtils.requireMap(paths, ValidationUtils.buildPath(jsonPointer, 'paths'));
+    ValidationUtils.requireMap(paths, ValidationUtils.buildPointer([jsonPointer, 'paths']));
   }
 
   void _validateServers(String jsonPointer) {
     if (json.containsKey('servers')) {
-      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPath(jsonPointer, 'servers'));
+      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPointer([jsonPointer, 'servers']));
     }
   }
 
   void _validateComponents(String jsonPointer) {
     if (json.containsKey('components')) {
-      ValidationUtils.requireMap(json['components'], ValidationUtils.buildPath(jsonPointer, 'components'));
+      ValidationUtils.requireMap(json['components'], ValidationUtils.buildPointer([jsonPointer, 'components']));
     }
   }
 
   void _validateSecurity(String jsonPointer) {
     if (json.containsKey('security')) {
-      ValidationUtils.requireList(json['security'], ValidationUtils.buildPath(jsonPointer, 'security'));
+      ValidationUtils.requireList(json['security'], ValidationUtils.buildPointer([jsonPointer, 'security']));
     }
   }
 
   void _validateTags(String jsonPointer) {
     if (json.containsKey('tags')) {
-      ValidationUtils.requireList(json['tags'], ValidationUtils.buildPath(jsonPointer, 'tags'));
+      ValidationUtils.requireList(json['tags'], ValidationUtils.buildPointer([jsonPointer, 'tags']));
     }
   }
 
   void _validateExternalDocs(String jsonPointer) {
     if (json.containsKey('externalDocs')) {
-      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPath(jsonPointer, 'externalDocs'));
+      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPointer([jsonPointer, 'externalDocs']));
     }
   }
 
@@ -146,14 +146,16 @@ class OpenApiDocumentNode extends OpenApiNode {
   void _createComponentsNode() {
     componentsNode = createNode<ComponentsNode>(
       jsonKey: 'components',
-      factory: ({required json, required document, required jsonPointer}) => ComponentsNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) =>
+          ComponentsNode(json, document, jsonPointer),
     );
   }
 
   void _createSecurityNodes() {
     securityNode = createListNode<SecurityRequirementNode>(
       jsonKey: 'security',
-      factory: ({required json, required document, required jsonPointer}) => SecurityRequirementNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) =>
+          SecurityRequirementNode(json, document, jsonPointer),
     );
   }
 
@@ -167,7 +169,8 @@ class OpenApiDocumentNode extends OpenApiNode {
   void _createExternalDocsNode() {
     externalDocsNode = createNode<ExternalDocumentationNode>(
       jsonKey: 'externalDocs',
-      factory: ({required json, required document, required jsonPointer}) => ExternalDocumentationNode(json, document, jsonPointer),
+      factory: ({required json, required document, required jsonPointer}) =>
+          ExternalDocumentationNode(json, document, jsonPointer),
     );
   }
 

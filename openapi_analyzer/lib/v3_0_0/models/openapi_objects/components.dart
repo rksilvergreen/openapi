@@ -66,7 +66,7 @@ class ComponentsNode extends OpenApiNode {
       if (json.containsKey(componentType)) {
         final componentMap = ValidationUtils.requireMap(
           json[componentType],
-          ValidationUtils.buildPath(jsonPointer, componentType),
+          ValidationUtils.buildPointer([jsonPointer, componentType]),
         );
 
         // Validate each component key matches pattern
@@ -75,7 +75,7 @@ class ComponentsNode extends OpenApiNode {
           if (!RegExp(componentKeyPattern).hasMatch(keyStr)) {
             OpenApiGraph.i.validationContext.addException(
               OpenApiValidationException(
-                ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, componentType), keyStr),
+                ValidationUtils.buildPointer([jsonPointer, componentType, keyStr]),
                 'Component key "$keyStr" must match pattern: $componentKeyPattern',
                 specReference: 'OpenAPI 3.0.0 - Components Object',
                 severity: ValidationSeverity.critical,
@@ -86,7 +86,7 @@ class ComponentsNode extends OpenApiNode {
           // Validate component value is an object
           ValidationUtils.requireMap(
             componentMap[key],
-            ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, componentType), keyStr),
+            ValidationUtils.buildPointer([jsonPointer, componentType, keyStr]),
           );
         }
       }
@@ -108,7 +108,7 @@ class ComponentsNode extends OpenApiNode {
         final schemaNode = SchemaNode(
           schemaJson,
           $id.document,
-          ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'schemas'), schemaName),
+          ValidationUtils.buildPointer([$id.jsonPointer, 'schemas', schemaName]),
         );
         schemasNodes![schemaName] = schemaNode;
         if (!OpenApiGraph.i.schemaNodes.containsKey(schemaNode.$id.absolutePointer)) {

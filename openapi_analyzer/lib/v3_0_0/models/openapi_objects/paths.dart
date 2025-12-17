@@ -35,7 +35,7 @@ class PathsNode extends OpenApiNode {
       if (!keyStr.startsWith('/')) {
         OpenApiGraph.i.validationContext.addException(
           OpenApiValidationException(
-            ValidationUtils.buildPath(jsonPointer, keyStr),
+            ValidationUtils.buildPointer([jsonPointer, keyStr]),
             'Path must start with "/"',
             specReference: 'OpenAPI 3.0.0 - Paths Object',
             severity: ValidationSeverity.critical,
@@ -44,7 +44,7 @@ class PathsNode extends OpenApiNode {
       }
 
       // Validate value is object (will be PathItem or Reference)
-      ValidationUtils.requireMap(json[key], ValidationUtils.buildPath(jsonPointer, keyStr));
+      ValidationUtils.requireMap(json[key], ValidationUtils.buildPointer([jsonPointer, keyStr]));
     }
   }
 
@@ -56,7 +56,7 @@ class PathsNode extends OpenApiNode {
 
       // Create PathItem node for each path
       final pathItemJson = entry.value as Map<String, dynamic>;
-      final pathItemNode = PathItemNode(pathItemJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, key));
+      final pathItemNode = PathItemNode(pathItemJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, key]));
       pathItemNodes[key] = pathItemNode;
       if (!OpenApiGraph.i.openApiNodes.containsKey(pathItemNode.$id.absolutePointer)) {
         OpenApiGraph.i.addOpenApiNode(pathItemNode);

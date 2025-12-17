@@ -27,15 +27,15 @@ class ExampleNode extends OpenApiNode with Referencable {
 
     // All fields are optional
     if (json.containsKey('summary')) {
-      ValidationUtils.requireString(json['summary'], ValidationUtils.buildPath(jsonPointer, 'summary'));
+      ValidationUtils.requireString(json['summary'], ValidationUtils.buildPointer([jsonPointer, 'summary']));
     }
 
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
 
     if (json.containsKey('externalValue')) {
-      ValidationUtils.requireString(json['externalValue'], ValidationUtils.buildPath(jsonPointer, 'externalValue'));
+      ValidationUtils.requireString(json['externalValue'], ValidationUtils.buildPointer([jsonPointer, 'externalValue']));
     }
 
     // Validate mutual exclusivity: value and externalValue cannot both be present

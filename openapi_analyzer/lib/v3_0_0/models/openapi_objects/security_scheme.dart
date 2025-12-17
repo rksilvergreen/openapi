@@ -37,40 +37,40 @@ class SecuritySchemeNode extends OpenApiNode with Referencable {
 
     // Validate required: type (enum: apiKey, http, oauth2, openIdConnect)
     final type = ValidationUtils.requireField(json, 'type', jsonPointer);
-    ValidationUtils.requireString(type, ValidationUtils.buildPath(jsonPointer, 'type'));
+    ValidationUtils.requireString(type, ValidationUtils.buildPointer([jsonPointer, 'type']));
     ValidationUtils.validateEnum(type as String, [
       'apiKey',
       'http',
       'oauth2',
       'openIdConnect',
-    ], ValidationUtils.buildPath(jsonPointer, 'type'));
+    ], ValidationUtils.buildPointer([jsonPointer, 'type']));
 
     // Validate required fields based on type
     if (type == 'apiKey') {
       ValidationUtils.requireField(json, 'name', jsonPointer);
-      ValidationUtils.requireString(json['name'], ValidationUtils.buildPath(jsonPointer, 'name'));
+      ValidationUtils.requireString(json['name'], ValidationUtils.buildPointer([jsonPointer, 'name']));
 
       final inValue = ValidationUtils.requireField(json, 'in', jsonPointer);
-      ValidationUtils.requireString(inValue, ValidationUtils.buildPath(jsonPointer, 'in'));
+      ValidationUtils.requireString(inValue, ValidationUtils.buildPointer([jsonPointer, 'in']));
       ValidationUtils.validateEnum(inValue as String, [
         'query',
         'header',
         'cookie',
-      ], ValidationUtils.buildPath(jsonPointer, 'in'));
+      ], ValidationUtils.buildPointer([jsonPointer, 'in']));
     } else if (type == 'http') {
       ValidationUtils.requireField(json, 'scheme', jsonPointer);
-      ValidationUtils.requireString(json['scheme'], ValidationUtils.buildPath(jsonPointer, 'scheme'));
+      ValidationUtils.requireString(json['scheme'], ValidationUtils.buildPointer([jsonPointer, 'scheme']));
     } else if (type == 'oauth2') {
       ValidationUtils.requireField(json, 'flows', jsonPointer);
-      ValidationUtils.requireMap(json['flows'], ValidationUtils.buildPath(jsonPointer, 'flows'));
+      ValidationUtils.requireMap(json['flows'], ValidationUtils.buildPointer([jsonPointer, 'flows']));
     } else if (type == 'openIdConnect') {
       ValidationUtils.requireField(json, 'openIdConnectUrl', jsonPointer);
-      ValidationUtils.requireString(json['openIdConnectUrl'], ValidationUtils.buildPath(jsonPointer, 'openIdConnectUrl'));
+      ValidationUtils.requireString(json['openIdConnectUrl'], ValidationUtils.buildPointer([jsonPointer, 'openIdConnectUrl']));
     }
 
     // Validate optional: description (string)
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
 
     // Validate no unknown fields
@@ -86,7 +86,7 @@ class SecuritySchemeNode extends OpenApiNode with Referencable {
     // Create OAuthFlows node
     if (json.containsKey('flows')) {
       final flowsJson = json['flows'] as Map<String, dynamic>;
-      flowsNode = OAuthFlowsNode(flowsJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, 'flows'));
+      flowsNode = OAuthFlowsNode(flowsJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'flows']));
       OpenApiGraph.i.addOpenApiNode(flowsNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, flowsNode!.$id.absolutePointer, 'flows'));
       flowsNode!.create();

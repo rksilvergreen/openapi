@@ -28,16 +28,16 @@ class TagNode extends OpenApiNode {
 
     // Validate required: name (non-empty string)
     final name = ValidationUtils.requireField(json, 'name', jsonPointer);
-    ValidationUtils.requireNonEmptyString(name, ValidationUtils.buildPath(jsonPointer, 'name'));
+    ValidationUtils.requireNonEmptyString(name, ValidationUtils.buildPointer([jsonPointer, 'name']));
 
     // Validate optional: description (string)
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
 
     // Validate optional: externalDocs (object)
     if (json.containsKey('externalDocs')) {
-      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPath(jsonPointer, 'externalDocs'));
+      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPointer([jsonPointer, 'externalDocs']));
     }
 
     // Validate no unknown fields
@@ -55,7 +55,7 @@ class TagNode extends OpenApiNode {
       externalDocsNode = ExternalDocumentationNode(
         externalDocsJson,
         $id.document,
-        ValidationUtils.buildPath($id.jsonPointer, 'externalDocs'),
+        ValidationUtils.buildPointer([$id.jsonPointer, 'externalDocs']),
       );
       OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, externalDocsNode!.$id.absolutePointer, 'externalDocs'));

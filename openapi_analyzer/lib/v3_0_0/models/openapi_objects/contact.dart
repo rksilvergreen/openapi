@@ -24,15 +24,15 @@ class ContactNode extends OpenApiNode {
 
     // All fields optional: name, url, email
     if (json.containsKey('name')) {
-      ValidationUtils.requireString(json['name'], ValidationUtils.buildPath(jsonPointer, 'name'));
+      ValidationUtils.requireString(json['name'], ValidationUtils.buildPointer([jsonPointer, 'name']));
     }
 
     if (json.containsKey('url')) {
-      ValidationUtils.requireString(json['url'], ValidationUtils.buildPath(jsonPointer, 'url'));
+      ValidationUtils.requireString(json['url'], ValidationUtils.buildPointer([jsonPointer, 'url']));
     }
 
     if (json.containsKey('email')) {
-      ValidationUtils.requireString(json['email'], ValidationUtils.buildPath(jsonPointer, 'email'));
+      ValidationUtils.requireString(json['email'], ValidationUtils.buildPointer([jsonPointer, 'email']));
     }
 
     // Validate no unknown fields

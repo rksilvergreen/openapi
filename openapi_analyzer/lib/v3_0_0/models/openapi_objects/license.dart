@@ -24,11 +24,11 @@ class LicenseNode extends OpenApiNode {
 
     // Validate required: name (non-empty string)
     final name = ValidationUtils.requireField(json, 'name', jsonPointer);
-    ValidationUtils.requireNonEmptyString(name, ValidationUtils.buildPath(jsonPointer, 'name'));
+    ValidationUtils.requireNonEmptyString(name, ValidationUtils.buildPointer([jsonPointer, 'name']));
 
     // Validate optional: url (string)
     if (json.containsKey('url')) {
-      ValidationUtils.requireString(json['url'], ValidationUtils.buildPath(jsonPointer, 'url'));
+      ValidationUtils.requireString(json['url'], ValidationUtils.buildPointer([jsonPointer, 'url']));
     }
 
     // Validate no unknown fields

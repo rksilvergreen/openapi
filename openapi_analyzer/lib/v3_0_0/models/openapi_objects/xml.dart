@@ -23,23 +23,23 @@ class XMLNode extends OpenApiNode {
 
     // All fields are optional
     if (json.containsKey('name')) {
-      ValidationUtils.requireString(json['name'], ValidationUtils.buildPath(jsonPointer, 'name'));
+      ValidationUtils.requireString(json['name'], ValidationUtils.buildPointer([jsonPointer, 'name']));
     }
 
     if (json.containsKey('namespace')) {
-      ValidationUtils.requireString(json['namespace'], ValidationUtils.buildPath(jsonPointer, 'namespace'));
+      ValidationUtils.requireString(json['namespace'], ValidationUtils.buildPointer([jsonPointer, 'namespace']));
     }
 
     if (json.containsKey('prefix')) {
-      ValidationUtils.requireString(json['prefix'], ValidationUtils.buildPath(jsonPointer, 'prefix'));
+      ValidationUtils.requireString(json['prefix'], ValidationUtils.buildPointer([jsonPointer, 'prefix']));
     }
 
     if (json.containsKey('attribute')) {
-      ValidationUtils.requireBool(json['attribute'], ValidationUtils.buildPath(jsonPointer, 'attribute'));
+      ValidationUtils.requireBool(json['attribute'], ValidationUtils.buildPointer([jsonPointer, 'attribute']));
     }
 
     if (json.containsKey('wrapped')) {
-      ValidationUtils.requireBool(json['wrapped'], ValidationUtils.buildPath(jsonPointer, 'wrapped'));
+      ValidationUtils.requireBool(json['wrapped'], ValidationUtils.buildPointer([jsonPointer, 'wrapped']));
     }
 
     // Validate no unknown fields

@@ -29,7 +29,7 @@ class CallbackNode extends OpenApiNode with Referencable {
     final jsonPointer = $id.jsonPointer;
     for (final key in json.keys) {
       final keyStr = key.toString();
-        ValidationUtils.requireMap(json[key], ValidationUtils.buildPath(jsonPointer, keyStr));
+        ValidationUtils.requireMap(json[key], ValidationUtils.buildPointer([jsonPointer, keyStr]));
     }
     _structureValidated = true;
   }
@@ -44,7 +44,7 @@ class CallbackNode extends OpenApiNode with Referencable {
       final pathItemNode = PathItemNode(
         pathItemJson,
         $id.document,
-        ValidationUtils.buildPath($id.jsonPointer, expression),
+        ValidationUtils.buildPointer([$id.jsonPointer, expression]),
       );
       expressionsNodes[expression] = pathItemNode;
       if (!OpenApiGraph.i.openApiNodes.containsKey(pathItemNode.$id.absolutePointer)) {

@@ -29,11 +29,11 @@ class SecurityRequirementNode extends OpenApiNode {
       if (entry.value is List) {
         final list = entry.value as List;
         for (var i = 0; i < list.length; i++) {
-          ValidationUtils.requireString(list[i], ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, key), '[$i]'));
+          ValidationUtils.requireString(list[i],           ValidationUtils.buildPointer([jsonPointer, key, '[$i]']));
         }
       } else if (entry.value != null) {
         OpenApiGraph.i.validationContext.addException(OpenApiValidationException(
-          ValidationUtils.buildPath(jsonPointer, key),
+          ValidationUtils.buildPointer([jsonPointer, key]),
           'Security Requirement value must be an array of strings',
           specReference: 'OpenAPI 3.0.0 - Security Requirement Object',
           severity: ValidationSeverity.critical,

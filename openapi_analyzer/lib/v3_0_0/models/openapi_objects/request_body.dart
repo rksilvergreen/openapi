@@ -43,18 +43,18 @@ class RequestBodyNode extends OpenApiNode with Referencable {
 
   void _validateContent(String jsonPointer) {
     final content = ValidationUtils.requireField(json, 'content', jsonPointer);
-    ValidationUtils.requireMap(content, ValidationUtils.buildPath(jsonPointer, 'content'));
+    ValidationUtils.requireMap(content, ValidationUtils.buildPointer([jsonPointer, 'content']));
   }
 
   void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
   }
 
   void _validateRequired(String jsonPointer) {
     if (json.containsKey('required')) {
-      ValidationUtils.requireBool(json['required'], ValidationUtils.buildPath(jsonPointer, 'required'));
+      ValidationUtils.requireBool(json['required'], ValidationUtils.buildPointer([jsonPointer, 'required']));
     }
   }
 

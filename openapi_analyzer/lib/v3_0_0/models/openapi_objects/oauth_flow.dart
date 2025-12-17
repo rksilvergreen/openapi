@@ -23,27 +23,27 @@ class OAuthFlowNode extends OpenApiNode {
 
     // Validate required: scopes
     final scopes = ValidationUtils.requireField(json, 'scopes', jsonPointer);
-    final scopesMap = ValidationUtils.requireMap(scopes, ValidationUtils.buildPath(jsonPointer, 'scopes'));
+    final scopesMap =       ValidationUtils.requireMap(scopes, ValidationUtils.buildPointer([jsonPointer, 'scopes']));
     
     // Validate scopes values are strings
     for (final entry in scopesMap.entries) {
       ValidationUtils.requireString(
         entry.value,
-        ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, 'scopes'), entry.key.toString()),
+        ValidationUtils.buildPointer([jsonPointer, 'scopes', entry.key.toString()]),
       );
     }
 
     // Validate optional fields
     if (json.containsKey('authorizationUrl')) {
-      ValidationUtils.requireString(json['authorizationUrl'], ValidationUtils.buildPath(jsonPointer, 'authorizationUrl'));
+      ValidationUtils.requireString(json['authorizationUrl'], ValidationUtils.buildPointer([jsonPointer, 'authorizationUrl']));
     }
 
     if (json.containsKey('tokenUrl')) {
-      ValidationUtils.requireString(json['tokenUrl'], ValidationUtils.buildPath(jsonPointer, 'tokenUrl'));
+      ValidationUtils.requireString(json['tokenUrl'], ValidationUtils.buildPointer([jsonPointer, 'tokenUrl']));
     }
 
     if (json.containsKey('refreshUrl')) {
-      ValidationUtils.requireString(json['refreshUrl'], ValidationUtils.buildPath(jsonPointer, 'refreshUrl'));
+      ValidationUtils.requireString(json['refreshUrl'], ValidationUtils.buildPointer([jsonPointer, 'refreshUrl']));
     }
 
     // Validate no unknown fields

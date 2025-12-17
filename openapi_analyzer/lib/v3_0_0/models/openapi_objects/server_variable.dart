@@ -24,19 +24,19 @@ class ServerVariableNode extends OpenApiNode {
 
     // Validate required: default (string)
     final defaultValue = ValidationUtils.requireField(json, 'default', jsonPointer);
-    ValidationUtils.requireString(defaultValue, ValidationUtils.buildPath(jsonPointer, 'default'));
+    ValidationUtils.requireString(defaultValue, ValidationUtils.buildPointer([jsonPointer, 'default']));
 
     // Validate optional: enum (array of strings)
     if (json.containsKey('enum')) {
-      final enumList = ValidationUtils.requireList(json['enum'], ValidationUtils.buildPath(jsonPointer, 'enum'));
+      final enumList = ValidationUtils.requireList(json['enum'], ValidationUtils.buildPointer([jsonPointer, 'enum']));
       for (var i = 0; i < enumList.length; i++) {
-        ValidationUtils.requireString(enumList[i], ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, 'enum'), '[$i]'));
+        ValidationUtils.requireString(enumList[i], ValidationUtils.buildPointer([jsonPointer, 'enum', '[$i]']));
       }
     }
 
     // Validate optional: description (string)
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
 
     // Validate no unknown fields

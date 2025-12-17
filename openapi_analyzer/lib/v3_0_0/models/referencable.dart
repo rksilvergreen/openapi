@@ -15,7 +15,7 @@ mixin Referencable {
   }
 
   static String _validateRef(Map<String, dynamic> json, String jsonPointer) {
-    final ref = ValidationUtils.requireString(json['\$ref'], ValidationUtils.buildPath(jsonPointer, '\$ref'));
+    final ref = ValidationUtils.requireString(json['\$ref'], ValidationUtils.buildPointer([jsonPointer, '\$ref']));
     ValidationUtils.validateNoUnknownFields(json, {'\$ref'}, jsonPointer, 'Reference Object');
     return ref;
   }

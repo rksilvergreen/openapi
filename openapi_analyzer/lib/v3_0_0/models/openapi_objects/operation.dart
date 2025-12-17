@@ -58,79 +58,76 @@ class OperationNode extends OpenApiNode {
 
   void _validateResponses(String jsonPointer) {
     final responses = ValidationUtils.requireField(json, 'responses', jsonPointer);
-    ValidationUtils.requireMap(responses, ValidationUtils.buildPath(jsonPointer, 'responses'));
+    ValidationUtils.requireMap(responses, ValidationUtils.buildPointer([jsonPointer, 'responses']));
   }
 
   void _validateTags(String jsonPointer) {
     if (json.containsKey('tags')) {
-      final tags = ValidationUtils.requireList(json['tags'], ValidationUtils.buildPath(jsonPointer, 'tags'));
+      final tags = ValidationUtils.requireList(json['tags'], ValidationUtils.buildPointer([jsonPointer, 'tags']));
       for (var i = 0; i < tags.length; i++) {
-        ValidationUtils.requireString(
-          tags[i],
-          ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, 'tags'), '[$i]'),
-        );
+        ValidationUtils.requireString(tags[i], ValidationUtils.buildPointer([jsonPointer, 'tags', '[$i]']));
       }
     }
   }
 
   void _validateSummary(String jsonPointer) {
     if (json.containsKey('summary')) {
-      ValidationUtils.requireString(json['summary'], ValidationUtils.buildPath(jsonPointer, 'summary'));
+      ValidationUtils.requireString(json['summary'], ValidationUtils.buildPointer([jsonPointer, 'summary']));
     }
   }
 
   void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
   }
 
   void _validateExternalDocs(String jsonPointer) {
     if (json.containsKey('externalDocs')) {
-      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPath(jsonPointer, 'externalDocs'));
+      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPointer([jsonPointer, 'externalDocs']));
     }
   }
 
   void _validateOperationId(String jsonPointer) {
     if (json.containsKey('operationId')) {
-      ValidationUtils.requireString(json['operationId'], ValidationUtils.buildPath(jsonPointer, 'operationId'));
+      ValidationUtils.requireString(json['operationId'], ValidationUtils.buildPointer([jsonPointer, 'operationId']));
       // Note: uniqueness validation across all operations will be done in semantic validation
     }
   }
 
   void _validateParameters(String jsonPointer) {
     if (json.containsKey('parameters')) {
-      ValidationUtils.requireList(json['parameters'], ValidationUtils.buildPath(jsonPointer, 'parameters'));
+      ValidationUtils.requireList(json['parameters'], ValidationUtils.buildPointer([jsonPointer, 'parameters']));
     }
   }
 
   void _validateRequestBody(String jsonPointer) {
     if (json.containsKey('requestBody')) {
-      ValidationUtils.requireMap(json['requestBody'], ValidationUtils.buildPath(jsonPointer, 'requestBody'));
+      ValidationUtils.requireMap(json['requestBody'], ValidationUtils.buildPointer([jsonPointer, 'requestBody']));
     }
   }
 
   void _validateCallbacks(String jsonPointer) {
     if (json.containsKey('callbacks')) {
-      ValidationUtils.requireMap(json['callbacks'], ValidationUtils.buildPath(jsonPointer, 'callbacks'));
+      ValidationUtils.requireMap(json['callbacks'], ValidationUtils.buildPointer([jsonPointer, 'callbacks']));
     }
   }
 
   void _validateDeprecated(String jsonPointer) {
     if (json.containsKey('deprecated')) {
-      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPath(jsonPointer, 'deprecated'));
+      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPointer([jsonPointer, 'deprecated']));
     }
   }
 
   void _validateSecurity(String jsonPointer) {
     if (json.containsKey('security')) {
-      ValidationUtils.requireList(json['security'], ValidationUtils.buildPath(jsonPointer, 'security'));
+      ValidationUtils.requireList(json['security'], ValidationUtils.buildPointer([jsonPointer, 'security']));
     }
   }
 
   void _validateServers(String jsonPointer) {
     if (json.containsKey('servers')) {
-      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPath(jsonPointer, 'servers'));
+      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPointer([jsonPointer, 'servers']));
     }
   }
 

@@ -58,32 +58,32 @@ class PathItemNode extends OpenApiNode with Referencable {
     final httpMethods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
     for (final method in httpMethods) {
       if (json.containsKey(method)) {
-        ValidationUtils.requireMap(json[method], ValidationUtils.buildPath(jsonPointer, method));
+        ValidationUtils.requireMap(json[method], ValidationUtils.buildPointer([jsonPointer, method]));
       }
     }
   }
 
   void _validateSummary(String jsonPointer) {
     if (json.containsKey('summary')) {
-      ValidationUtils.requireString(json['summary'], ValidationUtils.buildPath(jsonPointer, 'summary'));
+      ValidationUtils.requireString(json['summary'], ValidationUtils.buildPointer([jsonPointer, 'summary']));
     }
   }
 
   void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
   }
 
   void _validateServers(String jsonPointer) {
     if (json.containsKey('servers')) {
-      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPath(jsonPointer, 'servers'));
+      ValidationUtils.requireList(json['servers'], ValidationUtils.buildPointer([jsonPointer, 'servers']));
     }
   }
 
   void _validateParameters(String jsonPointer) {
     if (json.containsKey('parameters')) {
-      ValidationUtils.requireList(json['parameters'], ValidationUtils.buildPath(jsonPointer, 'parameters'));
+      ValidationUtils.requireList(json['parameters'], ValidationUtils.buildPointer([jsonPointer, 'parameters']));
     }
   }
 
@@ -112,7 +112,7 @@ class PathItemNode extends OpenApiNode with Referencable {
         final operationNode = OperationNode(
           operationJson,
           $id.document,
-          ValidationUtils.buildPath($id.jsonPointer, method),
+          ValidationUtils.buildPointer([$id.jsonPointer, method]),
         );
         
         switch (method) {

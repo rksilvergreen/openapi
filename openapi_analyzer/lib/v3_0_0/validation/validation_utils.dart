@@ -3,12 +3,27 @@ import '../models/openapi_graph.dart';
 
 /// Utility class for common validation operations.
 class ValidationUtils {
-  /// Builds a JSON Pointer path string for error messages.
-  static String buildPath(String current, String next) {
-    if (current.isEmpty || current == '/') {
-      return '/$next';
+  /// Builds a JSON Pointer path string from a list of path segments.
+  static String buildPointer(List<String> segments) {
+    if (segments.isEmpty) {
+      return '/';
     }
-    return '$current/$next';
+
+    // Filter out empty segments but keep '/'
+    final filtered = segments.where((s) => s.isNotEmpty || s == '/').toList();
+    if (filtered.isEmpty) {
+      return '/';
+    }
+
+    // If first segment is empty or '/', start with '/'
+    if (filtered.first.isEmpty || filtered.first == '/') {
+      if (filtered.length == 1) {
+        return '/';
+      }
+      return '/${filtered.skip(1).join('/')}';
+    }
+
+    return filtered.join('/');
   }
 
   /// Ensures a required field exists in the data map.
@@ -16,7 +31,7 @@ class ValidationUtils {
   static dynamic requireField(Map<dynamic, dynamic> data, String field, String path) {
     if (!data.containsKey(field)) {
       throw OpenApiValidationException(
-        buildPath(path, field),
+        buildPointer([path, field]),
         'Required field "$field" is missing',
         specReference: 'OpenAPI 3.0.0 Specification',
         severity: ValidationSeverity.critical,

@@ -30,30 +30,30 @@ class InfoNode extends OpenApiNode {
 
     // Validate required: title (non-empty string)
     final title = ValidationUtils.requireField(json, 'title', jsonPointer);
-    ValidationUtils.requireNonEmptyString(title, ValidationUtils.buildPath(jsonPointer, 'title'));
+    ValidationUtils.requireNonEmptyString(title, ValidationUtils.buildPointer([jsonPointer, 'title']));
 
     // Validate required: version (non-empty string)
     final version = ValidationUtils.requireField(json, 'version', jsonPointer);
-    ValidationUtils.requireNonEmptyString(version, ValidationUtils.buildPath(jsonPointer, 'version'));
+    ValidationUtils.requireNonEmptyString(version, ValidationUtils.buildPointer([jsonPointer, 'version']));
 
     // Validate optional: description (string)
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
 
     // Validate optional: termsOfService (string)
     if (json.containsKey('termsOfService')) {
-      ValidationUtils.requireString(json['termsOfService'], ValidationUtils.buildPath(jsonPointer, 'termsOfService'));
+      ValidationUtils.requireString(json['termsOfService'], ValidationUtils.buildPointer([jsonPointer, 'termsOfService']));
     }
 
     // Validate optional: contact (object)
     if (json.containsKey('contact')) {
-      ValidationUtils.requireMap(json['contact'], ValidationUtils.buildPath(jsonPointer, 'contact'));
+      ValidationUtils.requireMap(json['contact'], ValidationUtils.buildPointer([jsonPointer, 'contact']));
     }
 
     // Validate optional: license (object)
     if (json.containsKey('license')) {
-      ValidationUtils.requireMap(json['license'], ValidationUtils.buildPath(jsonPointer, 'license'));
+      ValidationUtils.requireMap(json['license'], ValidationUtils.buildPointer([jsonPointer, 'license']));
     }
 
     // Validate no unknown fields
@@ -72,7 +72,7 @@ class InfoNode extends OpenApiNode {
       contactNode = ContactNode(
         contactJson,
         $id.document,
-        ValidationUtils.buildPath($id.jsonPointer, 'contact'),
+        ValidationUtils.buildPointer([$id.jsonPointer, 'contact']),
       );
       OpenApiGraph.i.addOpenApiNode(contactNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, contactNode!.$id.absolutePointer, 'contact'));
@@ -85,7 +85,7 @@ class InfoNode extends OpenApiNode {
       licenseNode = LicenseNode(
         licenseJson,
         $id.document,
-        ValidationUtils.buildPath($id.jsonPointer, 'license'),
+        ValidationUtils.buildPointer([$id.jsonPointer, 'license']),
       );
       OpenApiGraph.i.addOpenApiNode(licenseNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, licenseNode!.$id.absolutePointer, 'license'));

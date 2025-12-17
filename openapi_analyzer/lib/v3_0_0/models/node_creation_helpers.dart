@@ -18,7 +18,10 @@ extension NodeCreationHelpers on OpenApiNode {
     late final T childNode;
 
     if (T is Referencable && childJson.containsKey('\$ref')) {
-      final ref = ValidationUtils.requireString(childJson['\$ref'], ValidationUtils.buildPath(jsonPointer, '\$ref'));
+      final ref = ValidationUtils.requireString(
+        childJson['\$ref'],
+        ValidationUtils.buildPointer([jsonPointer, '\$ref']),
+      );
       ValidationUtils.validateNoUnknownFields(childJson, {'\$ref'}, jsonPointer, 'Reference Object');
       final (referencedJson, referencedDocument, referencedJsonPointer) = OpenApiGraph.i.referenceResolver
           .resolveReference(ref, jsonPointer);
@@ -48,7 +51,7 @@ extension NodeCreationHelpers on OpenApiNode {
       if (required) {
         OpenApiGraph.i.validationContext.addException(
           OpenApiValidationException(
-            ValidationUtils.buildPath($id.jsonPointer, jsonKey),
+            ValidationUtils.buildPointer([$id.jsonPointer, jsonKey]),
             'Required field "$jsonKey" is missing',
             specReference: 'OpenAPI 3.0.0 Specification',
             severity: ValidationSeverity.critical,
@@ -73,7 +76,7 @@ extension NodeCreationHelpers on OpenApiNode {
     }
 
     var childJson = json[jsonKey] as Map<String, dynamic>;
-    final jsonPointer = ValidationUtils.buildPath($id.jsonPointer, jsonKey);
+    final jsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, jsonKey]);
     final childNode = _createResolvedNode<T>(
       childJson: childJson,
       document: $id.document,
@@ -100,7 +103,7 @@ extension NodeCreationHelpers on OpenApiNode {
 
     for (var i = 0; i < list.length; i++) {
       final childJson = list[i] as Map<String, dynamic>;
-      final jsonPointer = ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), '[$i]');
+      final jsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, jsonKey, '[$i]']);
       final childNode = _createResolvedNode<T>(
         childJson: childJson,
         document: $id.document,
@@ -132,7 +135,7 @@ extension NodeCreationHelpers on OpenApiNode {
     for (final entry in map.entries) {
       final key = entry.key.toString();
       final childJson = entry.value as Map<String, dynamic>;
-      final jsonPointer = ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, jsonKey), key);
+      final jsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, jsonKey, key]);
       final childNode = _createResolvedNode<T>(
         childJson: childJson,
         document: $id.document,

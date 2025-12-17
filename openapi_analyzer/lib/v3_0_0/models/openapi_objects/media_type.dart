@@ -42,19 +42,19 @@ class MediaTypeNode extends OpenApiNode {
 
   void _validateSchema(String jsonPointer) {
     if (json.containsKey('schema')) {
-      ValidationUtils.requireMap(json['schema'], ValidationUtils.buildPath(jsonPointer, 'schema'));
+      ValidationUtils.requireMap(json['schema'], ValidationUtils.buildPointer([jsonPointer, 'schema']));
     }
   }
 
   void _validateExamples(String jsonPointer) {
     if (json.containsKey('examples')) {
-      ValidationUtils.requireMap(json['examples'], ValidationUtils.buildPath(jsonPointer, 'examples'));
+      ValidationUtils.requireMap(json['examples'], ValidationUtils.buildPointer([jsonPointer, 'examples']));
     }
   }
 
   void _validateEncoding(String jsonPointer) {
     if (json.containsKey('encoding')) {
-      ValidationUtils.requireMap(json['encoding'], ValidationUtils.buildPath(jsonPointer, 'encoding'));
+      ValidationUtils.requireMap(json['encoding'], ValidationUtils.buildPointer([jsonPointer, 'encoding']));
     }
   }
 
@@ -89,7 +89,7 @@ class MediaTypeNode extends OpenApiNode {
   void _createSchemaNode() {
     if (json.containsKey('schema')) {
       final schemaJson = json['schema'] as Map<String, dynamic>;
-      schemaNode = SchemaNode(schemaJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, 'schema'));
+      schemaNode = SchemaNode(schemaJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'schema']));
       if (!OpenApiGraph.i.schemaNodes.containsKey(schemaNode!.$id.absolutePointer)) {
         OpenApiGraph.i.addSchemaNode(schemaNode!);
         // Use RootEdge to mark this as a schema root

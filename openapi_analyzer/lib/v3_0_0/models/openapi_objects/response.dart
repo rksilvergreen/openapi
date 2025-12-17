@@ -43,24 +43,24 @@ class ResponseNode extends OpenApiNode with Referencable {
 
   void _validateDescription(String jsonPointer) {
     final description = ValidationUtils.requireField(json, 'description', jsonPointer);
-    ValidationUtils.requireString(description, ValidationUtils.buildPath(jsonPointer, 'description'));
+    ValidationUtils.requireString(description, ValidationUtils.buildPointer([jsonPointer, 'description']));
   }
 
   void _validateHeaders(String jsonPointer) {
     if (json.containsKey('headers')) {
-      ValidationUtils.requireMap(json['headers'], ValidationUtils.buildPath(jsonPointer, 'headers'));
+      ValidationUtils.requireMap(json['headers'], ValidationUtils.buildPointer([jsonPointer, 'headers']));
     }
   }
 
   void _validateContent(String jsonPointer) {
     if (json.containsKey('content')) {
-      ValidationUtils.requireMap(json['content'], ValidationUtils.buildPath(jsonPointer, 'content'));
+      ValidationUtils.requireMap(json['content'], ValidationUtils.buildPointer([jsonPointer, 'content']));
     }
   }
 
   void _validateLinks(String jsonPointer) {
     if (json.containsKey('links')) {
-      ValidationUtils.requireMap(json['links'], ValidationUtils.buildPath(jsonPointer, 'links'));
+      ValidationUtils.requireMap(json['links'], ValidationUtils.buildPointer([jsonPointer, 'links']));
     }
   }
 

@@ -36,11 +36,11 @@ class LinkNode extends OpenApiNode with Referencable {
 
     // All fields are optional
     if (json.containsKey('operationRef')) {
-      ValidationUtils.requireString(json['operationRef'], ValidationUtils.buildPath(jsonPointer, 'operationRef'));
+      ValidationUtils.requireString(json['operationRef'], ValidationUtils.buildPointer([jsonPointer, 'operationRef']));
     }
 
     if (json.containsKey('operationId')) {
-      ValidationUtils.requireString(json['operationId'], ValidationUtils.buildPath(jsonPointer, 'operationId'));
+      ValidationUtils.requireString(json['operationId'], ValidationUtils.buildPointer([jsonPointer, 'operationId']));
     }
 
     // Validate mutual exclusivity: operationRef and operationId cannot both be present
@@ -56,15 +56,15 @@ class LinkNode extends OpenApiNode with Referencable {
     }
 
     if (json.containsKey('parameters')) {
-      ValidationUtils.requireMap(json['parameters'], ValidationUtils.buildPath(jsonPointer, 'parameters'));
+      ValidationUtils.requireMap(json['parameters'], ValidationUtils.buildPointer([jsonPointer, 'parameters']));
     }
 
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
 
     if (json.containsKey('server')) {
-      ValidationUtils.requireMap(json['server'], ValidationUtils.buildPath(jsonPointer, 'server'));
+      ValidationUtils.requireMap(json['server'], ValidationUtils.buildPointer([jsonPointer, 'server']));
     }
 
     // Validate no unknown fields
@@ -82,7 +82,7 @@ class LinkNode extends OpenApiNode with Referencable {
     // Create Server node
     if (json.containsKey('server')) {
       final serverJson = json['server'] as Map<String, dynamic>;
-      serverNode = ServerNode(serverJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, 'server'));
+      serverNode = ServerNode(serverJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'server']));
       OpenApiGraph.i.addOpenApiNode(serverNode!);
       OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, serverNode!.$id.absolutePointer, 'server'));
       serverNode!.create();

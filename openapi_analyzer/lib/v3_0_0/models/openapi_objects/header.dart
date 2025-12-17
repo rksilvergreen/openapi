@@ -54,65 +54,65 @@ class HeaderNode extends OpenApiNode with Referencable {
 
   void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
   }
 
   void _validateRequired(String jsonPointer) {
     if (json.containsKey('required')) {
-      ValidationUtils.requireBool(json['required'], ValidationUtils.buildPath(jsonPointer, 'required'));
+      ValidationUtils.requireBool(json['required'], ValidationUtils.buildPointer([jsonPointer, 'required']));
     }
   }
 
   void _validateDeprecated(String jsonPointer) {
     if (json.containsKey('deprecated')) {
-      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPath(jsonPointer, 'deprecated'));
+      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPointer([jsonPointer, 'deprecated']));
     }
   }
 
   void _validateAllowEmptyValue(String jsonPointer) {
     if (json.containsKey('allowEmptyValue')) {
-      ValidationUtils.requireBool(json['allowEmptyValue'], ValidationUtils.buildPath(jsonPointer, 'allowEmptyValue'));
+      ValidationUtils.requireBool(json['allowEmptyValue'], ValidationUtils.buildPointer([jsonPointer, 'allowEmptyValue']));
     }
   }
 
   void _validateStyle(String jsonPointer) {
     if (json.containsKey('style')) {
       ValidationUtils.validateEnum(
-        ValidationUtils.requireString(json['style'], ValidationUtils.buildPath(jsonPointer, 'style')),
+        ValidationUtils.requireString(json['style'], ValidationUtils.buildPointer([jsonPointer, 'style'])),
         ['simple'],
-        ValidationUtils.buildPath(jsonPointer, 'style'),
+        ValidationUtils.buildPointer([jsonPointer, 'style']),
       );
     }
   }
 
   void _validateExplode(String jsonPointer) {
     if (json.containsKey('explode')) {
-      ValidationUtils.requireBool(json['explode'], ValidationUtils.buildPath(jsonPointer, 'explode'));
+      ValidationUtils.requireBool(json['explode'], ValidationUtils.buildPointer([jsonPointer, 'explode']));
     }
   }
 
   void _validateAllowReserved(String jsonPointer) {
     if (json.containsKey('allowReserved')) {
-      ValidationUtils.requireBool(json['allowReserved'], ValidationUtils.buildPath(jsonPointer, 'allowReserved'));
+      ValidationUtils.requireBool(json['allowReserved'], ValidationUtils.buildPointer([jsonPointer, 'allowReserved']));
     }
   }
 
   void _validateSchema(String jsonPointer) {
     if (json.containsKey('schema')) {
-      ValidationUtils.requireMap(json['schema'], ValidationUtils.buildPath(jsonPointer, 'schema'));
+      ValidationUtils.requireMap(json['schema'], ValidationUtils.buildPointer([jsonPointer, 'schema']));
     }
   }
 
   void _validateExamples(String jsonPointer) {
     if (json.containsKey('examples')) {
-      ValidationUtils.requireMap(json['examples'], ValidationUtils.buildPath(jsonPointer, 'examples'));
+      ValidationUtils.requireMap(json['examples'], ValidationUtils.buildPointer([jsonPointer, 'examples']));
     }
   }
 
   void _validateContent(String jsonPointer) {
     if (json.containsKey('content')) {
-      ValidationUtils.requireMap(json['content'], ValidationUtils.buildPath(jsonPointer, 'content'));
+      ValidationUtils.requireMap(json['content'], ValidationUtils.buildPointer([jsonPointer, 'content']));
     }
   }
 
@@ -159,7 +159,7 @@ class HeaderNode extends OpenApiNode with Referencable {
   void _createSchemaNode() {
     if (json.containsKey('schema')) {
       final schemaJson = json['schema'] as Map<String, dynamic>;
-      schemaNode = SchemaNode(schemaJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, 'schema'));
+      schemaNode = SchemaNode(schemaJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'schema']));
       if (!OpenApiGraph.i.schemaNodes.containsKey(schemaNode!.$id.absolutePointer)) {
         OpenApiGraph.i.addSchemaNode(schemaNode!);
         OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePointer, schemaNode!.$id.absolutePointer));

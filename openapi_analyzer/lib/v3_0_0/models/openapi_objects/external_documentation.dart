@@ -3,7 +3,7 @@ import '../../validation/validation_utils.dart';
 
 class ExternalDocumentationNode extends OpenApiNode {
   ExternalDocumentationNode(Map<String, dynamic> json, String document, String jsonPointer)
-      : super(NodeId(document, jsonPointer), json);
+    : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
@@ -24,21 +24,17 @@ class ExternalDocumentationNode extends OpenApiNode {
 
     // Validate required: url (non-empty string)
     final url = ValidationUtils.requireField(json, 'url', jsonPointer);
-    ValidationUtils.requireNonEmptyString(url, ValidationUtils.buildPath(jsonPointer, 'url'));
+    ValidationUtils.requireNonEmptyString(url, ValidationUtils.buildPointer([jsonPointer, 'url']));
 
     // Validate optional: description (string)
     if (json.containsKey('description')) {
-      ValidationUtils.requireString(json['description'], ValidationUtils.buildPath(jsonPointer, 'description'));
+      ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
 
     // Validate no unknown fields
-    ValidationUtils.validateNoUnknownFields(
-      json,
-      {'description', 'url'},
-      jsonPointer,
-      'External Documentation Object',
-    );
+    ValidationUtils.validateNoUnknownFields(json, {'description', 'url'}, jsonPointer, 'External Documentation Object');
   }
+
   void _createContent() {
     content = ExternalDocumentation._(
       $node: this,

@@ -69,11 +69,11 @@ class SchemaNode extends Node with Referencable {
           'array',
           'object',
           'null',
-        ], ValidationUtils.buildPath(jsonPointer, 'type'));
+        ], ValidationUtils.buildPointer([jsonPointer, 'type']));
       } else if (type != null) {
         OpenApiGraph.i.validationContext.addException(
           OpenApiValidationException(
-            ValidationUtils.buildPath(jsonPointer, 'type'),
+            ValidationUtils.buildPointer([jsonPointer, 'type']),
             'type must be a string',
             specReference: 'OpenAPI 3.0.0 - Schema Object',
             severity: ValidationSeverity.critical,
@@ -85,62 +85,71 @@ class SchemaNode extends Node with Referencable {
 
   void _validateNumericConstraints(String jsonPointer) {
     if (json.containsKey('minimum')) {
-      ValidationUtils.requireNumber(json['minimum'], ValidationUtils.buildPath(jsonPointer, 'minimum'));
+      ValidationUtils.requireNumber(json['minimum'], ValidationUtils.buildPointer([jsonPointer, 'minimum']));
     }
     if (json.containsKey('maximum')) {
-      ValidationUtils.requireNumber(json['maximum'], ValidationUtils.buildPath(jsonPointer, 'maximum'));
+      ValidationUtils.requireNumber(json['maximum'], ValidationUtils.buildPointer([jsonPointer, 'maximum']));
     }
     if (json.containsKey('exclusiveMinimum')) {
       ValidationUtils.requireNumber(
         json['exclusiveMinimum'],
-        ValidationUtils.buildPath(jsonPointer, 'exclusiveMinimum'),
+        ValidationUtils.buildPointer([jsonPointer, 'exclusiveMinimum']),
       );
     }
     if (json.containsKey('exclusiveMaximum')) {
       ValidationUtils.requireNumber(
         json['exclusiveMaximum'],
-        ValidationUtils.buildPath(jsonPointer, 'exclusiveMaximum'),
+        ValidationUtils.buildPointer([jsonPointer, 'exclusiveMaximum']),
       );
     }
     if (json.containsKey('multipleOf')) {
       final val = ValidationUtils.requireNumber(
         json['multipleOf'],
-        ValidationUtils.buildPath(jsonPointer, 'multipleOf'),
+        ValidationUtils.buildPointer([jsonPointer, 'multipleOf']),
       );
-      ValidationUtils.validatePositive(val, ValidationUtils.buildPath(jsonPointer, 'multipleOf'));
+      ValidationUtils.validatePositive(val, ValidationUtils.buildPointer([jsonPointer, 'multipleOf']));
     }
   }
 
   void _validateStringConstraints(String jsonPointer) {
     if (json.containsKey('minLength')) {
-      final val = ValidationUtils.requireInt(json['minLength'], ValidationUtils.buildPath(jsonPointer, 'minLength'));
-      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'minLength'));
+      final val = ValidationUtils.requireInt(
+        json['minLength'],
+        ValidationUtils.buildPointer([jsonPointer, 'minLength']),
+      );
+      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPointer([jsonPointer, 'minLength']));
     }
     if (json.containsKey('maxLength')) {
-      final val = ValidationUtils.requireInt(json['maxLength'], ValidationUtils.buildPath(jsonPointer, 'maxLength'));
-      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'maxLength'));
+      final val = ValidationUtils.requireInt(
+        json['maxLength'],
+        ValidationUtils.buildPointer([jsonPointer, 'maxLength']),
+      );
+      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPointer([jsonPointer, 'maxLength']));
     }
     if (json.containsKey('pattern')) {
-      final pattern = ValidationUtils.requireString(json['pattern'], ValidationUtils.buildPath(jsonPointer, 'pattern'));
-      ValidationUtils.validateRegexPattern(pattern, ValidationUtils.buildPath(jsonPointer, 'pattern'));
+      final pattern = ValidationUtils.requireString(
+        json['pattern'],
+        ValidationUtils.buildPointer([jsonPointer, 'pattern']),
+      );
+      ValidationUtils.validateRegexPattern(pattern, ValidationUtils.buildPointer([jsonPointer, 'pattern']));
     }
   }
 
   void _validateArrayConstraints(String jsonPointer) {
     if (json.containsKey('minItems')) {
-      final val = ValidationUtils.requireInt(json['minItems'], ValidationUtils.buildPath(jsonPointer, 'minItems'));
-      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'minItems'));
+      final val = ValidationUtils.requireInt(json['minItems'], ValidationUtils.buildPointer([jsonPointer, 'minItems']));
+      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPointer([jsonPointer, 'minItems']));
     }
     if (json.containsKey('maxItems')) {
-      final val = ValidationUtils.requireInt(json['maxItems'], ValidationUtils.buildPath(jsonPointer, 'maxItems'));
-      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'maxItems'));
+      final val = ValidationUtils.requireInt(json['maxItems'], ValidationUtils.buildPointer([jsonPointer, 'maxItems']));
+      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPointer([jsonPointer, 'maxItems']));
     }
     if (json.containsKey('uniqueItems')) {
-      ValidationUtils.requireBool(json['uniqueItems'], ValidationUtils.buildPath(jsonPointer, 'uniqueItems'));
+      ValidationUtils.requireBool(json['uniqueItems'], ValidationUtils.buildPointer([jsonPointer, 'uniqueItems']));
     }
     if (json.containsKey('items')) {
       // items MUST be an object per OpenAPI 3.0.0 Schema Object specification
-      ValidationUtils.requireMap(json['items'], ValidationUtils.buildPath(jsonPointer, 'items'));
+      ValidationUtils.requireMap(json['items'], ValidationUtils.buildPointer([jsonPointer, 'items']));
     }
   }
 
@@ -148,31 +157,28 @@ class SchemaNode extends Node with Referencable {
     if (json.containsKey('minProperties')) {
       final val = ValidationUtils.requireInt(
         json['minProperties'],
-        ValidationUtils.buildPath(jsonPointer, 'minProperties'),
+        ValidationUtils.buildPointer([jsonPointer, 'minProperties']),
       );
-      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'minProperties'));
+      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPointer([jsonPointer, 'minProperties']));
     }
     if (json.containsKey('maxProperties')) {
       final val = ValidationUtils.requireInt(
         json['maxProperties'],
-        ValidationUtils.buildPath(jsonPointer, 'maxProperties'),
+        ValidationUtils.buildPointer([jsonPointer, 'maxProperties']),
       );
-      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPath(jsonPointer, 'maxProperties'));
+      ValidationUtils.validateNonNegative(val, ValidationUtils.buildPointer([jsonPointer, 'maxProperties']));
     }
     if (json.containsKey('required')) {
       final required = ValidationUtils.requireList(
         json['required'],
-        ValidationUtils.buildPath(jsonPointer, 'required'),
+        ValidationUtils.buildPointer([jsonPointer, 'required']),
       );
       for (var i = 0; i < required.length; i++) {
-        ValidationUtils.requireString(
-          required[i],
-          ValidationUtils.buildPath(ValidationUtils.buildPath(jsonPointer, 'required'), '[$i]'),
-        );
+        ValidationUtils.requireString(required[i], ValidationUtils.buildPointer([jsonPointer, 'required', '[$i]']));
       }
     }
     if (json.containsKey('properties')) {
-      ValidationUtils.requireMap(json['properties'], ValidationUtils.buildPath(jsonPointer, 'properties'));
+      ValidationUtils.requireMap(json['properties'], ValidationUtils.buildPointer([jsonPointer, 'properties']));
     }
     if (json.containsKey('additionalProperties')) {
       // Can be boolean or object per OpenAPI 3.0.0 Schema Object specification
@@ -180,7 +186,7 @@ class SchemaNode extends Node with Referencable {
       if (val is! bool && val is! Map) {
         OpenApiGraph.i.validationContext.addException(
           OpenApiValidationException(
-            ValidationUtils.buildPath(jsonPointer, 'additionalProperties'),
+            ValidationUtils.buildPointer([jsonPointer, 'additionalProperties']),
             'additionalProperties must be a boolean or object',
             specReference: 'OpenAPI 3.0.0 - Schema Object',
             severity: ValidationSeverity.critical,
@@ -192,40 +198,40 @@ class SchemaNode extends Node with Referencable {
 
   void _validateCompositionKeywords(String jsonPointer) {
     if (json.containsKey('allOf')) {
-      ValidationUtils.requireList(json['allOf'], ValidationUtils.buildPath(jsonPointer, 'allOf'));
+      ValidationUtils.requireList(json['allOf'], ValidationUtils.buildPointer([jsonPointer, 'allOf']));
     }
     if (json.containsKey('oneOf')) {
-      ValidationUtils.requireList(json['oneOf'], ValidationUtils.buildPath(jsonPointer, 'oneOf'));
+      ValidationUtils.requireList(json['oneOf'], ValidationUtils.buildPointer([jsonPointer, 'oneOf']));
     }
     if (json.containsKey('anyOf')) {
-      ValidationUtils.requireList(json['anyOf'], ValidationUtils.buildPath(jsonPointer, 'anyOf'));
+      ValidationUtils.requireList(json['anyOf'], ValidationUtils.buildPointer([jsonPointer, 'anyOf']));
     }
     if (json.containsKey('not')) {
-      ValidationUtils.requireMap(json['not'], ValidationUtils.buildPath(jsonPointer, 'not'));
+      ValidationUtils.requireMap(json['not'], ValidationUtils.buildPointer([jsonPointer, 'not']));
     }
   }
 
   void _validateOpenApiSpecificFields(String jsonPointer) {
     if (json.containsKey('nullable')) {
-      ValidationUtils.requireBool(json['nullable'], ValidationUtils.buildPath(jsonPointer, 'nullable'));
+      ValidationUtils.requireBool(json['nullable'], ValidationUtils.buildPointer([jsonPointer, 'nullable']));
     }
     if (json.containsKey('discriminator')) {
-      ValidationUtils.requireMap(json['discriminator'], ValidationUtils.buildPath(jsonPointer, 'discriminator'));
+      ValidationUtils.requireMap(json['discriminator'], ValidationUtils.buildPointer([jsonPointer, 'discriminator']));
     }
     if (json.containsKey('readOnly')) {
-      ValidationUtils.requireBool(json['readOnly'], ValidationUtils.buildPath(jsonPointer, 'readOnly'));
+      ValidationUtils.requireBool(json['readOnly'], ValidationUtils.buildPointer([jsonPointer, 'readOnly']));
     }
     if (json.containsKey('writeOnly')) {
-      ValidationUtils.requireBool(json['writeOnly'], ValidationUtils.buildPath(jsonPointer, 'writeOnly'));
+      ValidationUtils.requireBool(json['writeOnly'], ValidationUtils.buildPointer([jsonPointer, 'writeOnly']));
     }
     if (json.containsKey('xml')) {
-      ValidationUtils.requireMap(json['xml'], ValidationUtils.buildPath(jsonPointer, 'xml'));
+      ValidationUtils.requireMap(json['xml'], ValidationUtils.buildPointer([jsonPointer, 'xml']));
     }
     if (json.containsKey('externalDocs')) {
-      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPath(jsonPointer, 'externalDocs'));
+      ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPointer([jsonPointer, 'externalDocs']));
     }
     if (json.containsKey('deprecated')) {
-      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPath(jsonPointer, 'deprecated'));
+      ValidationUtils.requireBool(json['deprecated'], ValidationUtils.buildPointer([jsonPointer, 'deprecated']));
     }
   }
 
@@ -258,7 +264,7 @@ class SchemaNode extends Node with Referencable {
       final propertyNode = SchemaNode(
         propertyJson,
         $id.document,
-        ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'properties'), propertyName),
+        ValidationUtils.buildPointer([$id.jsonPointer, 'properties', propertyName]),
       );
       propertiesNodes![propertyName] = propertyNode;
       if (!OpenApiGraph.i.schemaNodes.containsKey(propertyNode.$id.absolutePointer)) {
@@ -275,7 +281,7 @@ class SchemaNode extends Node with Referencable {
     }
 
     final items = json['items'] as Map<String, dynamic>;
-    itemsNode = SchemaNode(items, $id.document, ValidationUtils.buildPath($id.jsonPointer, 'items'));
+    itemsNode = SchemaNode(items, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'items']));
     if (!OpenApiGraph.i.schemaNodes.containsKey(itemsNode.$id.absolutePointer)) {
       OpenApiGraph.i.addSchemaNode(itemsNode);
       OpenApiGraph.i.addSchemaStructuralEdge(ItemsEdge($id.absolutePointer, itemsNode.$id.absolutePointer));
@@ -293,7 +299,7 @@ class SchemaNode extends Node with Referencable {
       additionalPropertiesNode = SchemaNode(
         additionalProps as Map<String, dynamic>,
         $id.document,
-        ValidationUtils.buildPath($id.jsonPointer, 'additionalProperties'),
+        ValidationUtils.buildPointer([$id.jsonPointer, 'additionalProperties']),
       );
       if (!OpenApiGraph.i.schemaNodes.containsKey(additionalPropertiesNode!.$id.absolutePointer)) {
         OpenApiGraph.i.addSchemaNode(additionalPropertiesNode!);
@@ -318,7 +324,7 @@ class SchemaNode extends Node with Referencable {
       final allOfNode = SchemaNode(
         allOfJson,
         $id.document,
-        ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'allOf'), '[$i]'),
+        ValidationUtils.buildPointer([$id.jsonPointer, 'allOf', '[$i]']),
       );
       allOfNodes!.add(allOfNode);
       if (!OpenApiGraph.i.schemaNodes.containsKey(allOfNode.$id.absolutePointer)) {
@@ -341,7 +347,7 @@ class SchemaNode extends Node with Referencable {
       final oneOfNode = SchemaNode(
         oneOfJson,
         $id.document,
-        ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'oneOf'), '[$i]'),
+        ValidationUtils.buildPointer([$id.jsonPointer, 'oneOf', '[$i]']),
       );
       oneOfNodes!.add(oneOfNode);
       if (!OpenApiGraph.i.schemaNodes.containsKey(oneOfNode.$id.absolutePointer)) {
@@ -364,7 +370,7 @@ class SchemaNode extends Node with Referencable {
       final anyOfNode = SchemaNode(
         anyOfJson,
         $id.document,
-        ValidationUtils.buildPath(ValidationUtils.buildPath($id.jsonPointer, 'anyOf'), '[$i]'),
+        ValidationUtils.buildPointer([$id.jsonPointer, 'anyOf', '[$i]']),
       );
       anyOfNodes!.add(anyOfNode);
       if (!OpenApiGraph.i.schemaNodes.containsKey(anyOfNode.$id.absolutePointer)) {
@@ -381,7 +387,7 @@ class SchemaNode extends Node with Referencable {
     }
 
     final xmlJson = json['xml'] as Map<String, dynamic>;
-    xmlNode = XMLNode(xmlJson, $id.document, ValidationUtils.buildPath($id.jsonPointer, 'xml'));
+    xmlNode = XMLNode(xmlJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'xml']));
     OpenApiGraph.i.addOpenApiNode(xmlNode!);
     xmlNode!.create();
     // Note: XML node is connected but not via standard edges
@@ -396,7 +402,7 @@ class SchemaNode extends Node with Referencable {
     externalDocsNode = ExternalDocumentationNode(
       externalDocsJson,
       $id.document,
-      ValidationUtils.buildPath($id.jsonPointer, 'externalDocs'),
+      ValidationUtils.buildPointer([$id.jsonPointer, 'externalDocs']),
     );
     OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
     externalDocsNode!.create();
