@@ -272,10 +272,10 @@ class ReferenceResolver {
     }
   }
 
-  /// Resolves a $ref string to its target NodeId and JSON.
-  /// Returns: (NodeId, JSON) - the target's ID and content
+  /// Resolves a $ref string to its target JSON, document, and JSON pointer.
+  /// Returns: (JSON, document, jsonPointer) - the target's content, document path, and JSON pointer
   /// Throws ValidationException if reference is invalid or not found.
-  (NodeId, Map<String, dynamic>) resolveReference(String ref, String currentPath) {
+  (Map<String, dynamic>, String, String) resolveReference(String ref, String currentPath) {
     // Validate format
     validateRefFormat(ref, '$currentPath/\$ref');
 
@@ -311,11 +311,10 @@ class ReferenceResolver {
       );
     }
 
-    // Get target ID
+    // Get relative document path
     final relativeDocPath = OpenApiGraph.i.getRelativeDocumentPath(resolved.documentPath);
-    final targetId = NodeId(relativeDocPath, resolved.jsonPointer);
 
-    return (targetId, targetJson as Map<String, dynamic>);
+    return (targetJson as Map<String, dynamic>, relativeDocPath, resolved.jsonPointer);
   }
 }
 

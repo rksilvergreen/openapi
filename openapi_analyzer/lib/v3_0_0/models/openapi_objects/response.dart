@@ -80,7 +80,7 @@ class ResponseNode extends OpenApiNode with Referencable {
   }
 
   void _createHeadersNodes() {
-    headersNodes = createReferencableMapNode<HeaderNode>(
+    headersNodes = createMapNode<HeaderNode>(
       jsonKey: 'headers',
       factory: ({required json, required document, required jsonPointer}) => HeaderNode(json, document, jsonPointer),
     );
@@ -94,7 +94,7 @@ class ResponseNode extends OpenApiNode with Referencable {
   }
 
   void _createLinksNodes() {
-    linksNodes = createReferencableMapNode<LinkNode>(
+    linksNodes = createMapNode<LinkNode>(
       jsonKey: 'links',
       factory: ({required json, required document, required jsonPointer}) => LinkNode(json, document, jsonPointer),
     );

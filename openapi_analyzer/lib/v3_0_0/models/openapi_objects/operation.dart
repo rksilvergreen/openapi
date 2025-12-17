@@ -175,14 +175,14 @@ class OperationNode extends OpenApiNode {
   }
 
   void _createParametersNodes() {
-    parametersNodes = createReferencableListNode<ParameterNode>(
+    parametersNodes = createListNode<ParameterNode>(
       jsonKey: 'parameters',
       factory: ({required json, required document, required jsonPointer}) => ParameterNode(json, document, jsonPointer),
     );
   }
 
   void _createRequestBodyNode() {
-    requestBodyNode = createReferencableNode<RequestBodyNode>(
+    requestBodyNode = createNode<RequestBodyNode>(
       jsonKey: 'requestBody',
       factory: ({required json, required document, required jsonPointer}) =>
           RequestBodyNode(json, document, jsonPointer),
@@ -190,15 +190,15 @@ class OperationNode extends OpenApiNode {
   }
 
   void _createResponseNodes() {
-    responseNodes = createReferencableMapNode<ResponseNode>(
+    responseNodes = createMapNode<ResponseNode>(
       jsonKey: 'responses',
       required: true,
       factory: ({required json, required document, required jsonPointer}) => ResponseNode(json, document, jsonPointer),
-    );
+    )!;
   }
 
   void _createCallbackNodes() {
-    callbackNodes = createReferencableMapNode<CallbackNode>(
+    callbackNodes = createMapNode<CallbackNode>(
       jsonKey: 'callbacks',
       factory: ({required json, required document, required jsonPointer}) => CallbackNode(json, document, jsonPointer),
     );

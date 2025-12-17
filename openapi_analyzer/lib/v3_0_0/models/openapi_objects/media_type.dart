@@ -100,7 +100,7 @@ class MediaTypeNode extends OpenApiNode {
   }
 
   void _createExamplesNodes() {
-    examplesNodes = createReferencableMapNode<ExampleNode>(
+    examplesNodes = createMapNode<ExampleNode>(
       jsonKey: 'examples',
       factory: ({required json, required document, required jsonPointer}) => ExampleNode(json, document, jsonPointer),
     );

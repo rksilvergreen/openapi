@@ -7,8 +7,9 @@ mixin Referencable {
   static T getNode<T>(Map<String, dynamic> json, String document, String jsonPointer, NodeFactory<T> factory) {
     if (json.containsKey('\$ref')) {
       final ref = _validateRef(json, jsonPointer);
-      final (nodeId, referencedJson) = OpenApiGraph.i.referenceResolver.resolveReference(ref, jsonPointer);
-      return factory(nodeId, referencedJson);
+      final (referencedJson, referencedDocument, referencedJsonPointer) = OpenApiGraph.i.referenceResolver
+          .resolveReference(ref, jsonPointer);
+      return factory(NodeId(referencedDocument, referencedJsonPointer), referencedJson);
     }
     return factory(NodeId(document, jsonPointer), json);
   }
