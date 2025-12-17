@@ -10,10 +10,9 @@ import 'example.dart';
 import 'media_type.dart';
 
 class HeaderNode extends OpenApiNode with Referencable {
-  HeaderNode._(super.$id, super.json);
+  HeaderNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
-  factory HeaderNode(Map<String, dynamic> json, String document, String jsonPointer) =>
-      Referencable.getNode<HeaderNode>(json, document, jsonPointer, (nodeId, json) => HeaderNode._(nodeId, json));
 
   bool _structureValidated = false;
   bool _contentCreated = false;

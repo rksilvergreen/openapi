@@ -4,10 +4,9 @@ import '../referencable.dart';
 import 'path_item.dart';
 
 class CallbackNode extends OpenApiNode with Referencable {
-  CallbackNode._(super.$id, super.json);
+  CallbackNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
-  factory CallbackNode(Map<String, dynamic> json, String document, String jsonPointer) =>
-      Referencable.getNode<CallbackNode>(json, document, jsonPointer, (nodeId, json) => CallbackNode._(nodeId, json));
 
   bool _structureValidated = false;
   bool _contentCreated = false;

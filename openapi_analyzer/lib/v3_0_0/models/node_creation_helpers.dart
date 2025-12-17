@@ -9,7 +9,7 @@ extension NodeCreationHelpers on OpenApiNode {
   /// Helper method to create a child node, handling $ref resolution and node reuse.
   /// Returns: (childNode, existingNode) where existingNode is non-null if the node already exists.
   T _createResolvedNode<T extends OpenApiNode>({
-    required Map<String, dynamic> childJson,
+    required Map<String, dynamic> json,
     required String document,
     required String jsonPointer,
     required T Function({required Map<String, dynamic> json, required String document, required String jsonPointer})
@@ -17,17 +17,17 @@ extension NodeCreationHelpers on OpenApiNode {
   }) {
     late final T childNode;
 
-    if (T is Referencable && childJson.containsKey('\$ref')) {
+    if (T is Referencable && json.containsKey('\$ref')) {
       final ref = ValidationUtils.requireString(
-        childJson['\$ref'],
+        json['\$ref'],
         ValidationUtils.buildPointer([jsonPointer, '\$ref']),
       );
-      ValidationUtils.validateNoUnknownFields(childJson, {'\$ref'}, jsonPointer, 'Reference Object');
+      ValidationUtils.validateNoUnknownFields(json, {'\$ref'}, jsonPointer, 'Reference Object');
       final (referencedJson, referencedDocument, referencedJsonPointer) = OpenApiGraph.i.referenceResolver
           .resolveReference(ref, jsonPointer);
       childNode = factory(json: referencedJson, document: referencedDocument, jsonPointer: referencedJsonPointer);
     } else {
-      childNode = factory(json: childJson, document: document, jsonPointer: jsonPointer);
+      childNode = factory(json: json, document: document, jsonPointer: jsonPointer);
     }
 
     return childNode;
@@ -75,12 +75,10 @@ extension NodeCreationHelpers on OpenApiNode {
       return null;
     }
 
-    var childJson = json[jsonKey] as Map<String, dynamic>;
-    final jsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, jsonKey]);
     final childNode = _createResolvedNode<T>(
-      childJson: childJson,
+      json: json[jsonKey] as Map<String, dynamic>,
       document: $id.document,
-      jsonPointer: jsonPointer,
+      jsonPointer: ValidationUtils.buildPointer([$id.jsonPointer, jsonKey]),
       factory: factory,
     );
 
@@ -102,12 +100,10 @@ extension NodeCreationHelpers on OpenApiNode {
     final nodes = <T>[];
 
     for (var i = 0; i < list.length; i++) {
-      final childJson = list[i] as Map<String, dynamic>;
-      final jsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, jsonKey, '[$i]']);
       final childNode = _createResolvedNode<T>(
-        childJson: childJson,
+        json: list[i] as Map<String, dynamic>,
         document: $id.document,
-        jsonPointer: jsonPointer,
+        jsonPointer: ValidationUtils.buildPointer([$id.jsonPointer, jsonKey, '[$i]']),
         factory: factory,
       );
 
@@ -134,12 +130,10 @@ extension NodeCreationHelpers on OpenApiNode {
 
     for (final entry in map.entries) {
       final key = entry.key.toString();
-      final childJson = entry.value as Map<String, dynamic>;
-      final jsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, jsonKey, key]);
       final childNode = _createResolvedNode<T>(
-        childJson: childJson,
+        json: entry.value as Map<String, dynamic>,
         document: $id.document,
-        jsonPointer: jsonPointer,
+        jsonPointer: ValidationUtils.buildPointer([$id.jsonPointer, jsonKey, key]),
         factory: factory,
       );
 

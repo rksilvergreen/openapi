@@ -10,10 +10,8 @@ import 'example.dart';
 import 'media_type.dart';
 
 class ParameterNode extends OpenApiNode with Referencable {
-  ParameterNode._(super.$id, super.json);
-
-  factory ParameterNode(Map<String, dynamic> json, String document, String jsonPointer) =>
-      Referencable.getNode<ParameterNode>(json, document, jsonPointer, (nodeId, json) => ParameterNode._(nodeId, json));
+  ParameterNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   void create() {
     _validateStructure();

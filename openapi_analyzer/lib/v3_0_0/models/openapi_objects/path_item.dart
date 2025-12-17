@@ -7,15 +7,8 @@ import 'server.dart';
 import 'parameter.dart';
 
 class PathItemNode extends OpenApiNode with Referencable {
-  PathItemNode._(super.$id, super.json);
-
-  factory PathItemNode(Map<String, dynamic> json, String document, String jsonPointer) =>
-      Referencable.getNode<PathItemNode>(
-        json,
-        document,
-        jsonPointer,
-        (nodeId, json) => PathItemNode._(nodeId, json),
-      );
+  PathItemNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;

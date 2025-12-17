@@ -5,15 +5,8 @@ import 'enums.dart';
 import 'oauth_flows.dart';
 
 class SecuritySchemeNode extends OpenApiNode with Referencable {
-  SecuritySchemeNode._(super.$id, super.json);
-
-  factory SecuritySchemeNode(Map<String, dynamic> json, String document, String jsonPointer) =>
-      Referencable.getNode<SecuritySchemeNode>(
-        json,
-        document,
-        jsonPointer,
-        (nodeId, json) => SecuritySchemeNode._(nodeId, json),
-      );
+  SecuritySchemeNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;

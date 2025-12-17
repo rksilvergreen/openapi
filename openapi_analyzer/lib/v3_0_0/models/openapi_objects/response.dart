@@ -7,10 +7,8 @@ import 'media_type.dart';
 import 'link.dart';
 
 class ResponseNode extends OpenApiNode with Referencable {
-  ResponseNode._(super.$id, super.json);
-
-  factory ResponseNode(Map<String, dynamic> json, String document, String jsonPointer) =>
-      Referencable.getNode<ResponseNode>(json, document, jsonPointer, (nodeId, json) => ResponseNode._(nodeId, json));
+  ResponseNode(Map<String, dynamic> json, String document, String jsonPointer)
+    : super(NodeId(document, jsonPointer), json);
 
   void create() {
     _validateStructure();

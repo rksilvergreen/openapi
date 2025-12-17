@@ -4,10 +4,9 @@ import '../../../validation_exception.dart';
 import '../referencable.dart';
 
 class ExampleNode extends OpenApiNode with Referencable {
-  ExampleNode._(super.$id, super.json);
+  ExampleNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
-  factory ExampleNode(Map<String, dynamic> json, String document, String jsonPointer) =>
-      Referencable.getNode<ExampleNode>(json, document, jsonPointer, (nodeId, json) => ExampleNode._(nodeId, json));
 
   bool _structureValidated = false;
   bool _contentCreated = false;

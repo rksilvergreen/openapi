@@ -5,15 +5,8 @@ import '../referencable.dart';
 import 'server.dart';
 
 class LinkNode extends OpenApiNode with Referencable {
-  LinkNode._(super.$id, super.json);
-
-  factory LinkNode(Map<String, dynamic> json, String document, String jsonPointer) =>
-      Referencable.getNode<LinkNode>(
-        json,
-        document,
-        jsonPointer,
-        (nodeId, json) => LinkNode._(nodeId, json),
-      );
+  LinkNode(Map<String, dynamic> json, String document, String jsonPointer)
+      : super(NodeId(document, jsonPointer), json);
 
   bool _structureValidated = false;
   bool _contentCreated = false;
