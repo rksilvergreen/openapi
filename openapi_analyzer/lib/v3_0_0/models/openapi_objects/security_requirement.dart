@@ -7,8 +7,7 @@ abstract class SecurityRequirement {
 }
 
 class SecurityRequirementNode extends OpenApiNode with LeafNode implements SecurityRequirement {
-  SecurityRequirementNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  SecurityRequirementNode(super.json, super.document, super.jsonPointer);
 
   late final Map<String, List<String>> requirements;
 
@@ -16,7 +15,10 @@ class SecurityRequirementNode extends OpenApiNode with LeafNode implements Secur
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // Validate structure: map of string to array of strings
+    _validateRequirements(jsonPointer);
+  }
+
+  void _validateRequirements(String jsonPointer) {
     for (final entry in json.entries) {
       final key = entry.key.toString();
       if (entry.value is List) {

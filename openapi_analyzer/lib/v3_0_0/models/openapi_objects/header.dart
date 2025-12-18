@@ -28,8 +28,7 @@ abstract class Header {
 }
 
 class HeaderNode extends OpenApiNode with InternalNode, Referencable implements Header {
-  HeaderNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  HeaderNode(super.json, super.document, super.jsonPointer);
 
   late final String? description;
   late final bool required_;
@@ -166,8 +165,8 @@ class HeaderNode extends OpenApiNode with InternalNode, Referencable implements 
   @override
   void createChildNodes() {
     createNode<SchemaNode>(jsonKey: 'schema');
-    createMapNode<ExampleNode>(jsonKey: 'examples');
-    createMapNode<MediaTypeNode>(jsonKey: 'content');
+    createNode<ExamplesMapNode>(jsonKey: 'examples');
+    createNode<MediaTypesMapNode>(jsonKey: 'content');
   }
 
   @override

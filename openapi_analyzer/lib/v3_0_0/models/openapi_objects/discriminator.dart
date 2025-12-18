@@ -8,8 +8,7 @@ abstract class Discriminator {
 }
 
 class DiscriminatorNode extends OpenApiNode with LeafNode implements Discriminator {
-  DiscriminatorNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  DiscriminatorNode(super.json, super.document, super.jsonPointer);
 
   late final String propertyName;
   late final Map<String, String>? mapping;
@@ -19,13 +18,19 @@ class DiscriminatorNode extends OpenApiNode with LeafNode implements Discriminat
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // Validate required: propertyName
+    _validatePropertyName(jsonPointer);
+    _validateMapping(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validatePropertyName(String jsonPointer) {
     ValidationUtils.requireString(
       ValidationUtils.requireField(json, 'propertyName', jsonPointer),
       ValidationUtils.buildPointer([jsonPointer, 'propertyName']),
     );
+  }
 
-    // Validate optional: mapping (map of strings to strings)
+  void _validateMapping(String jsonPointer) {
     if (json.containsKey('mapping')) {
       final mapping = ValidationUtils.requireMap(
         json['mapping'],
@@ -38,8 +43,9 @@ class DiscriminatorNode extends OpenApiNode with LeafNode implements Discriminat
         );
       }
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(json, {'propertyName', 'mapping'}, jsonPointer, 'Discriminator Object');
   }
 

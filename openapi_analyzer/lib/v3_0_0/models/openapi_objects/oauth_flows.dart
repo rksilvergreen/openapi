@@ -12,8 +12,7 @@ abstract class OAuthFlows {
 }
 
 class OAuthFlowsNode extends OpenApiNode with InternalNode implements OAuthFlows {
-  OAuthFlowsNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  OAuthFlowsNode(super.json, super.document, super.jsonPointer);
 
   late final OAuthFlowNode? implicit;
   late final OAuthFlowNode? password;
@@ -25,30 +24,44 @@ class OAuthFlowsNode extends OpenApiNode with InternalNode implements OAuthFlows
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // All flow types are optional
+    _validateImplicit(jsonPointer);
+    _validatePassword(jsonPointer);
+    _validateClientCredentials(jsonPointer);
+    _validateAuthorizationCode(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateImplicit(String jsonPointer) {
     if (json.containsKey('implicit')) {
       ValidationUtils.requireMap(json['implicit'], ValidationUtils.buildPointer([jsonPointer, 'implicit']));
     }
+  }
 
+  void _validatePassword(String jsonPointer) {
     if (json.containsKey('password')) {
       ValidationUtils.requireMap(json['password'], ValidationUtils.buildPointer([jsonPointer, 'password']));
     }
+  }
 
+  void _validateClientCredentials(String jsonPointer) {
     if (json.containsKey('clientCredentials')) {
       ValidationUtils.requireMap(
         json['clientCredentials'],
         ValidationUtils.buildPointer([jsonPointer, 'clientCredentials']),
       );
     }
+  }
 
+  void _validateAuthorizationCode(String jsonPointer) {
     if (json.containsKey('authorizationCode')) {
       ValidationUtils.requireMap(
         json['authorizationCode'],
         ValidationUtils.buildPointer([jsonPointer, 'authorizationCode']),
       );
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'implicit', 'password', 'clientCredentials', 'authorizationCode'},

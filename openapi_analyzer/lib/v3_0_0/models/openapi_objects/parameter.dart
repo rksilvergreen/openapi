@@ -29,8 +29,7 @@ abstract class Parameter {
 }
 
 class ParameterNode extends OpenApiNode with InternalNode, Referencable implements Parameter {
-  ParameterNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  ParameterNode(super.json, super.document, super.jsonPointer);
 
   late final String name;
   late final ParameterLocation in_;

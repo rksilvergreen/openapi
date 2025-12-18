@@ -15,8 +15,7 @@ abstract class Response {
 }
 
 class ResponseNode extends OpenApiNode with InternalNode, Referencable implements Response {
-  ResponseNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  ResponseNode(super.json, super.document, super.jsonPointer);
 
   late final String? description;
   late final HeadersMapNode? headers;

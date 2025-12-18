@@ -1,7 +1,6 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../node_creation_helpers.dart';
-import 'media_type.dart';
 import '../referencable.dart';
 import 'media_types_map.dart';
 
@@ -13,8 +12,7 @@ abstract class RequestBody {
 }
 
 class RequestBodyNode extends OpenApiNode with InternalNode, Referencable implements RequestBody {
-  RequestBodyNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  RequestBodyNode(super.json, super.document, super.jsonPointer);
 
   late final String? description;
   late final bool required;

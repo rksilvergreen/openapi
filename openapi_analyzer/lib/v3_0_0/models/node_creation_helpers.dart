@@ -14,7 +14,6 @@ extension NodeCreationHelpers on OpenApiNode {
     required Map<String, dynamic> json,
     required String document,
     required String jsonPointer,
-    // required NodeFactory<T> factory,
   }) {
     late final T childNode;
 
@@ -34,15 +33,17 @@ extension NodeCreationHelpers on OpenApiNode {
   /// Registers a node in the graph, checking for existing nodes and creating edges.
   /// Returns the existing node if it was already registered, otherwise registers and returns the new node.
   T _registerNode<T extends OpenApiNode>({required T childNode, required String via}) {
-    final exists = OpenApiGraph.i.openApiNodes.containsKey(childNode.$id.absolutePointer);
-    // Check if node is referencable and already exists
-    if (exists) {
-      childNode = OpenApiGraph.i.openApiNodes[childNode.$id.absolutePointer] as T;
-    } else {
-      OpenApiGraph.i.addOpenApiNode(childNode);
-      childNode.create();
+    final pointer = childNode.$id.absolutePointer;
+    final existingNode = OpenApiGraph.i.openApiNodes[pointer] as T?;
+
+    if (existingNode != null) {
+      OpenApiGraph.i.addOpenApiEdge(this, existingNode, via);
+      return existingNode;
     }
+
+    OpenApiGraph.i.addOpenApiNode(childNode);
     OpenApiGraph.i.addOpenApiEdge(this, childNode, via);
+    childNode.create();
     return childNode;
   }
 
@@ -102,41 +103,14 @@ extension NodeCreationHelpers on OpenApiNode {
     return nodes;
   }
 
-  /// Creates a map of nodes (handles $ref resolution and node reuse for referencable nodes).
-  Map<String, T>? createMapNode<T extends OpenApiNode>({required String jsonKey, bool required = false}) {
-    if (!_containsKey(jsonKey, required)) {
-      return null;
-    }
-
-    final map = json[jsonKey] as Map;
+  Map<String, T>? createMapNode<T extends OpenApiNode>() {
     final nodes = <String, T>{};
-
-    for (final entry in map.entries) {
-      final key = entry.key.toString();
-      final childNode = _createResolvedNode<T>(
-        json: entry.value as Map<String, dynamic>,
-        document: $id.document,
-        jsonPointer: ValidationUtils.buildPointer([$id.jsonPointer, jsonKey, key]),
-      );
-
-      final registeredNode = _registerNode<T>(childNode: childNode, via: '$jsonKey/$key');
-      nodes[key] = registeredNode;
-    }
-
-    return nodes;
-  }
-
-  Map<String, T>? createMapNode2<T extends OpenApiNode>() {
-    // final map = json[jsonKey] as Map;
-    final nodes = <String, T>{};
-
     for (final entry in json.entries) {
       final key = entry.key.toString();
       final childNode = _createResolvedNode<T>(
         json: entry.value as Map<String, dynamic>,
         document: $id.document,
         jsonPointer: ValidationUtils.buildPointer([$id.jsonPointer, key]),
-        // factory: factory,
       );
 
       final registeredNode = _registerNode<T>(childNode: childNode, via: key);

@@ -8,8 +8,7 @@ abstract class License {
 }
 
 class LicenseNode extends OpenApiNode with LeafNode implements License {
-  LicenseNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  LicenseNode(super.json, super.document, super.jsonPointer);
 
   late final String name;
   late final String? url;
@@ -19,16 +18,23 @@ class LicenseNode extends OpenApiNode with LeafNode implements License {
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // Validate required: name (non-empty string)
+    _validateName(jsonPointer);
+    _validateUrl(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateName(String jsonPointer) {
     final name = ValidationUtils.requireField(json, 'name', jsonPointer);
     ValidationUtils.requireNonEmptyString(name, ValidationUtils.buildPointer([jsonPointer, 'name']));
+  }
 
-    // Validate optional: url (string)
+  void _validateUrl(String jsonPointer) {
     if (json.containsKey('url')) {
       ValidationUtils.requireString(json['url'], ValidationUtils.buildPointer([jsonPointer, 'url']));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(json, {'name', 'url'}, jsonPointer, 'License Object');
   }
 

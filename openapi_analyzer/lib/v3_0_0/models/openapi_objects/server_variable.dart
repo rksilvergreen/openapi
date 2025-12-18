@@ -9,8 +9,7 @@ abstract class ServerVariable {
 }
 
 class ServerVariableNode extends OpenApiNode with LeafNode {
-  ServerVariableNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  ServerVariableNode(super.json, super.document, super.jsonPointer);
 
   late final List<String>? enum_;
   late final String default_;
@@ -21,24 +20,33 @@ class ServerVariableNode extends OpenApiNode with LeafNode {
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // Validate required: default (string)
+    _validateDefault(jsonPointer);
+    _validateEnum(jsonPointer);
+    _validateDescription(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateDefault(String jsonPointer) {
     final defaultValue = ValidationUtils.requireField(json, 'default', jsonPointer);
     ValidationUtils.requireString(defaultValue, ValidationUtils.buildPointer([jsonPointer, 'default']));
+  }
 
-    // Validate optional: enum (array of strings)
+  void _validateEnum(String jsonPointer) {
     if (json.containsKey('enum')) {
       final enumList = ValidationUtils.requireList(json['enum'], ValidationUtils.buildPointer([jsonPointer, 'enum']));
       for (var i = 0; i < enumList.length; i++) {
         ValidationUtils.requireString(enumList[i], ValidationUtils.buildPointer([jsonPointer, 'enum', '[$i]']));
       }
     }
+  }
 
-    // Validate optional: description (string)
+  void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
       ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'enum', 'default', 'description'},

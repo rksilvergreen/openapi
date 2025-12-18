@@ -2,10 +2,7 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../node_creation_helpers.dart';
 import 'external_documentation.dart';
-import 'parameter.dart';
 import 'request_body.dart';
-import 'response.dart';
-import 'callback.dart';
 import 'security_requirement.dart';
 import 'server.dart';
 import 'responses_map.dart';
@@ -25,8 +22,7 @@ abstract class Operation {
 }
 
 class OperationNode extends OpenApiNode with InternalNode implements Operation {
-  OperationNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  OperationNode(super.json, super.document, super.jsonPointer);
 
   late final List<String>? tags;
   late final String? summary;

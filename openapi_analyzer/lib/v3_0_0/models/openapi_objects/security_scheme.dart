@@ -18,8 +18,7 @@ abstract class SecurityScheme {
 }
 
 class SecuritySchemeNode extends OpenApiNode with InternalNode, Referencable implements SecurityScheme {
-  SecuritySchemeNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  SecuritySchemeNode(super.json, super.document, super.jsonPointer);
 
   late final SecuritySchemeType type;
   late final String? description;
@@ -35,7 +34,13 @@ class SecuritySchemeNode extends OpenApiNode with InternalNode, Referencable imp
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // Validate required: type (enum: apiKey, http, oauth2, openIdConnect)
+    _validateType(jsonPointer);
+    _validateTypeSpecificFields(jsonPointer);
+    _validateDescription(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateType(String jsonPointer) {
     final type = ValidationUtils.requireField(json, 'type', jsonPointer);
     ValidationUtils.requireString(type, ValidationUtils.buildPointer([jsonPointer, 'type']));
     ValidationUtils.validateEnum(type as String, [
@@ -44,39 +49,59 @@ class SecuritySchemeNode extends OpenApiNode with InternalNode, Referencable imp
       'oauth2',
       'openIdConnect',
     ], ValidationUtils.buildPointer([jsonPointer, 'type']));
+  }
 
-    // Validate required fields based on type
+  void _validateTypeSpecificFields(String jsonPointer) {
+    final type = json['type'] as String;
     if (type == 'apiKey') {
-      ValidationUtils.requireField(json, 'name', jsonPointer);
-      ValidationUtils.requireString(json['name'], ValidationUtils.buildPointer([jsonPointer, 'name']));
-
-      final inValue = ValidationUtils.requireField(json, 'in', jsonPointer);
-      ValidationUtils.requireString(inValue, ValidationUtils.buildPointer([jsonPointer, 'in']));
-      ValidationUtils.validateEnum(inValue as String, [
-        'query',
-        'header',
-        'cookie',
-      ], ValidationUtils.buildPointer([jsonPointer, 'in']));
+      _validateApiKeyFields(jsonPointer);
     } else if (type == 'http') {
-      ValidationUtils.requireField(json, 'scheme', jsonPointer);
-      ValidationUtils.requireString(json['scheme'], ValidationUtils.buildPointer([jsonPointer, 'scheme']));
+      _validateHttpFields(jsonPointer);
     } else if (type == 'oauth2') {
-      ValidationUtils.requireField(json, 'flows', jsonPointer);
-      ValidationUtils.requireMap(json['flows'], ValidationUtils.buildPointer([jsonPointer, 'flows']));
+      _validateOAuth2Fields(jsonPointer);
     } else if (type == 'openIdConnect') {
-      ValidationUtils.requireField(json, 'openIdConnectUrl', jsonPointer);
-      ValidationUtils.requireString(
-        json['openIdConnectUrl'],
-        ValidationUtils.buildPointer([jsonPointer, 'openIdConnectUrl']),
-      );
+      _validateOpenIdConnectFields(jsonPointer);
     }
+  }
 
-    // Validate optional: description (string)
+  void _validateApiKeyFields(String jsonPointer) {
+    ValidationUtils.requireField(json, 'name', jsonPointer);
+    ValidationUtils.requireString(json['name'], ValidationUtils.buildPointer([jsonPointer, 'name']));
+
+    final inValue = ValidationUtils.requireField(json, 'in', jsonPointer);
+    ValidationUtils.requireString(inValue, ValidationUtils.buildPointer([jsonPointer, 'in']));
+    ValidationUtils.validateEnum(inValue as String, [
+      'query',
+      'header',
+      'cookie',
+    ], ValidationUtils.buildPointer([jsonPointer, 'in']));
+  }
+
+  void _validateHttpFields(String jsonPointer) {
+    ValidationUtils.requireField(json, 'scheme', jsonPointer);
+    ValidationUtils.requireString(json['scheme'], ValidationUtils.buildPointer([jsonPointer, 'scheme']));
+  }
+
+  void _validateOAuth2Fields(String jsonPointer) {
+    ValidationUtils.requireField(json, 'flows', jsonPointer);
+    ValidationUtils.requireMap(json['flows'], ValidationUtils.buildPointer([jsonPointer, 'flows']));
+  }
+
+  void _validateOpenIdConnectFields(String jsonPointer) {
+    ValidationUtils.requireField(json, 'openIdConnectUrl', jsonPointer);
+    ValidationUtils.requireString(
+      json['openIdConnectUrl'],
+      ValidationUtils.buildPointer([jsonPointer, 'openIdConnectUrl']),
+    );
+  }
+
+  void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
       ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'type', 'description', 'name', 'in', 'scheme', 'bearerFormat', 'flows', 'openIdConnectUrl'},

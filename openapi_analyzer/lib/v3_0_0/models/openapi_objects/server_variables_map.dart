@@ -1,4 +1,3 @@
-import 'example.dart';
 import '../map_node.dart';
 import 'dart:collection';
 import 'server_variable.dart';

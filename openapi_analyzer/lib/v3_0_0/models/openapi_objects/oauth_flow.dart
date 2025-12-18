@@ -9,8 +9,7 @@ abstract class OAuthFlow {
   Map<String, dynamic>? get extensions;
 }
 class OAuthFlowNode extends OpenApiNode with LeafNode implements OAuthFlow {
-  OAuthFlowNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  OAuthFlowNode(super.json, super.document, super.jsonPointer);
 
   late final String? authorizationUrl;
   late final String? tokenUrl;
@@ -22,35 +21,47 @@ class OAuthFlowNode extends OpenApiNode with LeafNode implements OAuthFlow {
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // Validate required: scopes
+    _validateScopes(jsonPointer);
+    _validateAuthorizationUrl(jsonPointer);
+    _validateTokenUrl(jsonPointer);
+    _validateRefreshUrl(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateScopes(String jsonPointer) {
     final scopes = ValidationUtils.requireField(json, 'scopes', jsonPointer);
     final scopesMap = ValidationUtils.requireMap(scopes, ValidationUtils.buildPointer([jsonPointer, 'scopes']));
 
-    // Validate scopes values are strings
     for (final entry in scopesMap.entries) {
       ValidationUtils.requireString(
         entry.value,
         ValidationUtils.buildPointer([jsonPointer, 'scopes', entry.key.toString()]),
       );
     }
+  }
 
-    // Validate optional fields
+  void _validateAuthorizationUrl(String jsonPointer) {
     if (json.containsKey('authorizationUrl')) {
       ValidationUtils.requireString(
         json['authorizationUrl'],
         ValidationUtils.buildPointer([jsonPointer, 'authorizationUrl']),
       );
     }
+  }
 
+  void _validateTokenUrl(String jsonPointer) {
     if (json.containsKey('tokenUrl')) {
       ValidationUtils.requireString(json['tokenUrl'], ValidationUtils.buildPointer([jsonPointer, 'tokenUrl']));
     }
+  }
 
+  void _validateRefreshUrl(String jsonPointer) {
     if (json.containsKey('refreshUrl')) {
       ValidationUtils.requireString(json['refreshUrl'], ValidationUtils.buildPointer([jsonPointer, 'refreshUrl']));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'authorizationUrl', 'tokenUrl', 'refreshUrl', 'scopes'},

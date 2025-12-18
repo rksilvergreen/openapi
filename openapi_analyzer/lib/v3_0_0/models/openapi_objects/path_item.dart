@@ -23,8 +23,7 @@ abstract class PathItem {
 }
 
 class PathItemNode extends OpenApiNode with InternalNode, Referencable implements PathItem {
-  PathItemNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  PathItemNode(super.json, super.document, super.jsonPointer);
 
   late final String? summary;
   late final String? description;
@@ -121,7 +120,6 @@ class PathItemNode extends OpenApiNode with InternalNode, Referencable implement
     createListNode<ServerNode>(jsonKey: 'servers');
     createListNode<ParameterNode>(jsonKey: 'parameters');
   }
-
 
   @override
   void createContent() {

@@ -1,5 +1,4 @@
 import '../openapi_graph.dart';
-import '../node_creation_helpers.dart';
 import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 import 'path_item.dart';

@@ -8,8 +8,7 @@ abstract class ExternalDocumentation {
 }
 
 class ExternalDocumentationNode extends OpenApiNode with LeafNode implements ExternalDocumentation {
-  ExternalDocumentationNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  ExternalDocumentationNode(super.json, super.document, super.jsonPointer);
 
   late final String? description;
   late final String url;
@@ -19,16 +18,23 @@ class ExternalDocumentationNode extends OpenApiNode with LeafNode implements Ext
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // Validate required: url (non-empty string)
+    _validateUrl(jsonPointer);
+    _validateDescription(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateUrl(String jsonPointer) {
     final url = ValidationUtils.requireField(json, 'url', jsonPointer);
     ValidationUtils.requireNonEmptyString(url, ValidationUtils.buildPointer([jsonPointer, 'url']));
+  }
 
-    // Validate optional: description (string)
+  void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
       ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(json, {'description', 'url'}, jsonPointer, 'External Documentation Object');
   }
 

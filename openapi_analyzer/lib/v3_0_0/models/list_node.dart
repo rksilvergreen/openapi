@@ -6,7 +6,7 @@ import '../validation/validation_utils.dart';
 abstract class ListNode<CHILD_NODE extends OpenApiNode, LIST> extends OpenApiNode
     with InternalNode, ListMixin<LIST>
     implements List<LIST> {
-  ListNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
+  ListNode(super.json, super.document, super.jsonPointer);
 
   late final List<LIST> childNodes;
 

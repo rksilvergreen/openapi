@@ -7,7 +7,7 @@ import '../validation/validation_utils.dart';
 abstract class MapNode<CHILD_NODE extends OpenApiNode, MAP> extends OpenApiNode
     with InternalNode, MapMixin<String, MAP>
     implements Map<String, MAP> {
-  MapNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
+  MapNode(super.json, super.document, super.jsonPointer);
 
   late final Map<String, MAP> childNodes;
   late final Map<String, dynamic>? extensions;
@@ -47,7 +47,7 @@ abstract class MapNode<CHILD_NODE extends OpenApiNode, MAP> extends OpenApiNode
 
   @override
   void createChildNodes() {
-    createMapNode2<CHILD_NODE>()!;
+    createMapNode<CHILD_NODE>()!;
   }
 
   @override

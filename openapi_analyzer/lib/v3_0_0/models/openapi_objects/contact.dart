@@ -9,8 +9,7 @@ abstract class Contact {
 }
 
 class ContactNode extends OpenApiNode with LeafNode implements Contact {
-  ContactNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  ContactNode(super.json, super.document, super.jsonPointer);
 
   late final String? name;
   late final String? url;
@@ -21,20 +20,31 @@ class ContactNode extends OpenApiNode with LeafNode implements Contact {
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // All fields optional: name, url, email
+    _validateName(jsonPointer);
+    _validateUrl(jsonPointer);
+    _validateEmail(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateName(String jsonPointer) {
     if (json.containsKey('name')) {
       ValidationUtils.requireString(json['name'], ValidationUtils.buildPointer([jsonPointer, 'name']));
     }
+  }
 
+  void _validateUrl(String jsonPointer) {
     if (json.containsKey('url')) {
       ValidationUtils.requireString(json['url'], ValidationUtils.buildPointer([jsonPointer, 'url']));
     }
+  }
 
+  void _validateEmail(String jsonPointer) {
     if (json.containsKey('email')) {
       ValidationUtils.requireString(json['email'], ValidationUtils.buildPointer([jsonPointer, 'email']));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(json, {'name', 'url', 'email'}, jsonPointer, 'Contact Object');
   }
 

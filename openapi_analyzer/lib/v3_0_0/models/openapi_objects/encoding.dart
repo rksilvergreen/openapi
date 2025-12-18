@@ -2,7 +2,6 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../node_creation_helpers.dart';
 import 'enums.dart';
-import 'header.dart';
 import 'headers_map.dart';
 
 abstract class Encoding {
@@ -15,8 +14,7 @@ abstract class Encoding {
 }
 
 class EncodingNode extends OpenApiNode with InternalNode implements Encoding {
-  EncodingNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  EncodingNode(super.json, super.document, super.jsonPointer);
 
   late final String? contentType;
   late final HeadersMapNode? headers;
@@ -25,18 +23,31 @@ class EncodingNode extends OpenApiNode with InternalNode implements Encoding {
   late final bool allowReserved;
   late final Map<String, dynamic>? extensions;
 
+  @override
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // All fields are optional
+    _validateContentType(jsonPointer);
+    _validateHeaders(jsonPointer);
+    _validateStyle(jsonPointer);
+    _validateExplode(jsonPointer);
+    _validateAllowReserved(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateContentType(String jsonPointer) {
     if (json.containsKey('contentType')) {
       ValidationUtils.requireString(json['contentType'], ValidationUtils.buildPointer([jsonPointer, 'contentType']));
     }
+  }
 
+  void _validateHeaders(String jsonPointer) {
     if (json.containsKey('headers')) {
       ValidationUtils.requireMap(json['headers'], ValidationUtils.buildPointer([jsonPointer, 'headers']));
     }
+  }
 
+  void _validateStyle(String jsonPointer) {
     if (json.containsKey('style')) {
       ValidationUtils.validateEnum(
         ValidationUtils.requireString(json['style'], ValidationUtils.buildPointer([jsonPointer, 'style'])),
@@ -44,16 +55,21 @@ class EncodingNode extends OpenApiNode with InternalNode implements Encoding {
         ValidationUtils.buildPointer([jsonPointer, 'style']),
       );
     }
+  }
 
+  void _validateExplode(String jsonPointer) {
     if (json.containsKey('explode')) {
       ValidationUtils.requireBool(json['explode'], ValidationUtils.buildPointer([jsonPointer, 'explode']));
     }
+  }
 
+  void _validateAllowReserved(String jsonPointer) {
     if (json.containsKey('allowReserved')) {
       ValidationUtils.requireBool(json['allowReserved'], ValidationUtils.buildPointer([jsonPointer, 'allowReserved']));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'contentType', 'headers', 'style', 'explode', 'allowReserved'},
@@ -64,7 +80,7 @@ class EncodingNode extends OpenApiNode with InternalNode implements Encoding {
 
   @override
   void createChildNodes() {
-    createMapNode<HeadersMapNode>(jsonKey: 'headers');
+    createNode<HeadersMapNode>(jsonKey: 'headers');
   }
 
   @override

@@ -11,7 +11,7 @@ abstract class XML {
 }
 
 class XMLNode extends OpenApiNode with LeafNode implements XML {
-  XMLNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
+  XMLNode(super.json, super.document, super.jsonPointer);
 
   late final String? name;
   late final String? namespace;
@@ -24,28 +24,45 @@ class XMLNode extends OpenApiNode with LeafNode implements XML {
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // All fields are optional
+    _validateName(jsonPointer);
+    _validateNamespace(jsonPointer);
+    _validatePrefix(jsonPointer);
+    _validateAttribute(jsonPointer);
+    _validateWrapped(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateName(String jsonPointer) {
     if (json.containsKey('name')) {
       ValidationUtils.requireString(json['name'], ValidationUtils.buildPointer([jsonPointer, 'name']));
     }
+  }
 
+  void _validateNamespace(String jsonPointer) {
     if (json.containsKey('namespace')) {
       ValidationUtils.requireString(json['namespace'], ValidationUtils.buildPointer([jsonPointer, 'namespace']));
     }
+  }
 
+  void _validatePrefix(String jsonPointer) {
     if (json.containsKey('prefix')) {
       ValidationUtils.requireString(json['prefix'], ValidationUtils.buildPointer([jsonPointer, 'prefix']));
     }
+  }
 
+  void _validateAttribute(String jsonPointer) {
     if (json.containsKey('attribute')) {
       ValidationUtils.requireBool(json['attribute'], ValidationUtils.buildPointer([jsonPointer, 'attribute']));
     }
+  }
 
+  void _validateWrapped(String jsonPointer) {
     if (json.containsKey('wrapped')) {
       ValidationUtils.requireBool(json['wrapped'], ValidationUtils.buildPointer([jsonPointer, 'wrapped']));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'name', 'namespace', 'prefix', 'attribute', 'wrapped'},

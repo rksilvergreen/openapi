@@ -18,8 +18,7 @@ abstract class MediaType {
 }
 
 class MediaTypeNode extends OpenApiNode with InternalNode implements MediaType {
-  MediaTypeNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  MediaTypeNode(super.json, super.document, super.jsonPointer);
 
   late final EffectiveSchema? schema;
   late final dynamic example;
@@ -81,8 +80,8 @@ class MediaTypeNode extends OpenApiNode with InternalNode implements MediaType {
   @override
   void createChildNodes() {
     createNode<SchemaNode>(jsonKey: 'schema');
-    createMapNode<ExamplesMapNode>(jsonKey: 'examples');
-    createMapNode<EncodingsMapNode>(jsonKey: 'encoding');
+    createNode<ExamplesMapNode>(jsonKey: 'examples');
+    createNode<EncodingsMapNode>(jsonKey: 'encoding');
   }
 
   @override

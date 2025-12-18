@@ -15,7 +15,7 @@ abstract class Info {
 }
 
 class InfoNode extends OpenApiNode with InternalNode implements Info {
-  InfoNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
+  InfoNode(super.json, super.document, super.jsonPointer);
 
   late final String title;
   late final String? description;
@@ -29,38 +29,53 @@ class InfoNode extends OpenApiNode with InternalNode implements Info {
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // Validate required: title (non-empty string)
+    _validateTitle(jsonPointer);
+    _validateVersion(jsonPointer);
+    _validateDescription(jsonPointer);
+    _validateTermsOfService(jsonPointer);
+    _validateContact(jsonPointer);
+    _validateLicense(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateTitle(String jsonPointer) {
     final title = ValidationUtils.requireField(json, 'title', jsonPointer);
     ValidationUtils.requireNonEmptyString(title, ValidationUtils.buildPointer([jsonPointer, 'title']));
+  }
 
-    // Validate required: version (non-empty string)
+  void _validateVersion(String jsonPointer) {
     final version = ValidationUtils.requireField(json, 'version', jsonPointer);
     ValidationUtils.requireNonEmptyString(version, ValidationUtils.buildPointer([jsonPointer, 'version']));
+  }
 
-    // Validate optional: description (string)
+  void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
       ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
+  }
 
-    // Validate optional: termsOfService (string)
+  void _validateTermsOfService(String jsonPointer) {
     if (json.containsKey('termsOfService')) {
       ValidationUtils.requireString(
         json['termsOfService'],
         ValidationUtils.buildPointer([jsonPointer, 'termsOfService']),
       );
     }
+  }
 
-    // Validate optional: contact (object)
+  void _validateContact(String jsonPointer) {
     if (json.containsKey('contact')) {
       ValidationUtils.requireMap(json['contact'], ValidationUtils.buildPointer([jsonPointer, 'contact']));
     }
+  }
 
-    // Validate optional: license (object)
+  void _validateLicense(String jsonPointer) {
     if (json.containsKey('license')) {
       ValidationUtils.requireMap(json['license'], ValidationUtils.buildPointer([jsonPointer, 'license']));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'title', 'description', 'termsOfService', 'contact', 'license', 'version'},

@@ -1,7 +1,6 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../node_creation_helpers.dart';
-import 'server_variable.dart';
 import 'server_variables_map.dart';
 
 abstract class Server {
@@ -12,8 +11,7 @@ abstract class Server {
 }
 
 class ServerNode extends OpenApiNode with InternalNode implements Server {
-  ServerNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  ServerNode(super.json, super.document, super.jsonPointer);
 
   late final String url;
   late final String? description;
@@ -24,27 +22,36 @@ class ServerNode extends OpenApiNode with InternalNode implements Server {
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // Validate required: url (non-empty string)
+    _validateUrl(jsonPointer);
+    _validateDescription(jsonPointer);
+    _validateVariables(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateUrl(String jsonPointer) {
     final url = ValidationUtils.requireField(json, 'url', jsonPointer);
     ValidationUtils.requireNonEmptyString(url, ValidationUtils.buildPointer([jsonPointer, 'url']));
+  }
 
-    // Validate optional: description (string)
+  void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
       ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
+  }
 
-    // Validate optional: variables (map of ServerVariable objects)
+  void _validateVariables(String jsonPointer) {
     if (json.containsKey('variables')) {
       ValidationUtils.requireMap(json['variables'], ValidationUtils.buildPointer([jsonPointer, 'variables']));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(json, {'url', 'description', 'variables'}, jsonPointer, 'Server Object');
   }
 
   @override
   void createChildNodes() {
-    createMapNode<ServerVariablesMapNode>(jsonKey: 'variables');
+    createNode<ServerVariablesMapNode>(jsonKey: 'variables');
   }
 
   @override

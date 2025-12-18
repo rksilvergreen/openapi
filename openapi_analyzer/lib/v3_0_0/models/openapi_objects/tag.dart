@@ -11,7 +11,7 @@ abstract class Tag {
 }
 
 class TagNode extends OpenApiNode with InternalNode implements Tag {
-  TagNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
+  TagNode(super.json, super.document, super.jsonPointer);
 
   late final String name;
   late final String? description;
@@ -22,21 +22,30 @@ class TagNode extends OpenApiNode with InternalNode implements Tag {
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // Validate required: name (non-empty string)
+    _validateName(jsonPointer);
+    _validateDescription(jsonPointer);
+    _validateExternalDocs(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateName(String jsonPointer) {
     final name = ValidationUtils.requireField(json, 'name', jsonPointer);
     ValidationUtils.requireNonEmptyString(name, ValidationUtils.buildPointer([jsonPointer, 'name']));
+  }
 
-    // Validate optional: description (string)
+  void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
       ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
+  }
 
-    // Validate optional: externalDocs (object)
+  void _validateExternalDocs(String jsonPointer) {
     if (json.containsKey('externalDocs')) {
       ValidationUtils.requireMap(json['externalDocs'], ValidationUtils.buildPointer([jsonPointer, 'externalDocs']));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(json, {'name', 'description', 'externalDocs'}, jsonPointer, 'Tag Object');
   }
 

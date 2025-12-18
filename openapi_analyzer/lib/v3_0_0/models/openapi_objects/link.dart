@@ -16,7 +16,7 @@ abstract class Link {
 }
 
 class LinkNode extends OpenApiNode with InternalNode, Referencable implements Link {
-  LinkNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
+  LinkNode(super.json, super.document, super.jsonPointer);
 
   late final String? operationRef;
   late final String? operationId;
@@ -30,16 +30,28 @@ class LinkNode extends OpenApiNode with InternalNode, Referencable implements Li
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
 
-    // All fields are optional
+    _validateOperationRef(jsonPointer);
+    _validateOperationId(jsonPointer);
+    _validateMutualExclusivity(jsonPointer);
+    _validateParameters(jsonPointer);
+    _validateDescription(jsonPointer);
+    _validateServer(jsonPointer);
+    _validateNoUnknownFields(jsonPointer);
+  }
+
+  void _validateOperationRef(String jsonPointer) {
     if (json.containsKey('operationRef')) {
       ValidationUtils.requireString(json['operationRef'], ValidationUtils.buildPointer([jsonPointer, 'operationRef']));
     }
+  }
 
+  void _validateOperationId(String jsonPointer) {
     if (json.containsKey('operationId')) {
       ValidationUtils.requireString(json['operationId'], ValidationUtils.buildPointer([jsonPointer, 'operationId']));
     }
+  }
 
-    // Validate mutual exclusivity: operationRef and operationId cannot both be present
+  void _validateMutualExclusivity(String jsonPointer) {
     if (json.containsKey('operationRef') && json.containsKey('operationId')) {
       OpenApiGraph.i.validationContext.addException(
         OpenApiValidationException(
@@ -50,20 +62,27 @@ class LinkNode extends OpenApiNode with InternalNode, Referencable implements Li
         ),
       );
     }
+  }
 
+  void _validateParameters(String jsonPointer) {
     if (json.containsKey('parameters')) {
       ValidationUtils.requireMap(json['parameters'], ValidationUtils.buildPointer([jsonPointer, 'parameters']));
     }
+  }
 
+  void _validateDescription(String jsonPointer) {
     if (json.containsKey('description')) {
       ValidationUtils.requireString(json['description'], ValidationUtils.buildPointer([jsonPointer, 'description']));
     }
+  }
 
+  void _validateServer(String jsonPointer) {
     if (json.containsKey('server')) {
       ValidationUtils.requireMap(json['server'], ValidationUtils.buildPointer([jsonPointer, 'server']));
     }
+  }
 
-    // Validate no unknown fields
+  void _validateNoUnknownFields(String jsonPointer) {
     ValidationUtils.validateNoUnknownFields(
       json,
       {'operationRef', 'operationId', 'parameters', 'requestBody', 'description', 'server'},

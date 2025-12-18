@@ -25,8 +25,7 @@ abstract class OpenApiDocument {
 }
 
 class OpenApiDocumentNode extends OpenApiNode with InternalNode implements OpenApiDocument {
-  OpenApiDocumentNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  OpenApiDocumentNode(super.json, super.document, super.jsonPointer);
 
   late final String openapi;
   late final InfoNode info;
