@@ -10,30 +10,36 @@ import 'security_requirement.dart';
 import 'server.dart';
 import 'responses_map.dart';
 import 'callbacks_map.dart';
+import 'parameters_list.dart';
+import 'security_requirements_list.dart';
+import 'server_list.dart';
 
 abstract class Operation {
   ExternalDocumentation? get externalDocs;
-  List<Parameter>? get parameters;
+  ParametersList? get parameters;
   RequestBody? get requestBody;
   ResponsesMap get responses;
-  CallbacksMap get callbacks;
-  List<SecurityRequirement>? get security;
-  List<Server>? get servers;
+  CallbacksMap? get callbacks;
+  SecurityRequirementsList get security;
+  ServerList get servers;
 }
 
 class OperationNode extends OpenApiNode with InternalNode implements Operation {
   OperationNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
+  late final List<String>? tags;
+  late final String? summary;
+  late final String? description;
+  late final String? operationId;
   late final ExternalDocumentationNode? externalDocs;
-  late final List<ParameterNode>? parameters;
+  late final ParametersListNode? parameters;
   late final RequestBodyNode? requestBody;
   late final ResponsesMapNode responses;
-  late final CallbacksMapNode callbacks;
-  late final List<SecurityRequirementNode>? security;
-  late final List<ServerNode>? servers;
-
-  late final Operation content;
+  late final CallbacksMapNode? callbacks;
+  late final SecurityRequirementsListNode security;
+  late final ServerListNode servers;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -153,122 +159,28 @@ class OperationNode extends OpenApiNode with InternalNode implements Operation {
 
   @override
   void createChildNodes() {
-    _createExternalDocsNode();
-    _createParametersNodes();
-    _createRequestBodyNode();
-    _createResponseNodes();
-    _createCallbackNodes();
-    _createSecurityRequirementNodes();
-    _createServerNodes();
-  }
-
-  void _createExternalDocsNode() {
-    externalDocsNode = createNode<ExternalDocumentationNode>(
-      jsonKey: 'externalDocs',
-      factory: (json, document, jsonPointer) => ExternalDocumentationNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createParametersNodes() {
-    parametersNodes = createListNode<ParameterNode>(
-      jsonKey: 'parameters',
-      factory: (json, document, jsonPointer) => ParameterNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createRequestBodyNode() {
-    requestBodyNode = createNode<RequestBodyNode>(
-      jsonKey: 'requestBody',
-      factory: (json, document, jsonPointer) => RequestBodyNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createResponseNodes() {
-    responseNodes = createMapNode<ResponseNode>(
-      jsonKey: 'responses',
-      required: true,
-      factory: (json, document, jsonPointer) => ResponseNode(json, document, jsonPointer),
-    )!;
-  }
-
-  void _createCallbackNodes() {
-    callbackNodes = createMapNode<CallbackNode>(
-      jsonKey: 'callbacks',
-      factory: (json, document, jsonPointer) => CallbackNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createSecurityRequirementNodes() {
-    securityRequirementNodes = createListNode<SecurityRequirementNode>(
-      jsonKey: 'security',
-      factory: (json, document, jsonPointer) => SecurityRequirementNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createServerNodes() {
-    serverNodes = createListNode<ServerNode>(
-      jsonKey: 'servers',
-      factory: (json, document, jsonPointer) => ServerNode(json, document, jsonPointer),
-    );
+    createNode<ExternalDocumentationNode>(jsonKey: 'externalDocs');
+    createNode<ParametersListNode>(jsonKey: 'parameters');
+    createNode<RequestBodyNode>(jsonKey: 'requestBody');
+    createNode<ResponsesMapNode>(jsonKey: 'responses', required: true);
+    createNode<CallbacksMapNode>(jsonKey: 'callbacks');
+    createListNode<SecurityRequirementNode>(jsonKey: 'security');
+    createListNode<ServerNode>(jsonKey: 'servers');
   }
 
   @override
   void createContent() {
-    content = Operation._(
-      $node: this,
-      tags: json['tags'],
-      summary: json['summary'],
-      description: json['description'],
-      operationId: json['operationId'],
-      extensions: extractExtensions(json),
-    );
-  }
-}
-
-/// Describes a single API operation on a path.
-class Operation {
-  final OperationNode $node;
-  final List<String>? tags;
-  final String? summary;
-  final String? description;
-  ExternalDocumentation? get externalDocs => $node.externalDocsNode?.content;
-  final String? operationId;
-  List<Parameter>? get parameters => $node.parametersNodes?.map((parameter) => parameter.content).toList();
-  RequestBody? get requestBody => $node.requestBodyNode?.content;
-  Map<String, Response> get responses => $node.responseNodes.map((k, v) => MapEntry(k, v.content));
-  Map<String, Callback>? get callbacks => $node.callbackNodes?.map((k, v) => MapEntry(k, v.content));
-  List<SecurityRequirement>? get security =>
-      $node.securityRequirementNodes?.map((securityRequirement) => securityRequirement.content).toList();
-  List<Server>? get servers => $node.serverNodes?.map((server) => server.content).toList();
-  final Map<String, dynamic>? extensions;
-
-  Operation._({required this.$node, this.tags, this.summary, this.description, this.operationId, this.extensions});
-
-  String get $name {
-    return '';
-    // if (operationId != null) return operationId!;
-    // final pathItem = OpenApiGraph.i.getOpenApiNodeParents($node).first as PathItemNode;
-    // String verb = pathItem.getNode == $node
-    //     ? 'get'
-    //     : pathItem.putNode == $node
-    //     ? 'put'
-    //     : pathItem.postNode == $node
-    //     ? 'post'
-    //     : pathItem.deleteNode == $node
-    //     ? 'delete'
-    //     : pathItem.optionsNode == $node
-    //     ? 'options'
-    //     : pathItem.headNode == $node
-    //     ? 'head'
-    //     : pathItem.patchNode == $node
-    //     ? 'patch'
-    //     : pathItem.traceNode == $node
-    //     ? 'trace'
-    //     : '';
-    // ;
-
-    // final paths = OpenApiGraph.i.getOpenApiNodeParents(pathItem).first as PathsNode;
-    // String jsonPointer = paths.content.paths.entries.firstWhere((entry) => entry.value == pathItem).key;
-    // return jsonPointer.split('/').last;
+    tags = json['tags'] != null ? List<String>.from(json['tags']) : null;
+    summary = json['summary'];
+    description = json['description'];
+    operationId = json['operationId'];
+    externalDocs = $to.to<ExternalDocumentationNode>('externalDocs');
+    parameters = $to.to<ParametersListNode>('parameters');
+    requestBody = $to.to<RequestBodyNode>('requestBody');
+    responses = $to.to<ResponsesMapNode>('responses')!;
+    callbacks = $to.to<CallbacksMapNode>('callbacks');
+    security = $to.to<SecurityRequirementsListNode>('security')!;
+    servers = $to.to<ServerListNode>('servers')!;
+    extensions = extractExtensions(json);
   }
 }

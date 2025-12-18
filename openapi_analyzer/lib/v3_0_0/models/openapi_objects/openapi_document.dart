@@ -8,15 +8,18 @@ import 'components.dart';
 import 'security_requirement.dart';
 import 'tag.dart';
 import 'external_documentation.dart';
+import 'security_requirements_list.dart';
+import 'tags_list.dart';
+import 'server_list.dart';
 
 abstract class OpenApiDocument {
   String get openapi;
   Info get info;
-  List<Server>? get servers;
+  ServerList? get servers;
   PathsMap get paths;
   Components? get components;
-  List<SecurityRequirement>? get security;
-  List<Tag>? get tags;
+  SecurityRequirementsList? get security;
+  TagsList? get tags;
   ExternalDocumentation? get externalDocs;
   Map<String, dynamic>? get extensions;
 }
@@ -27,11 +30,11 @@ class OpenApiDocumentNode extends OpenApiNode with InternalNode implements OpenA
 
   late final String openapi;
   late final InfoNode info;
-  late final List<ServerNode>? servers;
+  late final ServerListNode? servers;
   late final PathsMapNode paths;
   late final ComponentsNode? components;
-  late final List<SecurityRequirementNode>? security;
-  late final List<TagNode>? tags;
+  late final SecurityRequirementsListNode? security;
+  late final TagsListNode? tags;
   late final ExternalDocumentationNode? externalDocs;
   late final Map<String, dynamic>? extensions;
 
@@ -112,85 +115,25 @@ class OpenApiDocumentNode extends OpenApiNode with InternalNode implements OpenA
 
   @override
   void createChildNodes() {
-    _createInfoNode();
-    _createServersNodes();
-    _createPathsNode();
-    _createComponentsNode();
-    _createSecurityNodes();
-    _createTagsNodes();
-    _createExternalDocsNode();
-  }
-
-  void _createInfoNode() {
-    infoNode = createNode<InfoNode>(
-      jsonKey: 'info',
-      required: true,
-      factory: (json, document, jsonPointer) => InfoNode(json, document, jsonPointer),
-    )!;
-  }
-
-  void _createServersNodes() {
-    serversNode = createListNode<ServerNode>(
-      jsonKey: 'servers',
-      factory: (json, document, jsonPointer) => ServerNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createPathsNode() {
-    pathsNode = createNode<PathsNode>(
-      jsonKey: 'paths',
-      required: true,
-      factory: (json, document, jsonPointer) => PathsNode(json, document, jsonPointer),
-    )!;
-  }
-
-  void _createComponentsNode() {
-    componentsNode = createNode<ComponentsNode>(
-      jsonKey: 'components',
-      factory: (json, document, jsonPointer) => ComponentsNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createSecurityNodes() {
-    securityNode = createListNode<SecurityRequirementNode>(
-      jsonKey: 'security',
-      factory: (json, document, jsonPointer) => SecurityRequirementNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createTagsNodes() {
-    tagsNode = createListNode<TagNode>(
-      jsonKey: 'tags',
-      factory: (json, document, jsonPointer) => TagNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createExternalDocsNode() {
-    externalDocsNode = createNode<ExternalDocumentationNode>(
-      jsonKey: 'externalDocs',
-      factory: (json, document, jsonPointer) => ExternalDocumentationNode(json, document, jsonPointer),
-    );
+    createNode<InfoNode>(jsonKey: 'info');
+    createListNode<ServerNode>(jsonKey: 'servers');
+    createNode<PathsMapNode>(jsonKey: 'paths');
+    createNode<ComponentsNode>(jsonKey: 'components');
+    createListNode<SecurityRequirementNode>(jsonKey: 'security');
+    createListNode<TagNode>(jsonKey: 'tags');
+    createNode<ExternalDocumentationNode>(jsonKey: 'externalDocs');
   }
 
   @override
   void createContent() {
-    content = OpenApiDocument._($node: this, openapi: json['openapi'], extensions: extractExtensions(json));
+    openapi = json['openapi'];
+    info = $to.to<InfoNode>('info')!;
+    servers = $to.to<ServerListNode>('servers');
+    paths = $to.to<PathsMapNode>('paths')!;
+    components = $to.to<ComponentsNode>('components');
+    security = $to.to<SecurityRequirementsListNode>('security');
+    tags = $to.to<TagsListNode>('tags');
+    externalDocs = $to.to<ExternalDocumentationNode>('externalDocs');
+    extensions = extractExtensions(json);
   }
-}
-
-/// Root document object of the OpenAPI document.
-class OpenApiDocument {
-  final OpenApiDocumentNode $node;
-
-  final String openapi;
-  Info get info => $node.infoNode.content;
-  List<Server>? get servers => $node.serversNode?.map((server) => server.content).toList();
-  Paths get paths => $node.pathsNode.content;
-  Components? get components => $node.componentsNode?.content;
-  List<SecurityRequirement>? get security => $node.securityNode?.map((security) => security.content).toList();
-  List<Tag>? get tags => $node.tagsNode?.map((tag) => tag.content).toList();
-  ExternalDocumentation? get externalDocs => $node.externalDocsNode?.content;
-  final Map<String, dynamic>? extensions;
-
-  OpenApiDocument._({required this.$node, required this.openapi, this.extensions});
 }

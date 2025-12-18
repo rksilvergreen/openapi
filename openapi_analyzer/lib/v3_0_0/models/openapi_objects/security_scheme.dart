@@ -1,16 +1,35 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../referencable.dart';
+import '../node_creation_helpers.dart';
 import 'enums.dart';
 import 'oauth_flows.dart';
 
-class SecuritySchemeNode extends OpenApiNode with InternalNode, Referencable {
+abstract class SecurityScheme {
+  SecuritySchemeType get type;
+  String? get description;
+  String? get name;
+  SecuritySchemeIn? get in_;
+  String? get scheme;
+  String? get bearerFormat;
+  OAuthFlows? get flows;
+  String? get openIdConnectUrl;
+  Map<String, dynamic>? get extensions;
+}
+
+class SecuritySchemeNode extends OpenApiNode with InternalNode, Referencable implements SecurityScheme {
   SecuritySchemeNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final OAuthFlowsNode? flowsNode;
-
-  late final SecurityScheme content;
+  late final SecuritySchemeType type;
+  late final String? description;
+  late final String? name;
+  late final SecuritySchemeIn? in_;
+  late final String? scheme;
+  late final String? bearerFormat;
+  late final OAuthFlowsNode? flows;
+  late final String? openIdConnectUrl;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -68,54 +87,19 @@ class SecuritySchemeNode extends OpenApiNode with InternalNode, Referencable {
 
   @override
   void createChildNodes() {
-    // Create OAuthFlows node
-    if (json.containsKey('flows')) {
-      final flowsJson = json['flows'] as Map<String, dynamic>;
-      flowsNode = OAuthFlowsNode(flowsJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'flows']));
-      OpenApiGraph.i.addOpenApiNode(flowsNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, flowsNode!.$id.absolutePointer, 'flows'));
-      flowsNode!.create();
-    }
+    createNode<OAuthFlowsNode>(jsonKey: 'flows');
   }
 
   @override
   void createContent() {
-    content = SecurityScheme._(
-      $node: this,
-      type: SecuritySchemeType.values.firstWhere((e) => e.value == json['type']),
-      description: json['description'],
-      name: json['name'],
-      in_: json['in'] != null ? SecuritySchemeIn.values.firstWhere((e) => e.value == json['in']) : null,
-      scheme: json['scheme'],
-      bearerFormat: json['bearerFormat'],
-      openIdConnectUrl: json['openIdConnectUrl'],
-      extensions: extractExtensions(json),
-    );
+    type = SecuritySchemeType.values.firstWhere((e) => e.value == json['type']);
+    description = json['description'];
+    name = json['name'];
+    in_ = json['in'] != null ? SecuritySchemeIn.values.firstWhere((e) => e.value == json['in']) : null;
+    scheme = json['scheme'];
+    bearerFormat = json['bearerFormat'];
+    flows = $to.to<OAuthFlowsNode>('flows');
+    openIdConnectUrl = json['openIdConnectUrl'];
+    extensions = extractExtensions(json);
   }
-}
-
-/// Defines a security scheme that can be used by the operations.
-class SecurityScheme {
-  final SecuritySchemeNode $node;
-  final SecuritySchemeType type;
-  final String? description;
-  final String? name;
-  final SecuritySchemeIn? in_;
-  final String? scheme;
-  final String? bearerFormat;
-  OAuthFlows? get flows => $node.flowsNode?.content;
-  final String? openIdConnectUrl;
-  final Map<String, dynamic>? extensions;
-
-  SecurityScheme._({
-    required this.$node,
-    required this.type,
-    this.description,
-    this.name,
-    this.in_,
-    this.scheme,
-    this.bearerFormat,
-    this.openIdConnectUrl,
-    this.extensions,
-  });
 }

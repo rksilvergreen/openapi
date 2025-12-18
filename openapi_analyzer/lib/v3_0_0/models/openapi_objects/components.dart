@@ -11,22 +11,42 @@ import 'header.dart';
 import 'security_scheme.dart';
 import 'link.dart';
 import 'callback.dart';
+import 'responses_map.dart';
+import 'parameters_map.dart';
+import 'examples_map.dart';
+import 'request_bodies_map.dart';
+import 'headers_map.dart';
+import 'security_schemes_map.dart';
+import 'links_map.dart';
+import 'callbacks_map.dart';
 
-class ComponentsNode extends OpenApiNode with InternalNode {
+abstract class Components {
+  SchemasMap? get schemas;
+  ResponsesMap? get responses;
+  ParametersMap? get parameters;
+  ExamplesMap? get examples;
+  RequestBodiesMap? get requestBodies;
+  HeadersMap? get headers;
+  SecuritySchemesMap? get securitySchemes;
+  LinksMap? get links;
+  CallbacksMap? get callbacks;
+  Map<String, dynamic>? get extensions;
+}
+
+class ComponentsNode extends OpenApiNode with InternalNode implements Components {
   ComponentsNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final Map<String, SchemaNode>? schemasNodes;
-  late final Map<String, ResponseNode>? responsesNodes;
-  late final Map<String, ParameterNode>? parametersNodes;
-  late final Map<String, ExampleNode>? examplesNodes;
-  late final Map<String, RequestBodyNode>? requestBodiesNodes;
-  late final Map<String, HeaderNode>? headersNodes;
-  late final Map<String, SecuritySchemeNode>? securitySchemesNodes;
-  late final Map<String, LinkNode>? linksNodes;
-  late final Map<String, CallbackNode>? callbacksNodes;
-
-  late final Components content;
+  late final SchemasMapNode? schemas;
+  late final ResponsesMapNode? responses;
+  late final ParametersMapNode? parameters;
+  late final ExamplesMapNode? examples;
+  late final RequestBodiesMapNode? requestBodies;
+  late final HeadersMapNode? headers;
+  late final SecuritySchemesMapNode? securitySchemes;
+  late final LinksMapNode? links;
+  late final CallbacksMapNode? callbacks;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -82,96 +102,28 @@ class ComponentsNode extends OpenApiNode with InternalNode {
 
   @override
   void createChildNodes() {
-    // Create Schema nodes
-    if (json.containsKey('schemas')) {
-      final schemasMap = json['schemas'] as Map<String, dynamic>;
-      schemasNodes = {};
-      for (final entry in schemasMap.entries) {
-        final schemaName = entry.key.toString();
-
-        final schemaJson = entry.value as Map<String, dynamic>;
-        final schemaNode = SchemaNode(
-          schemaJson,
-          $id.document,
-          ValidationUtils.buildPointer([$id.jsonPointer, 'schemas', schemaName]),
-        );
-        schemasNodes![schemaName] = schemaNode;
-        if (!OpenApiGraph.i.schemaNodes.containsKey(schemaNode.$id.absolutePointer)) {
-          OpenApiGraph.i.addSchemaNode(schemaNode);
-          OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePointer, schemaNode.$id.absolutePointer));
-          schemaNode.create();
-        }
-      }
-    }
-
-    // Create Response nodes
-    responsesNodes = createMapNode<ResponseNode>(
-      jsonKey: 'responses',
-      factory: (json, document, jsonPointer) => ResponseNode(json, document, jsonPointer),
-    );
-
-    // Create Parameter nodes
-    parametersNodes = createMapNode<ParameterNode>(
-      jsonKey: 'parameters',
-      factory: (json, document, jsonPointer) => ParameterNode(json, document, jsonPointer),
-    );
-
-    // Create Example nodes
-    examplesNodes = createMapNode<ExampleNode>(
-      jsonKey: 'examples',
-      factory: (json, document, jsonPointer) => ExampleNode(json, document, jsonPointer),
-    );
-
-    // Create RequestBody nodes
-    requestBodiesNodes = createMapNode<RequestBodyNode>(
-      jsonKey: 'requestBodies',
-      factory: (json, document, jsonPointer) => RequestBodyNode(json, document, jsonPointer),
-    );
-
-    // Create Header nodes
-    headersNodes = createMapNode<HeaderNode>(
-      jsonKey: 'headers',
-      factory: (json, document, jsonPointer) => HeaderNode(json, document, jsonPointer),
-    );
-
-    // Create SecurityScheme nodes
-    securitySchemesNodes = createMapNode<SecuritySchemeNode>(
-      jsonKey: 'securitySchemes',
-      factory: (json, document, jsonPointer) => SecuritySchemeNode(json, document, jsonPointer),
-    );
-
-    // Create Link nodes
-    linksNodes = createMapNode<LinkNode>(
-      jsonKey: 'links',
-      factory: (json, document, jsonPointer) => LinkNode(json, document, jsonPointer),
-    );
-
-    // Create Callback nodes
-    callbacksNodes = createMapNode<CallbackNode>(
-      jsonKey: 'callbacks',
-      factory: (json, document, jsonPointer) => CallbackNode(json, document, jsonPointer),
-    );
+    createNode<SchemasMapNode>(jsonKey: 'schemas');
+    createNode<ResponsesMapNode>(jsonKey: 'responses');
+    createNode<ParametersMapNode>(jsonKey: 'parameters');
+    createNode<ExamplesMapNode>(jsonKey: 'examples');
+    createNode<RequestBodiesMapNode>(jsonKey: 'requestBodies');
+    createNode<HeadersMapNode>(jsonKey: 'headers');
+    createNode<SecuritySchemesMapNode>(jsonKey: 'securitySchemes');
+    createNode<LinksMapNode>(jsonKey: 'links');
+    createNode<CallbacksMapNode>(jsonKey: 'callbacks');
   }
 
   @override
   void createContent() {
-    content = Components._($node: this, extensions: extractExtensions(json));
+    schemas = $to.to<SchemasMapNode>('schemas');
+    responses = $to.to<ResponsesMapNode>('responses');
+    parameters = $to.to<ParametersMapNode>('parameters');
+    examples = $to.to<ExamplesMapNode>('examples');
+    requestBodies = $to.to<RequestBodiesMapNode>('requestBodies');
+    headers = $to.to<HeadersMapNode>('headers');
+    securitySchemes = $to.to<SecuritySchemesMapNode>('securitySchemes');
+    links = $to.to<LinksMapNode>('links');
+    callbacks = $to.to<CallbacksMapNode>('callbacks');
+    extensions = extractExtensions(json);
   }
-}
-
-/// Holds a set of reusable objects for different aspects of the OAS.
-class Components {
-  final ComponentsNode $node;
-  Map<String, SchemaNode>? get schemas => $node.schemasNodes;
-  Map<String, Response>? get responses => $node.responsesNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, Parameter>? get parameters => $node.parametersNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, Example>? get examples => $node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, RequestBody>? get requestBodies => $node.requestBodiesNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, Header>? get headers => $node.headersNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, SecurityScheme>? get securitySchemes => $node.securitySchemesNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, Link>? get links => $node.linksNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, Callback>? get callbacks => $node.callbacksNodes?.map((k, v) => MapEntry(k, v.content));
-  final Map<String, dynamic>? extensions;
-
-  Components._({required this.$node, this.extensions});
 }

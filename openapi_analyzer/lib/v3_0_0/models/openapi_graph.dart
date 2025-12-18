@@ -9,9 +9,9 @@ import 'openapi_objects/schema/schema_node.dart';
 abstract class Node {
   final NodeId $id;
   final Map<String, dynamic> json;
-  Node(this.$id, this.json);
+  Node(this.json, String document, String jsonPointer) : $id = NodeId(document, jsonPointer);
 
-  List<Edge > $from = [];
+  List<Edge> $from = [];
   List<Edge> $to = [];
 
   Map<String, dynamic>? extractExtensions(Map<String, dynamic> json) {
@@ -45,8 +45,7 @@ class NodeId {
 }
 
 abstract class OpenApiNode extends Node {
-  OpenApiNode(super.$id, super.json);
-
+  OpenApiNode(super.json, super.document, super.jsonPointer);
 }
 
 mixin InternalNode on Node {
@@ -240,11 +239,9 @@ abstract class Edge {
 }
 
 extension EdgeIterableExtension on Iterable<Edge> {
-  T? to<T extends Node>(String via) =>
-      _firstWhereOrNull((edge) => (edge.to is T) && (edge.via == via))!.to as T;
+  T? to<T extends Node>(String via) => _firstWhereOrNull((edge) => (edge.to is T) && (edge.via == via))!.to as T;
 
-  T? from<T extends Node>(String via) =>
-      _firstWhereOrNull((edge) => (edge.from is T) && (edge.via == via))!.from as T;
+  T? from<T extends Node>(String via) => _firstWhereOrNull((edge) => (edge.from is T) && (edge.via == via))!.from as T;
 
   Edge? _firstWhereOrNull(bool Function(Edge element) test) {
     for (final e in this) {

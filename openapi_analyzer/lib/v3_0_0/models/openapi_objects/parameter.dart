@@ -8,16 +8,44 @@ import 'schema/schema_node.dart';
 import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
 import 'media_type.dart';
+import 'examples_map.dart';
+import 'media_types_map.dart';
 
-class ParameterNode extends OpenApiNode with InternalNode, Referencable {
+abstract class Parameter {
+  String get name;
+  ParameterLocation get in_;
+  String? get description;
+  bool get required_;
+  bool get deprecated;
+  bool get allowEmptyValue;
+  ParameterStyle? get style;
+  bool? get explode;
+  bool get allowReserved;
+  EffectiveSchema? get schema;
+  dynamic get example;
+  ExamplesMap? get examples;
+  MediaTypesMap? get content;
+  Map<String, dynamic>? get extensions;
+}
+
+class ParameterNode extends OpenApiNode with InternalNode, Referencable implements Parameter {
   ParameterNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final SchemaNode? schemaNode;
-  late final Map<String, ExampleNode>? examplesNodes;
-  late final Map<String, MediaTypeNode>? contentNodes;
-
-  late final Parameter content;
+  late final String name;
+  late final ParameterLocation in_;
+  late final String? description;
+  late final bool required_;
+  late final bool deprecated;
+  late final bool allowEmptyValue;
+  late final ParameterStyle? style;
+  late final bool? explode;
+  late final bool allowReserved;
+  late final EffectiveSchema? schema;
+  late final dynamic example;
+  late final ExamplesMapNode? examples;
+  late final MediaTypesMapNode? content;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -156,88 +184,26 @@ class ParameterNode extends OpenApiNode with InternalNode, Referencable {
 
   @override
   void createChildNodes() {
-    _createSchemaNode();
-    _createExamplesNodes();
-    _createContentNodes();
-  }
-
-  void _createSchemaNode() {
-    if (json.containsKey('schema')) {
-      final schemaJson = json['schema'] as Map<String, dynamic>;
-      schemaNode = SchemaNode(schemaJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'schema']));
-      if (!OpenApiGraph.i.schemaNodes.containsKey(schemaNode!.$id.absolutePointer)) {
-        OpenApiGraph.i.addSchemaNode(schemaNode!);
-        OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePointer, schemaNode!.$id.absolutePointer));
-        schemaNode!.create();
-      }
-    }
-  }
-
-  void _createExamplesNodes() {
-    examplesNodes = createMapNode<ExampleNode>(
-      jsonKey: 'examples',
-      factory: (json, document, jsonPointer) => ExampleNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createContentNodes() {
-    contentNodes = createMapNode<MediaTypeNode>(
-      jsonKey: 'content',
-      factory: (json, document, jsonPointer) => MediaTypeNode(json, document, jsonPointer),
-    );
+    createNode<SchemaNode>(jsonKey: 'schema');
+    createNode<ExamplesMapNode>(jsonKey: 'examples');
+    createNode<MediaTypesMapNode>(jsonKey: 'content');
   }
 
   @override
   void createContent() {
-    content = Parameter._(
-      $node: this,
-      name: json['name'],
-      in_: ParameterLocation.values.firstWhere((e) => e.value == json['in']),
-      description: json['description'],
-      required_: json['required'],
-      deprecated: json['deprecated'],
-      allowEmptyValue: json['allowEmptyValue'],
-      style: json['style'] != null ? ParameterStyle.values.firstWhere((e) => e.value == json['style']) : null,
-      explode: json['explode'],
-      allowReserved: json['allowReserved'],
-      example: json['example'],
-      content: json['content'],
-      extensions: extractExtensions(json),
-    );
+    name = json['name'];
+    in_ = ParameterLocation.values.firstWhere((e) => e.value == json['in']);
+    description = json['description'];
+    required_ = json['required'] ?? false;
+    deprecated = json['deprecated'] ?? false;
+    allowEmptyValue = json['allowEmptyValue'] ?? false;
+    style = json['style'] != null ? ParameterStyle.values.firstWhere((e) => e.value == json['style']) : null;
+    explode = json['explode'];
+    allowReserved = json['allowReserved'] ?? false;
+    schema = $to.to<SchemaNode>('schema')?.effective;
+    example = json['example'];
+    examples = $to.to<ExamplesMapNode>('examples');
+    content = $to.to<MediaTypesMapNode>('content');
+    extensions = extractExtensions(json);
   }
-}
-
-/// Describes a single operation parameter.
-class Parameter {
-  final ParameterNode $node;
-  final String name;
-  final ParameterLocation in_;
-  final String? description;
-  final bool required_;
-  final bool deprecated;
-  final bool allowEmptyValue;
-  final ParameterStyle? style;
-  final bool? explode;
-  final bool allowReserved;
-  EffectiveSchema? get schema => $node.schemaNode?.effective;
-  final dynamic example;
-  Map<String, Example>? get examples => $node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
-  final Map<String, MediaType>? content;
-  final Map<String, dynamic>? extensions;
-
-  Parameter._({
-    required this.$node,
-    required this.name,
-    required this.in_,
-    this.description,
-    this.required_ = false,
-    this.deprecated = false,
-    this.allowEmptyValue = false,
-    this.style,
-    this.explode,
-    this.allowReserved = false,
-    this.example,
-    this.content,
-    this.extensions,
-  });
 }

@@ -1,10 +1,24 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
-class XMLNode extends OpenApiNode with LeafNode {
+abstract class XML {
+  String? get name;
+  String? get namespace;
+  String? get prefix;
+  bool get attribute;
+  bool get wrapped;
+  Map<String, dynamic>? get extensions;
+}
+
+class XMLNode extends OpenApiNode with LeafNode implements XML {
   XMLNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
 
-  late final XML content;
+  late final String? name;
+  late final String? namespace;
+  late final String? prefix;
+  late final bool attribute;
+  late final bool wrapped;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -42,35 +56,11 @@ class XMLNode extends OpenApiNode with LeafNode {
 
   @override
   void createContent() {
-    content = XML._(
-      $node: this,
-      name: json['name'],
-      namespace: json['namespace'],
-      prefix: json['prefix'],
-      attribute: json['attribute'] ?? false,
-      wrapped: json['wrapped'] ?? false,
-      extensions: extractExtensions(json),
-    );
+    name = json['name'];
+    namespace = json['namespace'];
+    prefix = json['prefix'];
+    attribute = json['attribute'] ?? false;
+    wrapped = json['wrapped'] ?? false;
+    extensions = extractExtensions(json);
   }
-}
-
-/// XML object for XML representation metadata.
-class XML {
-  final XMLNode $node;
-  final String? name;
-  final String? namespace;
-  final String? prefix;
-  final bool attribute;
-  final bool wrapped;
-  final Map<String, dynamic>? extensions;
-
-  XML._({
-    required this.$node,
-    this.name,
-    this.namespace,
-    this.prefix,
-    this.attribute = false,
-    this.wrapped = false,
-    this.extensions,
-  });
 }

@@ -5,6 +5,8 @@ import '../node_creation_helpers.dart';
 import 'operation.dart';
 import 'server.dart';
 import 'parameter.dart';
+import 'parameters_list.dart';
+import 'server_list.dart';
 
 abstract class PathItem {
   Operation? get get_;
@@ -15,8 +17,8 @@ abstract class PathItem {
   Operation? get head;
   Operation? get patch;
   Operation? get trace;
-  List<Server>? get servers;
-  List<Parameter>? get parameters;
+  ServerList? get servers;
+  ParametersList? get parameters;
   Map<String, dynamic>? get extensions;
 }
 
@@ -28,17 +30,15 @@ class PathItemNode extends OpenApiNode with InternalNode, Referencable implement
   late final String? description;
   late final OperationNode? get_;
   late final OperationNode? put;
-  late final OperationNode? postNode;
-  late final OperationNode? deleteNode;
-  late final OperationNode? optionsNode;
-  late final OperationNode? headNode;
-  late final OperationNode? patchNode;
-  late final OperationNode? traceNode;
-  late final List<ServerNode>? serversNodes;
-  late final List<ParameterNode>? parametersNodes;
+  late final OperationNode? post;
+  late final OperationNode? delete;
+  late final OperationNode? options;
+  late final OperationNode? head;
+  late final OperationNode? patch;
+  late final OperationNode? trace;
+  late final ServerListNode? servers;
+  late final ParametersListNode? parameters;
   late final Map<String, dynamic>? extensions;
-
-  late final PathItem content;
 
   @override
   void validateStructure() {
@@ -110,85 +110,33 @@ class PathItemNode extends OpenApiNode with InternalNode, Referencable implement
 
   @override
   void createChildNodes() {
-    _createOperationNodes();
-    _createServersNodes();
-    _createParametersNodes();
+    createNode<OperationNode>(jsonKey: 'get');
+    createNode<OperationNode>(jsonKey: 'put');
+    createNode<OperationNode>(jsonKey: 'post');
+    createNode<OperationNode>(jsonKey: 'delete');
+    createNode<OperationNode>(jsonKey: 'options');
+    createNode<OperationNode>(jsonKey: 'head');
+    createNode<OperationNode>(jsonKey: 'patch');
+    createNode<OperationNode>(jsonKey: 'trace');
+    createListNode<ServerNode>(jsonKey: 'servers');
+    createListNode<ParameterNode>(jsonKey: 'parameters');
   }
 
-  void _createOperationNodes() {
-    final httpMethods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
-
-    for (final method in httpMethods) {
-      if (json.containsKey(method)) {
-        final operationJson = json[method] as Map<String, dynamic>;
-        final operationNode = OperationNode(
-          operationJson,
-          $id.document,
-          ValidationUtils.buildPointer([$id.jsonPointer, method]),
-        );
-
-        switch (method) {
-          case 'get':
-            getNode = operationNode;
-            break;
-          case 'put':
-            putNode = operationNode;
-            break;
-          case 'post':
-            postNode = operationNode;
-            break;
-          case 'delete':
-            deleteNode = operationNode;
-            break;
-          case 'options':
-            optionsNode = operationNode;
-            break;
-          case 'head':
-            headNode = operationNode;
-            break;
-          case 'patch':
-            patchNode = operationNode;
-            break;
-          case 'trace':
-            traceNode = operationNode;
-            break;
-        }
-
-        OpenApiGraph.i.addOpenApiNode(operationNode);
-        OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, operationNode.$id.absolutePointer, method));
-        operationNode.create();
-      }
-    }
-  }
-
-  void _createServersNodes() {
-    createListNode<ServerNode>(
-      jsonKey: 'servers',
-      factory: (json, document, jsonPointer) => ServerNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createParametersNodes() {
-    createListNode<ParameterNode>(
-      jsonKey: 'parameters',
-      factory: (json, document, jsonPointer) => ParameterNode(json, document, jsonPointer),
-    );
-  }
 
   @override
   void createContent() {
     summary = json['summary'];
     description = json['description'];
-    getNode = $to<OperationNode>('get');
-    putNode = $to<OperationNode>('put');
-    postNode = $to<OperationNode>('post');
-    deleteNode = $to<OperationNode>('delete');
-    optionsNode = $to<OperationNode>('options');
-    headNode = $to<OperationNode>('head');
-    patchNode = $to<OperationNode>('patch');
-    traceNode = $to<OperationNode>('trace');
-    servers = $to<ServerNode>('servers');
-    parameters = $to.where((edge) => edge.to is Parameter).map((edge) => edge.to as Parameter).toList();
+    get_ = $to.to<OperationNode>('get');
+    put = $to.to<OperationNode>('put');
+    post = $to.to<OperationNode>('post');
+    delete = $to.to<OperationNode>('delete');
+    options = $to.to<OperationNode>('options');
+    head = $to.to<OperationNode>('head');
+    patch = $to.to<OperationNode>('patch');
+    trace = $to.to<OperationNode>('trace');
+    servers = $to.to<ServerListNode>('servers');
+    parameters = $to.to<ParametersListNode>('parameters');
     extensions = extractExtensions(json);
   }
 }

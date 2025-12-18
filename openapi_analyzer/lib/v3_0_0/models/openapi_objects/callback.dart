@@ -10,8 +10,7 @@ abstract class Callback {
 }
 
 class CallbackNode extends OpenApiNode with InternalNode, Referencable implements Callback {
-  CallbackNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+  CallbackNode(super.json, super.document, super.jsonPointer);
 
   late final PathsMapNode expressions;
   late final Map<String, dynamic>? extensions;

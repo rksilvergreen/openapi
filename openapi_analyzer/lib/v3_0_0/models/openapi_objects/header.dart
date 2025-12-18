@@ -10,6 +10,7 @@ import 'example.dart';
 import 'media_type.dart';
 import 'examples_map.dart';
 import 'media_types_map.dart';
+
 /// Header Object follows the structure of the Parameter Object.
 abstract class Header {
   String? get description;
@@ -19,7 +20,7 @@ abstract class Header {
   ParameterStyle? get style;
   bool? get explode;
   bool get allowReserved;
-  EffectiveSchema? get schema => $node.schemaNode?.effective;
+  EffectiveSchema? get schema;
   dynamic get example;
   ExamplesMap? get examples;
   MediaTypesMap? get content;
@@ -168,7 +169,6 @@ class HeaderNode extends OpenApiNode with InternalNode, Referencable implements 
     createMapNode<ExampleNode>(jsonKey: 'examples');
     createMapNode<MediaTypeNode>(jsonKey: 'content');
   }
-
 
   @override
   void createContent() {
