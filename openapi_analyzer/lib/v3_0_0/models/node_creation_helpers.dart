@@ -39,28 +39,20 @@ extension NodeCreationHelpers on OpenApiNode {
     return true;
   }
 
-  /// Creates a single node (handles $ref resolution and node reuse for referencable nodes).
-  /// Returns the existing node if it was already created (for referencable nodes), otherwise creates and returns a new one.
-  T? createNode<T extends OpenApiNode>({required String jsonKey, bool required = false}) {
-    if (!_containsKey(jsonKey, required)) {
-      return null;
-    }
-
-    final originalJson = json[jsonKey] as Map<String, dynamic>;
-    final originalJsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, jsonKey]);
-
-    // Check if it's a reference and resolve if needed
-    final isRef = _isRef(originalJson);
-    final (resolvedJson, resolvedDocument, resolvedJsonPointer) = isRef
-        ? _resolveRef(json: originalJson, jsonPointer: originalJsonPointer)
-        : (originalJson, $id.document, originalJsonPointer);
-
-    final via = jsonKey;
+  /// Gets an existing node or creates a new one, handling edge creation.
+  /// Returns the existing node if found, otherwise creates and returns a new node.
+  T _getOrCreateNode<T extends OpenApiNode>({
+    required Map<String, dynamic> json,
+    required String document,
+    required String jsonPointer,
+    required bool isRef,
+    required String via,
+  }) {
     // Determine the 'form' argument: use referenced for refs, inline otherwise
     final form = isRef ? EdgeForm.referenced : EdgeForm.inline;
 
     // Check if node already exists at the resolved location
-    final absolutePointer = '$resolvedDocument#$resolvedJsonPointer';
+    final absolutePointer = '$document#$jsonPointer';
     final existingNode = OpenApiGraph.i.openApiNodes[absolutePointer] as T?;
 
     if (existingNode != null) {
@@ -69,51 +61,60 @@ extension NodeCreationHelpers on OpenApiNode {
     }
 
     // Create new node
-    final childNode = Node.ofType<T>(resolvedJson, resolvedDocument, resolvedJsonPointer);
+    final childNode = Node.ofType<T>(json, document, jsonPointer);
     OpenApiGraph.i.addOpenApiNode(childNode);
     OpenApiGraph.i.addOpenApiEdge(this, childNode, via, form);
     childNode.create();
     return childNode;
   }
 
-  /// Creates a list of nodes (handles $ref resolution and node reuse for referencable nodes).
-  List<T>? createListNode<T extends OpenApiNode>({required String jsonKey, bool required = false}) {
+  /// Creates a single node (handles $ref resolution and node reuse for referencable nodes).
+  /// Returns the existing node if it was already created (for referencable nodes), otherwise creates and returns a new one.
+  T? createNode<T extends OpenApiNode>({required String jsonKey, bool required = false}) {
     if (!_containsKey(jsonKey, required)) {
       return null;
     }
 
-    final list = json[jsonKey] as List;
-    final nodes = <T>[];
+    final originalJson = json[jsonKey] as Map<String, dynamic>;
+    final originalDocument = $id.document;
+    final originalJsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, jsonKey]);
 
+    final isRef = _isRef(originalJson);
+    final (resolvedJson, resolvedDocument, resolvedJsonPointer) = isRef
+        ? _resolveRef(json: originalJson, jsonPointer: originalJsonPointer)
+        : (originalJson, originalDocument, originalJsonPointer);
+
+    return _getOrCreateNode<T>(
+      json: resolvedJson,
+      document: resolvedDocument,
+      jsonPointer: resolvedJsonPointer,
+      isRef: isRef,
+      via: jsonKey,
+    );
+  }
+
+  /// Creates a list of nodes (handles $ref resolution and node reuse for referencable nodes).
+  List<T>? createListNode<T extends OpenApiNode>() {
+    final list = json as List;
+    final nodes = <T>[];
     for (var i = 0; i < list.length; i++) {
       final originalJson = list[i] as Map<String, dynamic>;
-      final originalJsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, jsonKey, '[$i]']);
+      final originalDocument = $id.document;
+      final originalJsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, '$i']);
 
-      // Check if it's a reference and resolve if needed
       final isRef = _isRef(originalJson);
       final (resolvedJson, resolvedDocument, resolvedJsonPointer) = isRef
           ? _resolveRef(json: originalJson, jsonPointer: originalJsonPointer)
-          : (originalJson, $id.document, originalJsonPointer);
+          : (originalJson, originalDocument, originalJsonPointer);
 
-      final via = jsonKey;
-      // Determine the 'form' argument: use referenced for refs, inline otherwise
-      final form = isRef ? EdgeForm.referenced : EdgeForm.inline;
-
-      // Check if node already exists at the resolved location
-      final absolutePointer = '$resolvedDocument#$resolvedJsonPointer';
-      final existingNode = OpenApiGraph.i.openApiNodes[absolutePointer] as T?;
-
-      if (existingNode != null) {
-        OpenApiGraph.i.addOpenApiEdge(this, existingNode, via, form);
-        nodes.add(existingNode);
-      } else {
-        // Create new node
-        final childNode = Node.ofType<T>(resolvedJson, resolvedDocument, resolvedJsonPointer);
-        OpenApiGraph.i.addOpenApiNode(childNode);
-        OpenApiGraph.i.addOpenApiEdge(this, childNode, via, form);
-        childNode.create();
-        nodes.add(childNode);
-      }
+      final registeredNode = _getOrCreateNode<T>(
+        json: resolvedJson,
+        document: resolvedDocument,
+        jsonPointer: resolvedJsonPointer,
+        isRef: isRef,
+        via: '$i',
+      );
+      nodes.add(registeredNode);
     }
 
     return nodes;
@@ -124,33 +125,22 @@ extension NodeCreationHelpers on OpenApiNode {
     for (final entry in json.entries) {
       final key = entry.key.toString();
       final originalJson = entry.value as Map<String, dynamic>;
+      final originalDocument = $id.document;
       final originalJsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, key]);
 
-      // Check if it's a reference and resolve if needed
       final isRef = _isRef(originalJson);
       final (resolvedJson, resolvedDocument, resolvedJsonPointer) = isRef
           ? _resolveRef(json: originalJson, jsonPointer: originalJsonPointer)
-          : (originalJson, $id.document, originalJsonPointer);
+          : (originalJson, originalDocument, originalJsonPointer);
 
-      final via = key;
-      // Determine the 'form' argument: use referenced for refs, inline otherwise
-      final form = isRef ? EdgeForm.referenced : EdgeForm.inline;
-
-      // Check if node already exists at the resolved location
-      final absolutePointer = '$resolvedDocument#$resolvedJsonPointer';
-      final existingNode = OpenApiGraph.i.openApiNodes[absolutePointer] as T?;
-
-      if (existingNode != null) {
-        OpenApiGraph.i.addOpenApiEdge(this, existingNode, via, form);
-        nodes[key] = existingNode;
-      } else {
-        // Create new node
-        final childNode = Node.ofType<T>(resolvedJson, resolvedDocument, resolvedJsonPointer);
-        OpenApiGraph.i.addOpenApiNode(childNode);
-        OpenApiGraph.i.addOpenApiEdge(this, childNode, via, form);
-        childNode.create();
-        nodes[key] = childNode;
-      }
+      final registeredNode = _getOrCreateNode<T>(
+        json: resolvedJson,
+        document: resolvedDocument,
+        jsonPointer: resolvedJsonPointer,
+        isRef: isRef,
+        via: key,
+      );
+      nodes[key] = registeredNode;
     }
 
     return nodes;
