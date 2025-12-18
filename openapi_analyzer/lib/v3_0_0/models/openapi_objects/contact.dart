@@ -1,11 +1,21 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
-class ContactNode extends OpenApiNode with LeafNode {
+abstract class Contact {
+  String? get name;
+  String? get url;
+  String? get email;
+  Map<String, dynamic>? get extensions;
+}
+
+class ContactNode extends OpenApiNode with LeafNode implements Contact {
   ContactNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final Contact content;
+  late final String? name;
+  late final String? url;
+  late final String? email;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -30,23 +40,9 @@ class ContactNode extends OpenApiNode with LeafNode {
 
   @override
   void createContent() {
-    content = Contact._(
-      $node: this,
-      name: json['name'],
-      url: json['url'],
-      email: json['email'],
-      extensions: extractExtensions(json),
-    );
+    name = json['name'];
+    url = json['url'];
+    email = json['email'];
+    extensions = extractExtensions(json);
   }
-}
-
-/// Contact information for the exposed API.
-class Contact {
-  final ContactNode $node;
-  final String? name;
-  final String? url;
-  final String? email;
-  final Map<String, dynamic>? extensions;
-
-  Contact._({required this.$node, required this.name, this.url, this.email, this.extensions});
 }

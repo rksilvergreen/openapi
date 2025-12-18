@@ -1,11 +1,19 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
-class LicenseNode extends OpenApiNode with LeafNode {
+abstract class License {
+  String get name;
+  String? get url;
+  Map<String, dynamic>? get extensions;
+}
+
+class LicenseNode extends OpenApiNode with LeafNode implements License {
   LicenseNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final License content;
+  late final String name;
+  late final String? url;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -26,17 +34,8 @@ class LicenseNode extends OpenApiNode with LeafNode {
 
   @override
   void createContent() {
-    content = License._($node: this, name: json['name'], url: json['url'], extensions: extractExtensions(json));
+    name = json['name'];
+    url = json['url'];
+    extensions = extractExtensions(json);
   }
-}
-
-/// License information for the exposed API.
-class License {
-  final LicenseNode $node;
-
-  final String name;
-  final String? url;
-  final Map<String, dynamic>? extensions;
-
-  License._({required this.$node, required this.name, this.url, this.extensions});
 }

@@ -1,11 +1,21 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
+abstract class ServerVariable {
+  List<String>? get enum_;
+  String get default_;
+  String? get description;
+  Map<String, dynamic>? get extensions;
+}
+
 class ServerVariableNode extends OpenApiNode with LeafNode {
   ServerVariableNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final ServerVariable content;
+  late final List<String>? enum_;
+  late final String default_;
+  late final String? description;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -39,29 +49,9 @@ class ServerVariableNode extends OpenApiNode with LeafNode {
 
   @override
   void createContent() {
-    content = ServerVariable._(
-      $node: this,
-      enum_: json['enum'],
-      default_: json['default'],
-      description: json['description'],
-      extensions: extractExtensions(json),
-    );
+    enum_ = json['enum'];
+    default_ = json['default'];
+    description = json['description'];
+    extensions = extractExtensions(json);
   }
-}
-
-/// Server Variable for server URL template substitution.
-class ServerVariable {
-  final ServerVariableNode $node;
-  final List<String>? enum_;
-  final String default_;
-  final String? description;
-  final Map<String, dynamic>? extensions;
-
-  ServerVariable._({
-    required this.$node,
-    required this.enum_,
-    required this.default_,
-    this.description,
-    this.extensions,
-  });
 }

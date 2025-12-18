@@ -3,14 +3,23 @@ import '../../validation/validation_utils.dart';
 import '../node_creation_helpers.dart';
 import 'media_type.dart';
 import '../referencable.dart';
+import 'media_types_map.dart';
 
-class RequestBodyNode extends OpenApiNode with InternalNode, Referencable {
+abstract class RequestBody {
+  String? get description;
+  bool get required;
+  MediaTypesMap get content;
+  Map<String, dynamic>? get extensions;
+}
+
+class RequestBodyNode extends OpenApiNode with InternalNode, Referencable implements RequestBody {
   RequestBodyNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final Map<String, MediaTypeNode> contentNodes;
-
-  late final RequestBody content;
+  late final String? description;
+  late final bool required;
+  late final MediaTypesMapNode content;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -50,35 +59,14 @@ class RequestBodyNode extends OpenApiNode with InternalNode, Referencable {
 
   @override
   void createChildNodes() {
-    _createContentNodes();
-  }
-
-  void _createContentNodes() {
-    contentNodes = createMapNode<MediaTypeNode>(
-      jsonKey: 'content',
-      required: true,
-      factory: (json, document, jsonPointer) => MediaTypeNode(json, document, jsonPointer),
-    )!;
+    createNode<MediaTypesMapNode>(jsonKey: 'content');
   }
 
   @override
   void createContent() {
-    content = RequestBody._(
-      $node: this,
-      description: json['description'],
-      required_: json['required'],
-      extensions: extractExtensions(json),
-    );
+    description = json['description'];
+    required = json['required'];
+    content = $to.to<MediaTypesMapNode>('content')!;
+    extensions = extractExtensions(json);
   }
-}
-
-/// Describes a single request body.
-class RequestBody {
-  final RequestBodyNode $node;
-  final String? description;
-  Map<String, MediaType> get content => $node.contentNodes.map((k, v) => MapEntry(k, v.content));
-  final bool required_;
-  final Map<String, dynamic>? extensions;
-
-  RequestBody._({required this.$node, this.description, this.required_ = false, this.extensions});
 }

@@ -6,12 +6,28 @@ import 'operation.dart';
 import 'server.dart';
 import 'parameter.dart';
 
-class PathItemNode extends OpenApiNode with InternalNode, Referencable {
+abstract class PathItem {
+  Operation? get get_;
+  Operation? get put;
+  Operation? get post;
+  Operation? get delete;
+  Operation? get options;
+  Operation? get head;
+  Operation? get patch;
+  Operation? get trace;
+  List<Server>? get servers;
+  List<Parameter>? get parameters;
+  Map<String, dynamic>? get extensions;
+}
+
+class PathItemNode extends OpenApiNode with InternalNode, Referencable implements PathItem {
   PathItemNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final OperationNode? getNode;
-  late final OperationNode? putNode;
+  late final String? summary;
+  late final String? description;
+  late final OperationNode? get_;
+  late final OperationNode? put;
   late final OperationNode? postNode;
   late final OperationNode? deleteNode;
   late final OperationNode? optionsNode;
@@ -20,6 +36,7 @@ class PathItemNode extends OpenApiNode with InternalNode, Referencable {
   late final OperationNode? traceNode;
   late final List<ServerNode>? serversNodes;
   late final List<ParameterNode>? parametersNodes;
+  late final Map<String, dynamic>? extensions;
 
   late final PathItem content;
 
@@ -145,14 +162,14 @@ class PathItemNode extends OpenApiNode with InternalNode, Referencable {
   }
 
   void _createServersNodes() {
-    serversNodes = createListNode<ServerNode>(
+    createListNode<ServerNode>(
       jsonKey: 'servers',
       factory: (json, document, jsonPointer) => ServerNode(json, document, jsonPointer),
     );
   }
 
   void _createParametersNodes() {
-    parametersNodes = createListNode<ParameterNode>(
+    createListNode<ParameterNode>(
       jsonKey: 'parameters',
       factory: (json, document, jsonPointer) => ParameterNode(json, document, jsonPointer),
     );
@@ -160,31 +177,18 @@ class PathItemNode extends OpenApiNode with InternalNode, Referencable {
 
   @override
   void createContent() {
-    content = PathItem._(
-      $node: this,
-      summary: json['summary'],
-      description: json['description'],
-      extensions: extractExtensions(json),
-    );
+    summary = json['summary'];
+    description = json['description'];
+    getNode = $to<OperationNode>('get');
+    putNode = $to<OperationNode>('put');
+    postNode = $to<OperationNode>('post');
+    deleteNode = $to<OperationNode>('delete');
+    optionsNode = $to<OperationNode>('options');
+    headNode = $to<OperationNode>('head');
+    patchNode = $to<OperationNode>('patch');
+    traceNode = $to<OperationNode>('trace');
+    servers = $to<ServerNode>('servers');
+    parameters = $to.where((edge) => edge.to is Parameter).map((edge) => edge.to as Parameter).toList();
+    extensions = extractExtensions(json);
   }
-}
-
-/// Describes the operations available on a single path.
-class PathItem {
-  final PathItemNode $node;
-  final String? summary;
-  final String? description;
-  Operation? get get_ => $node.getNode?.content;
-  Operation? get put => $node.putNode?.content;
-  Operation? get post => $node.postNode?.content;
-  Operation? get delete => $node.deleteNode?.content;
-  Operation? get options => $node.optionsNode?.content;
-  Operation? get head => $node.headNode?.content;
-  Operation? get patch => $node.patchNode?.content;
-  Operation? get trace => $node.traceNode?.content;
-  List<Server>? get servers => $node.serversNodes?.map((server) => server.content).toList();
-  List<Parameter>? get parameters => $node.parametersNodes?.map((parameter) => parameter.content).toList();
-  final Map<String, dynamic>? extensions;
-
-  PathItem._({required this.$node, this.summary, this.description, this.extensions});
 }

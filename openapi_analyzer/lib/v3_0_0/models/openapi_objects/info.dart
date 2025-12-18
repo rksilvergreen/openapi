@@ -2,14 +2,28 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import 'contact.dart';
 import 'license.dart';
+import '../node_creation_helpers.dart';
 
-class InfoNode extends OpenApiNode with InternalNode {
+abstract class Info {
+  String get title;
+  String? get description;
+  String? get termsOfService;
+  Contact? get contact;
+  License? get license;
+  String get version;
+  Map<String, dynamic>? get extensions;
+}
+
+class InfoNode extends OpenApiNode with InternalNode implements Info {
   InfoNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
 
-  late final ContactNode? contactNode;
-  late final LicenseNode? licenseNode;
-
-  late final Info content;
+  late final String title;
+  late final String? description;
+  late final String? termsOfService;
+  late final ContactNode? contact;
+  late final LicenseNode? license;
+  late final String version;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -57,56 +71,18 @@ class InfoNode extends OpenApiNode with InternalNode {
 
   @override
   void createChildNodes() {
-    // Create Contact node
-    if (json.containsKey('contact')) {
-      final contactJson = json['contact'] as Map<String, dynamic>;
-      contactNode = ContactNode(contactJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'contact']));
-      OpenApiGraph.i.addOpenApiNode(contactNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, contactNode!.$id.absolutePointer, 'contact'));
-      contactNode!.create();
-    }
-
-    // Create License node
-    if (json.containsKey('license')) {
-      final licenseJson = json['license'] as Map<String, dynamic>;
-      licenseNode = LicenseNode(licenseJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'license']));
-      OpenApiGraph.i.addOpenApiNode(licenseNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, licenseNode!.$id.absolutePointer, 'license'));
-      licenseNode!.create();
-    }
+    createNode<ContactNode>(jsonKey: 'contact');
+    createNode<LicenseNode>(jsonKey: 'license');
   }
 
   @override
   void createContent() {
-    content = Info._(
-      $node: this,
-      title: json['title'],
-      description: json['description'],
-      termsOfService: json['termsOfService'],
-      version: json['version'],
-      extensions: extractExtensions(json),
-    );
+    title = json['title'];
+    description = json['description'];
+    termsOfService = json['termsOfService'];
+    contact = $to.to<ContactNode>('contact');
+    license = $to.to<LicenseNode>('license');
+    version = json['version'];
+    extensions = extractExtensions(json);
   }
-}
-
-/// Metadata about the API.
-class Info {
-  final InfoNode $node;
-
-  final String title;
-  final String? description;
-  final String? termsOfService;
-  Contact? get contact => $node.contactNode?.content;
-  License? get license => $node.licenseNode?.content;
-  final String version;
-  final Map<String, dynamic>? extensions;
-
-  Info._({
-    required this.$node,
-    required this.title,
-    this.description,
-    this.termsOfService,
-    required this.version,
-    this.extensions,
-  });
 }

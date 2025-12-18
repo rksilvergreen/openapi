@@ -6,16 +6,26 @@ import 'schema/schema_node.dart';
 import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
 import 'encoding.dart';
+import 'examples_map.dart';
+import 'encodings_map.dart';
 
-class MediaTypeNode extends OpenApiNode with InternalNode {
+abstract class MediaType {
+  EffectiveSchema? get schema;
+  dynamic get example;
+  ExamplesMap? get examples;
+  EncodingsMap? get encoding;
+  Map<String, dynamic>? get extensions;
+}
+
+class MediaTypeNode extends OpenApiNode with InternalNode implements MediaType {
   MediaTypeNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final SchemaNode? schemaNode;
-  late final Map<String, ExampleNode>? examplesNodes;
-  late final Map<String, EncodingNode>? encodingNodes;
-
-  late final MediaType content;
+  late final EffectiveSchema? schema;
+  late final dynamic example;
+  late final ExamplesMapNode? examples;
+  late final EncodingsMapNode? encoding;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -70,52 +80,17 @@ class MediaTypeNode extends OpenApiNode with InternalNode {
 
   @override
   void createChildNodes() {
-    _createSchemaNode();
-    _createExamplesNodes();
-    _createEncodingNodes();
-  }
-
-  void _createSchemaNode() {
-    if (json.containsKey('schema')) {
-      final schemaJson = json['schema'] as Map<String, dynamic>;
-      schemaNode = SchemaNode(schemaJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'schema']));
-      if (!OpenApiGraph.i.schemaNodes.containsKey(schemaNode!.$id.absolutePointer)) {
-        OpenApiGraph.i.addSchemaNode(schemaNode!);
-        // Use RootEdge to mark this as a schema root
-        OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePointer, schemaNode!.$id.absolutePointer));
-        schemaNode!.create();
-      }
-    }
-  }
-
-  void _createExamplesNodes() {
-    examplesNodes = createMapNode<ExampleNode>(
-      jsonKey: 'examples',
-      factory: (json, document, jsonPointer) => ExampleNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createEncodingNodes() {
-    encodingNodes = createMapNode<EncodingNode>(
-      jsonKey: 'encoding',
-      factory: (json, document, jsonPointer) => EncodingNode(json, document, jsonPointer),
-    );
+    createNode<SchemaNode>(jsonKey: 'schema');
+    createMapNode<ExamplesMapNode>(jsonKey: 'examples');
+    createMapNode<EncodingsMapNode>(jsonKey: 'encoding');
   }
 
   @override
   void createContent() {
-    content = MediaType._($node: this, example: json['example'], extensions: extractExtensions(json));
+    schema = $to.to<SchemaNode>('schema');
+    example = json['example'];
+    examples = $to.to<ExamplesMapNode>('examples');
+    encoding = $to.to<EncodingsMapNode>('encoding');
+    extensions = extractExtensions(json);
   }
-}
-
-/// Each Media Type Object provides schema and examples for the media type.
-class MediaType {
-  final MediaTypeNode $node;
-  EffectiveSchema? get schema => $node.schemaNode?.effective;
-  final dynamic example;
-  Map<String, Example>? get examples => $node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, Encoding>? get encoding => $node.encodingNodes?.map((k, v) => MapEntry(k, v.content));
-  final Map<String, dynamic>? extensions;
-
-  MediaType._({required this.$node, this.example, this.extensions});
 }

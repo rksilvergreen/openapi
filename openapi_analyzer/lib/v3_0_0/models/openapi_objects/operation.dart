@@ -8,20 +8,30 @@ import 'response.dart';
 import 'callback.dart';
 import 'security_requirement.dart';
 import 'server.dart';
-// import 'path_item.dart';
-// import 'paths.dart';
+import 'responses_map.dart';
+import 'callbacks_map.dart';
 
-class OperationNode extends OpenApiNode with InternalNode {
+abstract class Operation {
+  ExternalDocumentation? get externalDocs;
+  List<Parameter>? get parameters;
+  RequestBody? get requestBody;
+  ResponsesMap get responses;
+  CallbacksMap get callbacks;
+  List<SecurityRequirement>? get security;
+  List<Server>? get servers;
+}
+
+class OperationNode extends OpenApiNode with InternalNode implements Operation {
   OperationNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final ExternalDocumentationNode? externalDocsNode;
-  late final List<ParameterNode>? parametersNodes;
-  late final RequestBodyNode? requestBodyNode;
-  late final Map<String, ResponseNode> responseNodes;
-  late final Map<String, CallbackNode>? callbackNodes;
-  late final List<SecurityRequirementNode>? securityRequirementNodes;
-  late final List<ServerNode>? serverNodes;
+  late final ExternalDocumentationNode? externalDocs;
+  late final List<ParameterNode>? parameters;
+  late final RequestBodyNode? requestBody;
+  late final ResponsesMapNode responses;
+  late final CallbacksMapNode callbacks;
+  late final List<SecurityRequirementNode>? security;
+  late final List<ServerNode>? servers;
 
   late final Operation content;
 

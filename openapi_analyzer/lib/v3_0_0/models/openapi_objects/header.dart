@@ -8,16 +8,40 @@ import 'schema/schema_node.dart';
 import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
 import 'media_type.dart';
+import 'examples_map.dart';
+import 'media_types_map.dart';
+/// Header Object follows the structure of the Parameter Object.
+abstract class Header {
+  String? get description;
+  bool get required_;
+  bool get deprecated;
+  bool get allowEmptyValue;
+  ParameterStyle? get style;
+  bool? get explode;
+  bool get allowReserved;
+  EffectiveSchema? get schema => $node.schemaNode?.effective;
+  dynamic get example;
+  ExamplesMap? get examples;
+  MediaTypesMap? get content;
+  Map<String, dynamic>? get extensions;
+}
 
-class HeaderNode extends OpenApiNode with InternalNode, Referencable {
+class HeaderNode extends OpenApiNode with InternalNode, Referencable implements Header {
   HeaderNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final SchemaNode? schemaNode;
-  late final Map<String, ExampleNode>? examplesNodes;
-  late final Map<String, MediaTypeNode>? contentNodes;
-
-  late final Header content;
+  late final String? description;
+  late final bool required_;
+  late final bool deprecated;
+  late final bool allowEmptyValue;
+  late final ParameterStyle? style;
+  late final bool? explode;
+  late final bool allowReserved;
+  late final EffectiveSchema? schema;
+  late final dynamic example;
+  late final ExamplesMap? examples;
+  late final MediaTypesMap? content;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -140,80 +164,25 @@ class HeaderNode extends OpenApiNode with InternalNode, Referencable {
 
   @override
   void createChildNodes() {
-    _createSchemaNode();
-    _createExamplesNodes();
-    _createContentNodes();
+    createNode<SchemaNode>(jsonKey: 'schema');
+    createMapNode<ExampleNode>(jsonKey: 'examples');
+    createMapNode<MediaTypeNode>(jsonKey: 'content');
   }
 
-  void _createSchemaNode() {
-    if (json.containsKey('schema')) {
-      final schemaJson = json['schema'] as Map<String, dynamic>;
-      schemaNode = SchemaNode(schemaJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'schema']));
-      if (!OpenApiGraph.i.schemaNodes.containsKey(schemaNode!.$id.absolutePointer)) {
-        OpenApiGraph.i.addSchemaNode(schemaNode!);
-        OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePointer, schemaNode!.$id.absolutePointer));
-        schemaNode!.create();
-      }
-    }
-  }
-
-  void _createExamplesNodes() {
-    examplesNodes = createMapNode<ExampleNode>(
-      jsonKey: 'examples',
-      factory: (json, document, jsonPointer) => ExampleNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createContentNodes() {
-    contentNodes = createMapNode<MediaTypeNode>(
-      jsonKey: 'content',
-      factory: (json, document, jsonPointer) => MediaTypeNode(json, document, jsonPointer),
-    );
-  }
 
   @override
   void createContent() {
-    content = Header._(
-      $node: this,
-      description: json['description'],
-      required_: json['required'],
-      deprecated: json['deprecated'],
-      allowEmptyValue: json['allowEmptyValue'],
-      style: json['style'] != null ? ParameterStyle.values.firstWhere((e) => e.value == json['style']) : null,
-      explode: json['explode'],
-      allowReserved: json['allowReserved'],
-      example: json['example'],
-      extensions: extractExtensions(json),
-    );
+    description = json['description'];
+    required_ = json['required'];
+    deprecated = json['deprecated'];
+    allowEmptyValue = json['allowEmptyValue'];
+    style = json['style'] != null ? ParameterStyle.values.firstWhere((e) => e.value == json['style']) : null;
+    explode = json['explode'];
+    allowReserved = json['allowReserved'];
+    schema = $to.to<SchemaNode>('schema');
+    example = json['example'];
+    examples = $to.to<ExamplesMapNode>('examples');
+    content = $to.to<MediaTypesMapNode>('content');
+    extensions = extractExtensions(json);
   }
-}
-
-/// Header Object follows the structure of the Parameter Object.
-class Header {
-  final HeaderNode $node;
-  final String? description;
-  final bool required_;
-  final bool deprecated;
-  final bool allowEmptyValue;
-  final ParameterStyle? style;
-  final bool? explode;
-  final bool allowReserved;
-  EffectiveSchema? get schema => $node.schemaNode?.effective;
-  final dynamic example;
-  Map<String, Example>? get examples => $node.examplesNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, MediaType>? get content => $node.contentNodes?.map((k, v) => MapEntry(k, v.content));
-  final Map<String, dynamic>? extensions;
-
-  Header._({
-    required this.$node,
-    this.description,
-    this.required_ = false,
-    this.deprecated = false,
-    this.allowEmptyValue = false,
-    this.style,
-    this.explode,
-    this.allowReserved = false,
-    this.example,
-    this.extensions,
-  });
 }

@@ -11,6 +11,9 @@ abstract class Node {
   final Map<String, dynamic> json;
   Node(this.$id, this.json);
 
+  List<Edge > $from = [];
+  List<Edge> $to = [];
+
   Map<String, dynamic>? extractExtensions(Map<String, dynamic> json) {
     final extensions = <String, dynamic>{};
     for (final entry in json.entries) {
@@ -22,6 +25,15 @@ abstract class Node {
   }
 
   void create();
+
+  static T ofType<T extends Node>(Map<String, dynamic> json, String document, String jsonPointer) {
+    if (T is OpenApiNode) {
+      return OpenApiNode(json, document, jsonPointer);
+    } else if (T is SchemaNode) {
+      return SchemaNode(json, document, jsonPointer);
+    }
+    throw Exception('Unsupported node type: $T');
+  }
 }
 
 class NodeId {
@@ -35,9 +47,6 @@ class NodeId {
 abstract class OpenApiNode extends Node {
   OpenApiNode(super.$id, super.json);
 
-  dynamic get content;
-
-  
 }
 
 mixin InternalNode on Node {
@@ -141,7 +150,12 @@ class OpenApiGraph {
 
   void addSchemaNode(SchemaNode node) => schemaNodes[node.$id.absolutePointer] = node;
 
-  void addOpenApiEdge(OpenApiEdge edge) => openApiEdges.add(edge);
+  void addOpenApiEdge(OpenApiNode from, OpenApiNode to, String via) {
+    final edge = OpenApiEdge(from.$id.absolutePointer, to.$id.absolutePointer, via);
+    openApiEdges.add(edge);
+    from.$to.add(edge);
+    to.$from.add(edge);
+  }
 
   void addSchemaStructuralEdge(StructuralEdge edge) => schemaStructuralEdges.add(edge);
 
@@ -223,6 +237,21 @@ abstract class Edge {
 
   Node get from;
   Node get to;
+}
+
+extension EdgeIterableExtension on Iterable<Edge> {
+  T? to<T extends Node>(String via) =>
+      _firstWhereOrNull((edge) => (edge.to is T) && (edge.via == via))!.to as T;
+
+  T? from<T extends Node>(String via) =>
+      _firstWhereOrNull((edge) => (edge.from is T) && (edge.via == via))!.from as T;
+
+  Edge? _firstWhereOrNull(bool Function(Edge element) test) {
+    for (final e in this) {
+      if (test(e)) return e;
+    }
+    return null;
+  }
 }
 
 class OpenApiEdge extends Edge {

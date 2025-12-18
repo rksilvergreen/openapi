@@ -1,11 +1,19 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
-class DiscriminatorNode extends OpenApiNode with LeafNode {
+abstract class Discriminator {
+  String get propertyName;
+  Map<String, String>? get mapping;
+  Map<String, dynamic>? get extensions;
+}
+
+class DiscriminatorNode extends OpenApiNode with LeafNode implements Discriminator {
   DiscriminatorNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final Discriminator content;
+  late final String propertyName;
+  late final Map<String, String>? mapping;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -37,21 +45,8 @@ class DiscriminatorNode extends OpenApiNode with LeafNode {
 
   @override
   void createContent() {
-    content = Discriminator._(
-      $node: this,
-      propertyName: json['propertyName'],
-      mapping: json['mapping'] != null ? Map<String, String>.from(json['mapping']) : null,
-      extensions: extractExtensions(json),
-    );
+    propertyName = json['propertyName'];
+    mapping = json['mapping'] != null ? Map<String, String>.from(json['mapping']) : null;
+    extensions = extractExtensions(json);
   }
-}
-
-/// Discriminator object for polymorphism support.
-class Discriminator {
-  final DiscriminatorNode $node;
-  final String propertyName;
-  final Map<String, String>? mapping;
-  final Map<String, dynamic>? extensions;
-
-  Discriminator._({required this.$node, required this.propertyName, this.mapping, this.extensions});
 }

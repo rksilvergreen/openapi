@@ -2,14 +2,23 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../node_creation_helpers.dart';
 import 'server_variable.dart';
+import 'server_variables_map.dart';
 
-class ServerNode extends OpenApiNode with InternalNode {
+abstract class Server {
+  String get url;
+  String? get description;
+  ServerVariablesMap? get variables;
+  Map<String, dynamic>? get extensions;
+}
+
+class ServerNode extends OpenApiNode with InternalNode implements Server {
   ServerNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final Map<String, ServerVariableNode>? variablesNodes;
-
-  late final Server content;
+  late final String url;
+  late final String? description;
+  late final ServerVariablesMapNode? variables;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -35,34 +44,14 @@ class ServerNode extends OpenApiNode with InternalNode {
 
   @override
   void createChildNodes() {
-    _createServerVariableNodes();
-  }
-
-  void _createServerVariableNodes() {
-    variablesNodes = createMapNode<ServerVariableNode>(
-      jsonKey: 'variables',
-      factory: (json, document, jsonPointer) => ServerVariableNode(json, document, jsonPointer),
-    );
+    createMapNode<ServerVariablesMapNode>(jsonKey: 'variables');
   }
 
   @override
   void createContent() {
-    content = Server._(
-      $node: this,
-      url: json['url'],
-      description: json['description'],
-      extensions: extractExtensions(json),
-    );
+    url = json['url'];
+    description = json['description'];
+    variables = $to.to<ServerVariablesMapNode>('variables');
+    extensions = extractExtensions(json);
   }
-}
-
-/// Server object representing a server.
-class Server {
-  final ServerNode $node;
-  final String url;
-  final String? description;
-  Map<String, ServerVariable>? get variables => $node.variablesNodes?.map((k, v) => MapEntry(k, v.content));
-  final Map<String, dynamic>? extensions;
-
-  Server._({required this.$node, required this.url, this.description, this.extensions});
 }

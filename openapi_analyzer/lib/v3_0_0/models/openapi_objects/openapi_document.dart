@@ -3,25 +3,37 @@ import '../../validation/validation_utils.dart';
 import '../node_creation_helpers.dart';
 import 'info.dart';
 import 'server.dart';
-import 'paths.dart';
+import 'paths_map.dart';
 import 'components.dart';
 import 'security_requirement.dart';
 import 'tag.dart';
 import 'external_documentation.dart';
 
-class OpenApiDocumentNode extends OpenApiNode with InternalNode {
+abstract class OpenApiDocument {
+  String get openapi;
+  Info get info;
+  List<Server>? get servers;
+  PathsMap get paths;
+  Components? get components;
+  List<SecurityRequirement>? get security;
+  List<Tag>? get tags;
+  ExternalDocumentation? get externalDocs;
+  Map<String, dynamic>? get extensions;
+}
+
+class OpenApiDocumentNode extends OpenApiNode with InternalNode implements OpenApiDocument {
   OpenApiDocumentNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final InfoNode infoNode;
-  late final List<ServerNode>? serversNode;
-  late final PathsNode pathsNode;
-  late final ComponentsNode? componentsNode;
-  late final List<SecurityRequirementNode>? securityNode;
-  late final List<TagNode>? tagsNode;
-  late final ExternalDocumentationNode? externalDocsNode;
-
-  late final OpenApiDocument content;
+  late final String openapi;
+  late final InfoNode info;
+  late final List<ServerNode>? servers;
+  late final PathsMapNode paths;
+  late final ComponentsNode? components;
+  late final List<SecurityRequirementNode>? security;
+  late final List<TagNode>? tags;
+  late final ExternalDocumentationNode? externalDocs;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {

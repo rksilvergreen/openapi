@@ -3,11 +3,23 @@ import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 import '../referencable.dart';
 
-class ExampleNode extends OpenApiNode with LeafNode, Referencable {
+abstract class Example {
+  String? get summary;
+  String? get description;
+  dynamic get value;
+  String? get externalValue;
+  Map<String, dynamic>? get extensions;
+}
+
+class ExampleNode extends OpenApiNode with LeafNode, Referencable implements Example {
   ExampleNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final Example content;
+  late final String? summary;
+  late final String? description;
+  late final dynamic value;
+  late final String? externalValue;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -52,25 +64,12 @@ class ExampleNode extends OpenApiNode with LeafNode, Referencable {
 
   @override
   void createContent() {
-    content = Example._(
-      $node: this,
-      summary: json['summary'],
-      description: json['description'],
-      value: json['value'],
-      externalValue: json['externalValue'],
-      extensions: extractExtensions(json),
-    );
+    summary = json['summary'];
+    description = json['description'];
+    value = json['value'];
+    externalValue = json['externalValue'];
+    extensions = extractExtensions(json);
   }
 }
 
-/// Example object for media type examples.
-class Example {
-  final ExampleNode $node;
-  final String? summary;
-  final String? description;
-  final dynamic value;
-  final String? externalValue;
-  final Map<String, dynamic>? extensions;
 
-  Example._({required this.$node, this.summary, this.description, this.value, this.externalValue, this.extensions});
-}

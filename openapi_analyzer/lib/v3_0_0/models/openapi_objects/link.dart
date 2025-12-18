@@ -3,13 +3,28 @@ import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 import '../referencable.dart';
 import 'server.dart';
+import '../node_creation_helpers.dart';
 
-class LinkNode extends OpenApiNode with InternalNode, Referencable {
+abstract class Link {
+  String? get operationRef;
+  String? get operationId;
+  Map<String, dynamic>? get parameters;
+  dynamic get requestBody;
+  String? get description;
+  Server? get server;
+  Map<String, dynamic>? get extensions;
+}
+
+class LinkNode extends OpenApiNode with InternalNode, Referencable implements Link {
   LinkNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
 
-  late final ServerNode? serverNode;
-
-  late final Link content;
+  late final String? operationRef;
+  late final String? operationId;
+  late final Map<String, dynamic>? parameters;
+  late final dynamic requestBody;
+  late final String? description;
+  late final ServerNode? server;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -59,48 +74,17 @@ class LinkNode extends OpenApiNode with InternalNode, Referencable {
 
   @override
   void createChildNodes() {
-    // Create Server node
-    if (json.containsKey('server')) {
-      final serverJson = json['server'] as Map<String, dynamic>;
-      serverNode = ServerNode(serverJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'server']));
-      OpenApiGraph.i.addOpenApiNode(serverNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, serverNode!.$id.absolutePointer, 'server'));
-      serverNode!.create();
-    }
+    createNode<ServerNode>(jsonKey: 'server');
   }
 
   @override
   void createContent() {
-    content = Link._(
-      $node: this,
-      operationRef: json['operationRef'],
-      operationId: json['operationId'],
-      parameters: json['parameters'] != null ? Map<String, dynamic>.from(json['parameters']) : null,
-      requestBody: json['requestBody'],
-      description: json['description'],
-      extensions: extractExtensions(json),
-    );
+    operationRef = json['operationRef'];
+    operationId = json['operationId'];
+    parameters = json['parameters'] != null ? Map<String, dynamic>.from(json['parameters']) : null;
+    requestBody = json['requestBody'];
+    description = json['description'];
+    server = $to.to<ServerNode>('server');
+    extensions = extractExtensions(json);
   }
-}
-
-/// Link object represents a possible design-time link for a response.
-class Link {
-  final LinkNode $node;
-  final String? operationRef;
-  final String? operationId;
-  final Map<String, dynamic>? parameters;
-  final dynamic requestBody;
-  final String? description;
-  Server? get server => $node.serverNode?.content;
-  final Map<String, dynamic>? extensions;
-
-  Link._({
-    required this.$node,
-    this.operationRef,
-    this.operationId,
-    this.parameters,
-    this.requestBody,
-    this.description,
-    this.extensions,
-  });
 }

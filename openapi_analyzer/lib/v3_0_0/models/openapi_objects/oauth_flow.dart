@@ -1,11 +1,22 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
-class OAuthFlowNode extends OpenApiNode with LeafNode {
+abstract class OAuthFlow {
+  String? get authorizationUrl;
+  String? get tokenUrl;
+  String? get refreshUrl;
+  Map<String, String> get scopes;
+  Map<String, dynamic>? get extensions;
+}
+class OAuthFlowNode extends OpenApiNode with LeafNode implements OAuthFlow {
   OAuthFlowNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final OAuthFlow content;
+  late final String? authorizationUrl;
+  late final String? tokenUrl;
+  late final String? refreshUrl;
+  late final Map<String, String> scopes;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -50,32 +61,10 @@ class OAuthFlowNode extends OpenApiNode with LeafNode {
 
   @override
   void createContent() {
-    content = OAuthFlow._(
-      $node: this,
-      authorizationUrl: json['authorizationUrl'],
-      tokenUrl: json['tokenUrl'],
-      refreshUrl: json['refreshUrl'],
-      scopes: json['scopes'] != null ? Map<String, String>.from(json['scopes']) : {},
-      extensions: extractExtensions(json),
-    );
+    authorizationUrl = json['authorizationUrl'];
+    tokenUrl = json['tokenUrl'];
+    refreshUrl = json['refreshUrl'];
+    scopes = json['scopes'] != null ? Map<String, String>.from(json['scopes']) : {};
+    extensions = extractExtensions(json);
   }
-}
-
-/// Configuration details for a supported OAuth Flow.
-class OAuthFlow {
-  final OAuthFlowNode $node;
-  final String? authorizationUrl;
-  final String? tokenUrl;
-  final String? refreshUrl;
-  final Map<String, String> scopes;
-  final Map<String, dynamic>? extensions;
-
-  OAuthFlow._({
-    required this.$node,
-    this.authorizationUrl,
-    this.tokenUrl,
-    this.refreshUrl,
-    required this.scopes,
-    this.extensions,
-  });
 }

@@ -1,17 +1,25 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import 'oauth_flow.dart';
+import '../node_creation_helpers.dart';
 
-class OAuthFlowsNode extends OpenApiNode with InternalNode {
+abstract class OAuthFlows {
+  OAuthFlow? get implicit;
+  OAuthFlow? get password;
+  OAuthFlow? get clientCredentials;
+  OAuthFlow? get authorizationCode;
+  Map<String, dynamic>? get extensions;
+}
+
+class OAuthFlowsNode extends OpenApiNode with InternalNode implements OAuthFlows {
   OAuthFlowsNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final OAuthFlowNode? implicitNode;
-  late final OAuthFlowNode? passwordNode;
-  late final OAuthFlowNode? clientCredentialsNode;
-  late final OAuthFlowNode? authorizationCodeNode;
-
-  late final OAuthFlows content;
+  late final OAuthFlowNode? implicit;
+  late final OAuthFlowNode? password;
+  late final OAuthFlowNode? clientCredentials;
+  late final OAuthFlowNode? authorizationCode;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -51,77 +59,18 @@ class OAuthFlowsNode extends OpenApiNode with InternalNode {
 
   @override
   void createChildNodes() {
-    // Create implicit flow node
-    if (json.containsKey('implicit')) {
-      final implicitJson = json['implicit'] as Map<String, dynamic>;
-      implicitNode = OAuthFlowNode(
-        implicitJson,
-        $id.document,
-        ValidationUtils.buildPointer([$id.jsonPointer, 'implicit']),
-      );
-      OpenApiGraph.i.addOpenApiNode(implicitNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, implicitNode!.$id.absolutePointer, 'implicit'));
-      implicitNode!.create();
-    }
-
-    // Create password flow node
-    if (json.containsKey('password')) {
-      final passwordJson = json['password'] as Map<String, dynamic>;
-      passwordNode = OAuthFlowNode(
-        passwordJson,
-        $id.document,
-        ValidationUtils.buildPointer([$id.jsonPointer, 'password']),
-      );
-      OpenApiGraph.i.addOpenApiNode(passwordNode!);
-      OpenApiGraph.i.addOpenApiEdge(OpenApiEdge($id.absolutePointer, passwordNode!.$id.absolutePointer, 'password'));
-      passwordNode!.create();
-    }
-
-    // Create clientCredentials flow node
-    if (json.containsKey('clientCredentials')) {
-      final clientCredentialsJson = json['clientCredentials'] as Map<String, dynamic>;
-      clientCredentialsNode = OAuthFlowNode(
-        clientCredentialsJson,
-        $id.document,
-        ValidationUtils.buildPointer([$id.jsonPointer, 'clientCredentials']),
-      );
-      OpenApiGraph.i.addOpenApiNode(clientCredentialsNode!);
-      OpenApiGraph.i.addOpenApiEdge(
-        OpenApiEdge($id.absolutePointer, clientCredentialsNode!.$id.absolutePointer, 'clientCredentials'),
-      );
-      clientCredentialsNode!.create();
-    }
-
-    // Create authorizationCode flow node
-    if (json.containsKey('authorizationCode')) {
-      final authorizationCodeJson = json['authorizationCode'] as Map<String, dynamic>;
-      authorizationCodeNode = OAuthFlowNode(
-        authorizationCodeJson,
-        $id.document,
-        ValidationUtils.buildPointer([$id.jsonPointer, 'authorizationCode']),
-      );
-      OpenApiGraph.i.addOpenApiNode(authorizationCodeNode!);
-      OpenApiGraph.i.addOpenApiEdge(
-        OpenApiEdge($id.absolutePointer, authorizationCodeNode!.$id.absolutePointer, 'authorizationCode'),
-      );
-      authorizationCodeNode!.create();
-    }
+    createNode<OAuthFlowNode>(jsonKey: 'implicit');
+    createNode<OAuthFlowNode>(jsonKey: 'password');
+    createNode<OAuthFlowNode>(jsonKey: 'clientCredentials');
+    createNode<OAuthFlowNode>(jsonKey: 'authorizationCode');
   }
 
   @override
   void createContent() {
-    content = OAuthFlows._($node: this, extensions: extractExtensions(json));
+    implicit = $to.to<OAuthFlowNode>('implicit');
+    password = $to.to<OAuthFlowNode>('password');
+    clientCredentials = $to.to<OAuthFlowNode>('clientCredentials');
+    authorizationCode = $to.to<OAuthFlowNode>('authorizationCode');
+    extensions = extractExtensions(json);
   }
-}
-
-/// Allows configuration of the supported OAuth Flows.
-class OAuthFlows {
-  final OAuthFlowsNode $node;
-  OAuthFlow? get implicit => $node.implicitNode?.content;
-  OAuthFlow? get password => $node.passwordNode?.content;
-  OAuthFlow? get clientCredentials => $node.clientCredentialsNode?.content;
-  OAuthFlow? get authorizationCode => $node.authorizationCodeNode?.content;
-  final Map<String, dynamic>? extensions;
-
-  OAuthFlows._({required this.$node, this.extensions});
 }

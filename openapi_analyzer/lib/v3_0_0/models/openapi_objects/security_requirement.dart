@@ -2,11 +2,15 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 
-class SecurityRequirementNode extends OpenApiNode with LeafNode {
+abstract class SecurityRequirement {
+  Map<String, List<String>> get requirements;
+}
+
+class SecurityRequirementNode extends OpenApiNode with LeafNode implements SecurityRequirement {
   SecurityRequirementNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final SecurityRequirement content;
+  late final Map<String, List<String>> requirements;
 
   @override
   void validateStructure() {
@@ -35,23 +39,6 @@ class SecurityRequirementNode extends OpenApiNode with LeafNode {
 
   @override
   void createContent() {
-    final requirements = <String, List<String>>{};
-    for (final entry in json.entries) {
-      final key = entry.key.toString();
-      if (entry.value is List) {
-        requirements[key] = (entry.value as List).map((e) => e.toString()).toList();
-      } else {
-        requirements[key] = [];
-      }
-    }
-    content = SecurityRequirement._($node: this, requirements: requirements);
+    requirements = json['requirements'];
   }
-}
-
-/// Lists the required security schemes to execute an operation.
-class SecurityRequirement {
-  final SecurityRequirementNode $node;
-  final Map<String, List<String>> requirements;
-
-  SecurityRequirement._({required this.$node, required this.requirements});
 }

@@ -1,13 +1,22 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import 'external_documentation.dart';
+import '../node_creation_helpers.dart';
 
-class TagNode extends OpenApiNode with InternalNode {
+abstract class Tag {
+  String get name;
+  String? get description;
+  ExternalDocumentation? get externalDocs;
+  Map<String, dynamic>? get extensions;
+}
+
+class TagNode extends OpenApiNode with InternalNode implements Tag {
   TagNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
 
-  late final ExternalDocumentationNode? externalDocsNode;
-
-  late final Tag content;
+  late final String name;
+  late final String? description;
+  late final ExternalDocumentationNode? externalDocs;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -33,40 +42,14 @@ class TagNode extends OpenApiNode with InternalNode {
 
   @override
   void createChildNodes() {
-    // Create ExternalDocs node
-    if (json.containsKey('externalDocs')) {
-      final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
-      externalDocsNode = ExternalDocumentationNode(
-        externalDocsJson,
-        $id.document,
-        ValidationUtils.buildPointer([$id.jsonPointer, 'externalDocs']),
-      );
-      OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
-      OpenApiGraph.i.addOpenApiEdge(
-        OpenApiEdge($id.absolutePointer, externalDocsNode!.$id.absolutePointer, 'externalDocs'),
-      );
-      externalDocsNode!.create();
-    }
+    createNode<ExternalDocumentationNode>(jsonKey: 'externalDocs');
   }
 
   @override
   void createContent() {
-    content = Tag._(
-      $node: this,
-      name: json['name'],
-      description: json['description'],
-      extensions: extractExtensions(json),
-    );
+    name = json['name'];
+    description = json['description'];
+    externalDocs = $to.to<ExternalDocumentationNode>('externalDocs');
+    extensions = extractExtensions(json);
   }
-}
-
-/// Adds metadata to a single tag that is used by the Operation Object.
-class Tag {
-  final TagNode $node;
-  final String name;
-  final String? description;
-  ExternalDocumentation? get externalDocs => $node.externalDocsNode?.content;
-  final Map<String, dynamic>? extensions;
-
-  Tag._({required this.$node, required this.name, this.description, this.extensions});
 }

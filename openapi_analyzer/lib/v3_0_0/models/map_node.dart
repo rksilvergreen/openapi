@@ -1,24 +1,41 @@
+import 'dart:collection';
+
 import 'openapi_graph.dart';
 import 'node_creation_helpers.dart';
 import '../validation/validation_utils.dart';
-import '../../../validation_exception.dart';
 
-abstract class MapNode<
-  NODE extends MapNode<NODE, CHILD_NODE, CONTENT, CHILD_CONTENT>,
-  CHILD_NODE extends OpenApiNode,
-  CONTENT extends MapContent<NODE, CHILD_NODE, CONTENT, CHILD_CONTENT>,
-  CHILD_CONTENT
->
-    extends OpenApiNode
-    with InternalNode {
+abstract class MapNode<CHILD_NODE extends OpenApiNode, MAP> extends OpenApiNode
+    with InternalNode, MapMixin<String, MAP>
+    implements Map<String, MAP> {
   MapNode(Map<String, dynamic> json, String document, String jsonPointer) : super(NodeId(document, jsonPointer), json);
 
-  CHILD_NODE Function(Map<String, dynamic> json, String document, String jsonPointer) get childNodeFactory;
-  CONTENT Function(NODE $node, Map<String, dynamic>? extensions) get contentFactory;
+  late final Map<String, MAP> childNodes;
+  late final Map<String, dynamic>? extensions;
 
-  late final Map<String, CHILD_NODE> childNodes;
+  @override
+  MAP? operator [](Object? key) {
+    if (key is! String) return null;
+    return childNodes[key];
+  }
 
-  late final CONTENT content;
+  @override
+  void operator []=(String key, MAP value) {
+    childNodes[key] = value;
+  }
+
+  @override
+  void clear() {
+    childNodes.clear();
+  }
+
+  @override
+  MAP? remove(Object? key) {
+    if (key is! String) return null;
+    return childNodes.remove(key);
+  }
+
+  @override
+  Iterable<String> get keys => childNodes.keys;
 
   @override
   void validateStructure() {
@@ -30,48 +47,16 @@ abstract class MapNode<
 
   @override
   void createChildNodes() {
-    childNodes = createMapNode2<CHILD_NODE>(factory: childNodeFactory)!;
+    createMapNode2<CHILD_NODE>()!;
   }
 
   @override
   void createContent() {
-    content = contentFactory(this as NODE, extractExtensions(json));
+    childNodes = Map.fromIterable(
+      $to.where((edge) => edge.to is MAP),
+      key: (edge) => (edge as OpenApiEdge).via,
+      value: (edge) => (edge as OpenApiEdge).to as MAP,
+    );
+    extensions = extractExtensions(json);
   }
-}
-
-abstract class MapContent<
-  NODE extends MapNode<NODE, CHILD_NODE, CONTENT, CHILD_CONTENT>,
-  CHILD_NODE extends OpenApiNode,
-  CONTENT extends MapContent<NODE, CHILD_NODE, CONTENT, CHILD_CONTENT>,
-  CHILD_CONTENT
-> {
-  final NODE $node;
-  final Map<String, dynamic>? extensions;
-  MapContent({required this.$node, this.extensions});
-
-  Map<String, CHILD_CONTENT> get children => $node.childNodes.map((k, v) => MapEntry(k, v.content));
-  operator [](String key) => children[key];
-}
-
-class TableNode extends OpenApiNode {
-  TableNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
-}
-
-class Table {}
-
-class TablesNode extends MapNode<TablesNode, TableNode, Tables, Table> {
-  TablesNode(Map<String, dynamic> json, String document, String jsonPointer) : super(json, document, jsonPointer);
-
-  @override
-  TableNode Function(Map<String, dynamic> json, String document, String jsonPointer) get childNodeFactory =>
-      (Map<String, dynamic> json, String document, String jsonPointer) => TableNode(json, document, jsonPointer);
-
-  @override
-  Tables Function(TablesNode $node, Map<String, dynamic>? extensions) get contentFactory =>
-      (TablesNode $node, Map<String, dynamic>? extensions) => Tables._($node: $node, extensions: extensions);
-}
-
-class Tables extends MapContent<TablesNode, TableNode, Tables, Table> {
-  Tables._({required super.$node, super.extensions});
 }

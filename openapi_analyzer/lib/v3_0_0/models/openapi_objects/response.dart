@@ -2,19 +2,27 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../referencable.dart';
 import '../node_creation_helpers.dart';
-import 'header.dart';
-import 'media_type.dart';
-import 'link.dart';
+import 'headers_map.dart';
+import 'media_types_map.dart';
+import 'links_map.dart';
 
-class ResponseNode extends OpenApiNode with InternalNode, Referencable {
+abstract class Response {
+  String? get description;
+  HeadersMap? get headers;
+  MediaTypesMap? get content;
+  LinksMap? get links;
+  Map<String, dynamic>? get extensions;
+}
+
+class ResponseNode extends OpenApiNode with InternalNode, Referencable implements Response {
   ResponseNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final Map<String, HeaderNode>? headersNodes;
-  late final Map<String, MediaTypeNode>? contentNodes;
-  late final Map<String, LinkNode>? linksNodes;
-
-  late final Response content;
+  late final String? description;
+  late final HeadersMapNode? headers;
+  late final MediaTypesMapNode? content;
+  late final LinksMapNode? links;
+  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -61,46 +69,17 @@ class ResponseNode extends OpenApiNode with InternalNode, Referencable {
 
   @override
   void createChildNodes() {
-    _createHeadersNodes();
-    _createContentNodes();
-    _createLinksNodes();
-  }
-
-  void _createHeadersNodes() {
-    headersNodes = createMapNode<HeaderNode>(
-      jsonKey: 'headers',
-      factory: (json, document, jsonPointer) => HeaderNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createContentNodes() {
-    contentNodes = createMapNode<MediaTypeNode>(
-      jsonKey: 'content',
-      factory: (json, document, jsonPointer) => MediaTypeNode(json, document, jsonPointer),
-    );
-  }
-
-  void _createLinksNodes() {
-    linksNodes = createMapNode<LinkNode>(
-      jsonKey: 'links',
-      factory: (json, document, jsonPointer) => LinkNode(json, document, jsonPointer),
-    );
+    createNode<HeadersMapNode>(jsonKey: 'headers');
+    createNode<MediaTypesMapNode>(jsonKey: 'content');
+    createNode<LinksMapNode>(jsonKey: 'links');
   }
 
   @override
   void createContent() {
-    content = Response._($node: this, description: json['description'], extensions: extractExtensions(json));
+    description = json['description'];
+    headers = $to.to<HeadersMapNode>('headers');
+    content = $to.to<MediaTypesMapNode>('content');
+    links = $to.to<LinksMapNode>('links');
+    extensions = extractExtensions(json);
   }
-}
-
-/// Describes a single response from an API Operation.
-class Response {
-  final ResponseNode $node;
-  final String description;
-  Map<String, Header>? get headers => $node.headersNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, MediaType>? get content => $node.contentNodes?.map((k, v) => MapEntry(k, v.content));
-  Map<String, Link>? get links => $node.linksNodes?.map((k, v) => MapEntry(k, v.content));
-  final Map<String, dynamic>? extensions;
-
-  Response._({required this.$node, required this.description, this.extensions});
 }

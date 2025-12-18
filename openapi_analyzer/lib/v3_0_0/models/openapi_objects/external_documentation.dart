@@ -1,12 +1,20 @@
 import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 
-class ExternalDocumentationNode extends OpenApiNode with LeafNode {
+abstract class ExternalDocumentation {
+  String? get description;
+  String get url;
+  Map<String, dynamic>? get extensions;
+}
+
+class ExternalDocumentationNode extends OpenApiNode with LeafNode implements ExternalDocumentation {
   ExternalDocumentationNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final ExternalDocumentation content;
-  
+  late final String? description;
+  late final String url;
+  late final Map<String, dynamic>? extensions;
+
   @override
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
@@ -26,21 +34,8 @@ class ExternalDocumentationNode extends OpenApiNode with LeafNode {
 
   @override
   void createContent() {
-    content = ExternalDocumentation._(
-      $node: this,
-      description: json['description'],
-      url: json['url'],
-      extensions: extractExtensions(json),
-    );
+    description = json['description'];
+    url = json['url'];
+    extensions = extractExtensions(json);
   }
-}
-
-/// Additional external documentation.
-class ExternalDocumentation {
-  final ExternalDocumentationNode $node;
-  final String? description;
-  final String url;
-  final Map<String, dynamic>? extensions;
-
-  ExternalDocumentation._({required this.$node, this.description, required this.url, this.extensions});
 }

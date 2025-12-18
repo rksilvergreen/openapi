@@ -3,14 +3,27 @@ import '../../validation/validation_utils.dart';
 import '../node_creation_helpers.dart';
 import 'enums.dart';
 import 'header.dart';
+import 'headers_map.dart';
 
-class EncodingNode extends OpenApiNode with InternalNode {
+abstract class Encoding {
+  String? get contentType;
+  HeadersMap? get headers;
+  ParameterStyle? get style;
+  bool? get explode;
+  bool get allowReserved;
+  Map<String, dynamic>? get extensions;
+}
+
+class EncodingNode extends OpenApiNode with InternalNode implements Encoding {
   EncodingNode(Map<String, dynamic> json, String document, String jsonPointer)
     : super(NodeId(document, jsonPointer), json);
 
-  late final Map<String, HeaderNode>? headersNodes;
-
-  late final Encoding content;
+  late final String? contentType;
+  late final HeadersMapNode? headers;
+  late final ParameterStyle? style;
+  late final bool? explode;
+  late final bool allowReserved;
+  late final Map<String, dynamic>? extensions;
 
   void validateStructure() {
     final jsonPointer = $id.jsonPointer;
@@ -51,63 +64,16 @@ class EncodingNode extends OpenApiNode with InternalNode {
 
   @override
   void createChildNodes() {
-    _createHeadersNodes();
-  }
-
-  void _createHeadersNodes() {
-    headersNodes = createMapNode<HeaderNode>(
-      jsonKey: 'headers',
-      factory: (json, document, jsonPointer) => HeaderNode(json, document, jsonPointer),
-    );
+    createMapNode<HeadersMapNode>(jsonKey: 'headers');
   }
 
   @override
   void createContent() {
-    content = Encoding._(
-      $node: this,
-      contentType: json['contentType'],
-      style: json['style'] != null ? ParameterStyle.values.firstWhere((e) => e.value == json['style']) : null,
-      explode: json['explode'],
-      allowReserved: json['allowReserved'] ?? false,
-      extensions: extractExtensions(json),
-    );
+    contentType = json['contentType'];
+    headers = $to.to<HeadersMapNode>('headers');
+    style = json['style'] != null ? ParameterStyle.values.firstWhere((e) => e.value == json['style']) : null;
+    explode = json['explode'];
+    allowReserved = json['allowReserved'] ?? false;
+    extensions = extractExtensions(json);
   }
 }
-
-class Encoding {
-  final EncodingNode $node;
-  final String? contentType;
-  Map<String, Header>? get headers => $node.headersNodes?.map((k, v) => MapEntry(k, v.content));
-  final ParameterStyle? style;
-  final bool? explode;
-  final bool allowReserved;
-  final Map<String, dynamic>? extensions;
-
-  Encoding._(Map<String, dynamic> arguments)
-    : $node = arguments['$node'],
-      contentType = arguments['contentType'],
-      style = arguments['style'],
-      explode = arguments['explode'],
-      allowReserved = arguments['allowReserved'] ?? false,
-      extensions = arguments['extensions'];
-}
-
-// /// A single encoding definition applied to a single schema property.
-// class Encoding {
-//   final EncodingNode $node;
-//   final String? contentType;
-//   Map<String, Header>? get headers => $node.headersNodes?.map((k, v) => MapEntry(k, v.content));
-//   final ParameterStyle? style;
-//   final bool? explode;
-//   final bool allowReserved;
-//   final Map<String, dynamic>? extensions;
-
-//   Encoding._({
-//     required this.$node,
-//     this.contentType,
-//     this.style,
-//     this.explode,
-//     this.allowReserved = false,
-//     this.extensions,
-//   });
-// }
