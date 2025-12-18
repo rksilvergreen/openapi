@@ -17,8 +17,8 @@ abstract class Operation {
   RequestBody? get requestBody;
   ResponsesMap get responses;
   CallbacksMap? get callbacks;
-  SecurityRequirementsList get security;
-  ServerList get servers;
+  SecurityRequirementsList? get security;
+  ServerList? get servers;
 }
 
 class OperationNode extends OpenApiNode with InternalNode implements Operation {
@@ -160,8 +160,8 @@ class OperationNode extends OpenApiNode with InternalNode implements Operation {
     createNode<RequestBodyNode>(jsonKey: 'requestBody');
     createNode<ResponsesMapNode>(jsonKey: 'responses', required: true);
     createNode<CallbacksMapNode>(jsonKey: 'callbacks');
-    createListNode<SecurityRequirementNode>(jsonKey: 'security');
-    createListNode<ServerNode>(jsonKey: 'servers');
+    createNode<SecurityRequirementNode>(jsonKey: 'security');
+    createNode<ServerNode>(jsonKey: 'servers');
   }
 
   @override

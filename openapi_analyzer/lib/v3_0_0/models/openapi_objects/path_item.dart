@@ -117,8 +117,8 @@ class PathItemNode extends OpenApiNode with InternalNode, Referencable implement
     createNode<OperationNode>(jsonKey: 'head');
     createNode<OperationNode>(jsonKey: 'patch');
     createNode<OperationNode>(jsonKey: 'trace');
-    createListNode<ServerNode>(jsonKey: 'servers');
-    createListNode<ParameterNode>(jsonKey: 'parameters');
+    createNode<ServerNode>(jsonKey: 'servers');
+    createNode<ParameterNode>(jsonKey: 'parameters');
   }
 
   @override

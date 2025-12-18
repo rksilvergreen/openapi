@@ -30,7 +30,7 @@ class CallbackNode extends OpenApiNode with InternalNode, Referencable implement
 
   @override
   void createChildNodes() {
-    createNode<PathsMapNode>(jsonKey: 'expressions');
+    createNode<PathsMapNode>(jsonKey: 'expressions', required: true);
   }
 
   @override

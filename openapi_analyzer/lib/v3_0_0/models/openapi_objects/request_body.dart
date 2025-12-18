@@ -57,7 +57,7 @@ class RequestBodyNode extends OpenApiNode with InternalNode, Referencable implem
 
   @override
   void createChildNodes() {
-    createNode<MediaTypesMapNode>(jsonKey: 'content');
+    createNode<MediaTypesMapNode>(jsonKey: 'content', required: true);
   }
 
   @override

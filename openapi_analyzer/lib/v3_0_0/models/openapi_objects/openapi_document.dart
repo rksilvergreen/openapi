@@ -114,12 +114,12 @@ class OpenApiDocumentNode extends OpenApiNode with InternalNode implements OpenA
 
   @override
   void createChildNodes() {
-    createNode<InfoNode>(jsonKey: 'info');
-    createListNode<ServerNode>(jsonKey: 'servers');
-    createNode<PathsMapNode>(jsonKey: 'paths');
+    createNode<InfoNode>(jsonKey: 'info', required: true);
+    createNode<ServerNode>(jsonKey: 'servers');
+    createNode<PathsMapNode>(jsonKey: 'paths', required: true);
     createNode<ComponentsNode>(jsonKey: 'components');
-    createListNode<SecurityRequirementNode>(jsonKey: 'security');
-    createListNode<TagNode>(jsonKey: 'tags');
+    createNode<SecurityRequirementNode>(jsonKey: 'security');
+    createNode<TagNode>(jsonKey: 'tags');
     createNode<ExternalDocumentationNode>(jsonKey: 'externalDocs');
   }
 
