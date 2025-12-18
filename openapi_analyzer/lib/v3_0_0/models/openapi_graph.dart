@@ -149,8 +149,8 @@ class OpenApiGraph {
 
   void addSchemaNode(SchemaNode node) => schemaNodes[node.$id.absolutePointer] = node;
 
-  void addOpenApiEdge(OpenApiNode from, OpenApiNode to, String via) {
-    final edge = OpenApiEdge(from.$id.absolutePointer, to.$id.absolutePointer, via);
+  void addOpenApiEdge(OpenApiNode from, OpenApiNode to, String via, EdgeForm form) {
+    final edge = OpenApiEdge(from.$id.absolutePointer, to.$id.absolutePointer, via, form);
     openApiEdges.add(edge);
     from.$to.add(edge);
     to.$from.add(edge);
@@ -227,12 +227,18 @@ class OpenApiGraph {
   }
 }
 
+enum EdgeForm {
+  inline,
+  referenced,
+}
+
 abstract class Edge {
   final String _from;
   final String _to;
   final String via;
+  final EdgeForm form;
 
-  Edge(this._from, this._to, this.via);
+  Edge(this._from, this._to, this.via, this.form );
 
   Node get from;
   Node get to;
@@ -252,7 +258,7 @@ extension EdgeIterableExtension on Iterable<Edge> {
 }
 
 class OpenApiEdge extends Edge {
-  OpenApiEdge(super.from, super.to, super.via);
+  OpenApiEdge(super.from, super.to, super.via, super.form);
 
   late OpenApiNode? _$from;
   late Node? _$to;
@@ -261,7 +267,7 @@ class OpenApiEdge extends Edge {
 }
 
 abstract class SchemaEdge extends Edge {
-  SchemaEdge(super.from, super.to, super.via);
+  SchemaEdge(super.from, super.to, super.via, super.form);
 }
 
 abstract class StructuralEdge extends SchemaEdge {
@@ -269,23 +275,23 @@ abstract class StructuralEdge extends SchemaEdge {
   late SchemaNode? _$to;
   Node get from => _$from ??= OpenApiGraph.i.schemaNodes[_from] ?? OpenApiGraph.i.openApiNodes[_from]!;
   SchemaNode get to => _$to ??= OpenApiGraph.i.schemaNodes[_to]!;
-  StructuralEdge(super.from, super.to, super.via);
+  StructuralEdge(super.from, super.to, super.via, super.form);
 }
 
 class RootEdge extends StructuralEdge {
-  RootEdge(String from, String to) : super(from, to, 'root');
+  RootEdge(String from, String to, EdgeForm form) : super(from, to, 'root', form);
 }
 
 class PropertiesEdge extends StructuralEdge {
-  PropertiesEdge(String from, String to) : super(from, to, 'properties');
+  PropertiesEdge(String from, String to, EdgeForm form) : super(from, to, 'properties', form);
 }
 
 class AdditionalPropertiesEdge extends StructuralEdge {
-  AdditionalPropertiesEdge(String from, String to) : super(from, to, 'additionalProperties');
+  AdditionalPropertiesEdge(String from, String to, EdgeForm form) : super(from, to, 'additionalProperties', form);
 }
 
 class ItemsEdge extends StructuralEdge {
-  ItemsEdge(String from, String to) : super(from, to, 'items');
+  ItemsEdge(String from, String to, EdgeForm form) : super(from, to, 'items', form);
 }
 
 abstract class ApplicatorEdge extends SchemaEdge {
@@ -293,17 +299,17 @@ abstract class ApplicatorEdge extends SchemaEdge {
   late SchemaNode? _$to;
   SchemaNode get from => _$from ??= OpenApiGraph.i.schemaNodes[_from]!;
   SchemaNode get to => _$to ??= OpenApiGraph.i.schemaNodes[_to]!;
-  ApplicatorEdge(super.from, super.to, super.via);
+  ApplicatorEdge(super.from, super.to, super.via, super.form);
 }
 
 class AllOfEdge extends ApplicatorEdge {
-  AllOfEdge(String from, String to) : super(from, to, 'allOf');
+  AllOfEdge(String from, String to, EdgeForm form) : super(from, to, 'allOf', form);
 }
 
 class OneOfEdge extends ApplicatorEdge {
-  OneOfEdge(String from, String to) : super(from, to, 'oneOf');
+  OneOfEdge(String from, String to, EdgeForm form) : super(from, to, 'oneOf', form);
 }
 
 class AnyOfEdge extends ApplicatorEdge {
-  AnyOfEdge(String from, String to) : super(from, to, 'anyOf');
+  AnyOfEdge(String from, String to, EdgeForm form) : super(from, to, 'anyOf', form);
 }
