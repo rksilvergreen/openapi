@@ -54,7 +54,7 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
   /// Creates an EffectiveSchema from a SchemaNode and its TypedSchema.
   static EffectiveSchema fromTyped(SchemaNode node, TypedSchema typed, ValidationContext ctx) {
     // Check if schema has compositions
-    final hasCompositions = node.allOfNodes != null || node.oneOfNodes != null || node.anyOfNodes != null;
+    final hasCompositions = node.allOf != null || node.oneOf != null || node.anyOf != null;
 
     if (hasCompositions) {
       return _createWithCompositions(node, typed, ctx);
@@ -107,7 +107,7 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
       // Single branch - merge constraints
       final mergedTyped = resolver.mergeConstraints(validBranches.first.nodes);
       return _createDirectEffectiveSchema(node, mergedTyped);
-    } else if (node.oneOfNodes != null && node.oneOfNodes!.isNotEmpty) {
+    } else if (node.oneOf != null && node.oneOf!.isNotEmpty) {
       // Multiple oneOf branches - create variants
       return _createOneOfVariants(node, typed, validBranches, resolver, ctx);
     } else {
@@ -198,6 +198,8 @@ abstract class SingleTypeEffectiveSchema<T, S extends SingleTypeEffectiveSchema<
     super.description,
     super.readOnly,
     super.writeOnly,
+    super.xml,
+    super.externalDocs,
     super.example,
     super.deprecated,
     super.nullable,
@@ -213,11 +215,13 @@ class MultiTypeUnionEffectiveSchema extends EffectiveSchema<MultiTypeUnionEffect
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
     required this.variants,
-  }) : super($node, SchemaType.multiType, description, readOnly, writeOnly, example, deprecated, nullable);
+  }) : super($node, SchemaType.multiType, description, readOnly, writeOnly, xml, externalDocs, example, deprecated, nullable);
 }
 
 class UnknownEffectiveSchema extends EffectiveSchema<UnknownEffectiveSchema> {
@@ -226,8 +230,10 @@ class UnknownEffectiveSchema extends EffectiveSchema<UnknownEffectiveSchema> {
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
-  }) : super($node, SchemaType.unknown, description, readOnly, writeOnly, example, deprecated, nullable);
+  }) : super($node, SchemaType.unknown, description, readOnly, writeOnly, xml, externalDocs, example, deprecated, nullable);
 }

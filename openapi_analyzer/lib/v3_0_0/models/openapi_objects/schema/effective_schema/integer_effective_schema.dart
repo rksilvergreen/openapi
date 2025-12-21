@@ -2,6 +2,8 @@ import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema.dar
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
 import '../typed_schema/integer_typed_schema.dart';
 import 'effective_schema.dart';
+import '../../xml.dart';
+import '../../external_documentation.dart';
 
 class IntegerEffectiveSchema extends SingleTypeEffectiveSchema<int, IntegerEffectiveSchema>
     with IntegerEffectiveSchemaVariant {
@@ -17,6 +19,8 @@ class IntegerEffectiveSchema extends SingleTypeEffectiveSchema<int, IntegerEffec
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -34,6 +38,8 @@ class IntegerEffectiveSchema extends SingleTypeEffectiveSchema<int, IntegerEffec
          description,
          readOnly,
          writeOnly,
+         xml,
+         externalDocs,
          example,
          deprecated,
          nullable,
@@ -47,6 +53,8 @@ class IntegerEffectiveSchema extends SingleTypeEffectiveSchema<int, IntegerEffec
       description: typed.description,
       readOnly: typed.readOnly,
       writeOnly: typed.writeOnly,
+      xml: node.xml,
+      externalDocs: node.externalDocs,
       example: typed.example,
       deprecated: typed.deprecated,
       nullable: typed.nullable,
@@ -70,6 +78,8 @@ class IntegerUnionEffectiveSchema extends SingleTypeEffectiveSchema<int, Integer
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -82,6 +92,8 @@ class IntegerUnionEffectiveSchema extends SingleTypeEffectiveSchema<int, Integer
          description,
          readOnly,
          writeOnly,
+         xml,
+         externalDocs,
          example,
          deprecated,
          nullable,
