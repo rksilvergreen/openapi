@@ -1,9 +1,53 @@
 import 'dart:io';
 import 'package:yaml/yaml.dart';
-import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/openapi_document.dart';
 import 'package:openapi_analyzer/validation_exception.dart';
 import '../validation/validation_context.dart';
 import '../reference/reference_resolver.dart';
+import 'openapi_objects/openapi_document.dart';
+import 'openapi_objects/info.dart';
+import 'openapi_objects/components.dart';
+import 'openapi_objects/operation.dart';
+import 'openapi_objects/parameter.dart';
+import 'openapi_objects/header.dart';
+import 'openapi_objects/response.dart';
+import 'openapi_objects/request_body.dart';
+import 'openapi_objects/media_type.dart';
+import 'openapi_objects/schema/schema.dart';
+import 'openapi_objects/server.dart';
+import 'openapi_objects/server_variable.dart';
+import 'openapi_objects/tag.dart';
+import 'openapi_objects/xml.dart';
+import 'openapi_objects/security_requirement.dart';
+import 'openapi_objects/path_item.dart';
+import 'openapi_objects/oauth_flow.dart';
+import 'openapi_objects/example.dart';
+import 'openapi_objects/encoding.dart';
+import 'openapi_objects/discriminator.dart';
+import 'openapi_objects/link.dart';
+import 'openapi_objects/license.dart';
+import 'openapi_objects/contact.dart';
+import 'openapi_objects/oauth_flows.dart';
+import 'openapi_objects/external_documentation.dart';
+import 'openapi_objects/callback.dart';
+import 'openapi_objects/security_scheme.dart';
+import 'openapi_objects/callbacks_map.dart';
+import 'openapi_objects/encodings_map.dart';
+import 'openapi_objects/examples_map.dart';
+import 'openapi_objects/headers_map.dart';
+import 'openapi_objects/links_map.dart';
+import 'openapi_objects/media_types_map.dart';
+import 'openapi_objects/parameters_list.dart';
+import 'openapi_objects/parameters_map.dart';
+import 'openapi_objects/paths_map.dart';
+import 'openapi_objects/request_bodies_map.dart';
+import 'openapi_objects/responses_map.dart';
+import 'openapi_objects/schema/schemas_list.dart';
+import 'openapi_objects/schema/schema_map.dart';
+import 'openapi_objects/security_requirements_list.dart';
+import 'openapi_objects/security_schemes_map.dart';
+import 'openapi_objects/server_list.dart';
+import 'openapi_objects/server_variables_map.dart';
+import 'openapi_objects/tags_list.dart';
 
 abstract class Node {
   final NodeId $id;
@@ -26,7 +70,53 @@ abstract class Node {
   void create();
 
   static T ofType<T extends Node>(Map<String, dynamic> json, String document, String jsonPointer) {
-    
+    if (T is CallbacksMapNode) return CallbacksMapNode(json, document, jsonPointer) as T;
+    if (T is CallbackNode) return CallbackNode(json, document, jsonPointer) as T;
+    if (T is ComponentsNode) return ComponentsNode(json, document, jsonPointer) as T;
+    if (T is ContactNode) return ContactNode(json, document, jsonPointer) as T;
+    if (T is DiscriminatorNode) return DiscriminatorNode(json, document, jsonPointer) as T;
+    if (T is EncodingsMapNode) return EncodingsMapNode(json, document, jsonPointer) as T;
+    if (T is EncodingNode) return EncodingNode(json, document, jsonPointer) as T;
+    if (T is ExamplesMapNode) return ExamplesMapNode(json, document, jsonPointer) as T;
+    if (T is ExampleNode) return ExampleNode(json, document, jsonPointer) as T;
+    if (T is ExternalDocumentationNode) return ExternalDocumentationNode(json, document, jsonPointer) as T;
+    if (T is HeadersMapNode) return HeadersMapNode(json, document, jsonPointer) as T;
+    if (T is HeaderNode) return HeaderNode(json, document, jsonPointer) as T;
+    if (T is InfoNode) return InfoNode(json, document, jsonPointer) as T;
+    if (T is LicenseNode) return LicenseNode(json, document, jsonPointer) as T;
+    if (T is LinksMapNode) return LinksMapNode(json, document, jsonPointer) as T;
+    if (T is LinkNode) return LinkNode(json, document, jsonPointer) as T;
+    if (T is MediaTypesMapNode) return MediaTypesMapNode(json, document, jsonPointer) as T;
+    if (T is MediaTypeNode) return MediaTypeNode(json, document, jsonPointer) as T;
+    if (T is OAuthFlowNode) return OAuthFlowNode(json, document, jsonPointer) as T;
+    if (T is OAuthFlowsNode) return OAuthFlowsNode(json, document, jsonPointer) as T;
+    if (T is OpenApiDocumentNode) return OpenApiDocumentNode(json, document, jsonPointer) as T;
+    if (T is OperationNode) return OperationNode(json, document, jsonPointer) as T;
+    if (T is ParametersListNode) return ParametersListNode(json, document, jsonPointer) as T;
+    if (T is ParametersMapNode) return ParametersMapNode(json, document, jsonPointer) as T;
+    if (T is ParameterNode) return ParameterNode(json, document, jsonPointer) as T;
+    if (T is PathsMapNode) return PathsMapNode(json, document, jsonPointer) as T;
+    if (T is PathItemNode) return PathItemNode(json, document, jsonPointer) as T;
+    if (T is RequestBodiesMapNode) return RequestBodiesMapNode(json, document, jsonPointer) as T;
+    if (T is RequestBodyNode) return RequestBodyNode(json, document, jsonPointer) as T;
+    if (T is ResponsesMapNode) return ResponsesMapNode(json, document, jsonPointer) as T;
+    if (T is ResponseNode) return ResponseNode(json, document, jsonPointer) as T;
+    if (T is SchemasListNode) return SchemasListNode(json, document, jsonPointer) as T;
+    if (T is SchemasMapNode) return SchemasMapNode(json, document, jsonPointer) as T;
+    if (T is SchemaNode) return SchemaNode(json, document, jsonPointer) as T;
+    if (T is SecurityRequirementsListNode) return SecurityRequirementsListNode(json, document, jsonPointer) as T;
+    if (T is SecurityRequirementNode) return SecurityRequirementNode(json, document, jsonPointer) as T;
+    if (T is SecuritySchemesMapNode) return SecuritySchemesMapNode(json, document, jsonPointer) as T;
+    if (T is SecuritySchemeNode) return SecuritySchemeNode(json, document, jsonPointer) as T;
+    if (T is ServerListNode) return ServerListNode(json, document, jsonPointer) as T;
+    if (T is ServerVariablesMapNode) return ServerVariablesMapNode(json, document, jsonPointer) as T;
+    if (T is ServerNode) return ServerNode(json, document, jsonPointer) as T;
+    if (T is ServerVariableNode) return ServerVariableNode(json, document, jsonPointer) as T;
+    if (T is TagsListNode) return TagsListNode(json, document, jsonPointer) as T;
+    if (T is TagNode) return TagNode(json, document, jsonPointer) as T;
+    if (T is XMLNode) return XMLNode(json, document, jsonPointer) as T;
+
+    throw Exception('Unsupported node type: $T');
   }
 }
 
@@ -189,18 +279,15 @@ class OpenApiGraph {
   }
 }
 
-enum EdgeForm {
-  inline,
-  referenced,
-}
+enum EdgeForm { inline, referenced }
 
- class Edge {
+class Edge {
   final Node from;
   final Node to;
   final String via;
   final EdgeForm form;
 
-  Edge(this.from, this.to, this.via, this.form );
+  Edge(this.from, this.to, this.via, this.form);
 }
 
 extension EdgeIterableExtension on Iterable<Edge> {

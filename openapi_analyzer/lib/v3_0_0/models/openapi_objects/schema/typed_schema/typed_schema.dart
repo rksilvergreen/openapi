@@ -50,7 +50,7 @@ abstract class TypedSchema<T> {
   SchemaNode get raw => $node;
   EffectiveSchema get effective => $node.$effective;
 
-  /// Creates a TypedSchema from a SchemaNode and its RawSchema.
+  /// Creates a TypedSchema from a SchemaNode.
   static TypedSchema of(SchemaNode node, ValidationContext ctx) {
     final schemaType = _inferType(node, ctx);
     switch (schemaType) {

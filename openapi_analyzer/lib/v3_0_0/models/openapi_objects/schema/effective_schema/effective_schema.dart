@@ -25,8 +25,8 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
   final String? description;
   final bool readOnly;
   final bool writeOnly;
-  XML? get xml => $node.xmlNode?.content;
-  ExternalDocumentation? get externalDocs => $node.externalDocsNode?.content;
+  final XML? xml;
+  final ExternalDocumentation? externalDocs;
   final Map<String, dynamic>? example;
   final bool deprecated;
   final bool nullable;
@@ -37,10 +37,19 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
     this.description,
     this.readOnly,
     this.writeOnly,
+    this.xml,
+    this.externalDocs,
     this.example,
     this.deprecated,
     this.nullable,
   );
+
+  List<EffectiveSchema>? get allOf => $node.allOf?.map((node) => node.$effective).toList();
+  List<EffectiveSchema>? get oneOf => $node.oneOf?.map((node) => node.$effective).toList();
+  List<EffectiveSchema>? get anyOf => $node.anyOf?.map((node) => node.$effective).toList();
+
+  SchemaNode get raw => $node;
+  TypedSchema get typed => $node.$typed;
 
   /// Creates an EffectiveSchema from a SchemaNode and its TypedSchema.
   static EffectiveSchema fromTyped(SchemaNode node, TypedSchema typed, ValidationContext ctx) {
