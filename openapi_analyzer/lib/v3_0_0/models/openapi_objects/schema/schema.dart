@@ -365,4 +365,8 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
   void _createEffective() {
     $effective = EffectiveSchema.fromTyped(this, $typed, OpenApiGraph.i.validationContext);
   }
+
+  String get name {
+    
+  }
 }

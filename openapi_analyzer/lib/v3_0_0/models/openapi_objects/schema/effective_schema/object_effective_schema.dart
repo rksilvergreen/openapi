@@ -2,6 +2,8 @@ import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema.dar
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
 import '../typed_schema/object_typed_schema.dart';
 import 'effective_schema.dart';
+import '../../xml.dart';
+import '../../external_documentation.dart';
 
 class ObjectEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, dynamic>, ObjectEffectiveSchema>
     with ObjectEffectiveSchemaVariant {
@@ -17,6 +19,8 @@ class ObjectEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, dynami
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -34,6 +38,8 @@ class ObjectEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, dynami
          description,
          readOnly,
          writeOnly,
+         xml,
+         externalDocs,
          example,
          deprecated,
          nullable,
@@ -47,6 +53,8 @@ class ObjectEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, dynami
       description: typed.description,
       readOnly: typed.readOnly,
       writeOnly: typed.writeOnly,
+      xml: node.xml,
+      externalDocs: node.externalDocs,
       example: typed.example,
       deprecated: typed.deprecated,
       nullable: typed.nullable,
@@ -67,6 +75,8 @@ class ObjectUnionEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, d
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -79,6 +89,8 @@ class ObjectUnionEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, d
          description,
          readOnly,
          writeOnly,
+         xml,
+         externalDocs,
          example,
          deprecated,
          nullable,

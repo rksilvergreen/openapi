@@ -2,6 +2,8 @@ import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema.dar
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
 import '../typed_schema/number_typed_schema.dart';
 import 'effective_schema.dart';
+import '../../xml.dart';
+import '../../external_documentation.dart';
 
 class NumberEffectiveSchema extends SingleTypeEffectiveSchema<double, NumberEffectiveSchema>
     with NumberEffectiveSchemaVariant {
@@ -17,6 +19,8 @@ class NumberEffectiveSchema extends SingleTypeEffectiveSchema<double, NumberEffe
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -34,6 +38,8 @@ class NumberEffectiveSchema extends SingleTypeEffectiveSchema<double, NumberEffe
          description,
          readOnly,
          writeOnly,
+         xml,
+         externalDocs,
          example,
          deprecated,
          nullable,
@@ -47,6 +53,8 @@ class NumberEffectiveSchema extends SingleTypeEffectiveSchema<double, NumberEffe
       description: typed.description,
       readOnly: typed.readOnly,
       writeOnly: typed.writeOnly,
+      xml: node.xml,
+      externalDocs: node.externalDocs,
       example: typed.example,
       deprecated: typed.deprecated,
       nullable: typed.nullable,
@@ -70,6 +78,8 @@ class NumberUnionEffectiveSchema extends SingleTypeEffectiveSchema<double, Numbe
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -82,6 +92,8 @@ class NumberUnionEffectiveSchema extends SingleTypeEffectiveSchema<double, Numbe
          description,
          readOnly,
          writeOnly,
+         xml,
+         externalDocs,
          example,
          deprecated,
          nullable,
