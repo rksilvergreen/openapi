@@ -7,7 +7,7 @@ abstract class License {
   Map<String, dynamic>? get extensions;
 }
 
-class LicenseNode extends OpenApiNode with LeafNode implements License {
+class LicenseNode extends Node with LeafNode implements License {
   LicenseNode(super.json, super.document, super.jsonPointer);
 
   late final String name;

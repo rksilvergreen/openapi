@@ -11,7 +11,7 @@ abstract class RequestBody {
   Map<String, dynamic>? get extensions;
 }
 
-class RequestBodyNode extends OpenApiNode with InternalNode, Referencable implements RequestBody {
+class RequestBodyNode extends Node with InternalNode, Referencable implements RequestBody {
   RequestBodyNode(super.json, super.document, super.jsonPointer);
 
   late final String? description;

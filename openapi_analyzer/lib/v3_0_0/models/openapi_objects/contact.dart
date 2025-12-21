@@ -8,7 +8,7 @@ abstract class Contact {
   Map<String, dynamic>? get extensions;
 }
 
-class ContactNode extends OpenApiNode with LeafNode implements Contact {
+class ContactNode extends Node with LeafNode implements Contact {
   ContactNode(super.json, super.document, super.jsonPointer);
 
   late final String? name;

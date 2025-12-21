@@ -24,7 +24,7 @@ abstract class OpenApiDocument {
   Map<String, dynamic>? get extensions;
 }
 
-class OpenApiDocumentNode extends OpenApiNode with InternalNode implements OpenApiDocument {
+class OpenApiDocumentNode extends Node with InternalNode implements OpenApiDocument {
   OpenApiDocumentNode(super.json, super.document, super.jsonPointer);
 
   late final String openapi;

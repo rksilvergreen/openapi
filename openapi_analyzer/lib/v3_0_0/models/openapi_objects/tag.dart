@@ -10,7 +10,7 @@ abstract class Tag {
   Map<String, dynamic>? get extensions;
 }
 
-class TagNode extends OpenApiNode with InternalNode implements Tag {
+class TagNode extends Node with InternalNode implements Tag {
   TagNode(super.json, super.document, super.jsonPointer);
 
   late final String name;

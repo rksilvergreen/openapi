@@ -22,7 +22,7 @@ abstract class PathItem {
   Map<String, dynamic>? get extensions;
 }
 
-class PathItemNode extends OpenApiNode with InternalNode, Referencable implements PathItem {
+class PathItemNode extends Node with InternalNode, Referencable implements PathItem {
   PathItemNode(super.json, super.document, super.jsonPointer);
 
   late final String? summary;

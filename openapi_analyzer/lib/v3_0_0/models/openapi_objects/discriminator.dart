@@ -7,7 +7,7 @@ abstract class Discriminator {
   Map<String, dynamic>? get extensions;
 }
 
-class DiscriminatorNode extends OpenApiNode with LeafNode implements Discriminator {
+class DiscriminatorNode extends Node with LeafNode implements Discriminator {
   DiscriminatorNode(super.json, super.document, super.jsonPointer);
 
   late final String propertyName;

@@ -4,31 +4,31 @@ import 'openapi_graph.dart';
 import '../validation/validation_utils.dart';
 import 'node_creation_helpers.dart';
 
-abstract class ListNode<CHILD_NODE extends OpenApiNode, LIST> extends OpenApiNode
+abstract class ListNode<CHILD_NODE extends Node, LIST> extends Node
     with InternalNode, ListMixin<LIST>
     implements List<LIST> {
   ListNode(super.json, super.document, super.jsonPointer);
 
-  late final List<LIST> childNodes;
+  late final List<LIST> _childNodes;
 
   @override
-  int get length => childNodes.length;
+  int get length => _childNodes.length;
 
   @override
   set length(int newLength) {
-    childNodes.length = newLength;
+    _childNodes.length = newLength;
   }
 
   @override
-  LIST operator [](int index) => childNodes[index];
+  LIST operator [](int index) => _childNodes[index];
 
   @override
   void operator []=(int index, LIST value) {
-    childNodes[index] = value;
+    _childNodes[index] = value;
   }
 
   @override
-  List<LIST> toList({bool growable = true}) => childNodes.toList(growable: growable);
+  List<LIST> toList({bool growable = true}) => _childNodes.toList(growable: growable);
 
   @override
   void validateStructure() {
@@ -46,6 +46,6 @@ abstract class ListNode<CHILD_NODE extends OpenApiNode, LIST> extends OpenApiNod
 
   @override
   void createContent() {
-    childNodes = $to.where((edge) => edge.to is LIST).map((edge) => (edge as OpenApiEdge).to as LIST).toList();
+    _childNodes = $to.where((edge) => edge.to is LIST).map((edge) => edge.to as LIST).toList();
   }
 }

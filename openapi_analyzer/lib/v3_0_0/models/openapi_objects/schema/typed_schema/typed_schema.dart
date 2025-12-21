@@ -1,4 +1,4 @@
-import '../schema_node.dart';
+import '../schema.dart';
 import '../raw_schema.dart';
 import '../schema_type.dart';
 import '../../../../validation/validation_context.dart';

@@ -17,7 +17,7 @@ abstract class SecurityScheme {
   Map<String, dynamic>? get extensions;
 }
 
-class SecuritySchemeNode extends OpenApiNode with InternalNode, Referencable implements SecurityScheme {
+class SecuritySchemeNode extends Node with InternalNode, Referencable implements SecurityScheme {
   SecuritySchemeNode(super.json, super.document, super.jsonPointer);
 
   late final SecuritySchemeType type;

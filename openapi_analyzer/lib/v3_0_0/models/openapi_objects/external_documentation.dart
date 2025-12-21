@@ -7,7 +7,7 @@ abstract class ExternalDocumentation {
   Map<String, dynamic>? get extensions;
 }
 
-class ExternalDocumentationNode extends OpenApiNode with LeafNode implements ExternalDocumentation {
+class ExternalDocumentationNode extends Node with LeafNode implements ExternalDocumentation {
   ExternalDocumentationNode(super.json, super.document, super.jsonPointer);
 
   late final String? description;

@@ -10,7 +10,7 @@ abstract class Server {
   Map<String, dynamic>? get extensions;
 }
 
-class ServerNode extends OpenApiNode with InternalNode implements Server {
+class ServerNode extends Node with InternalNode implements Server {
   ServerNode(super.json, super.document, super.jsonPointer);
 
   late final String url;

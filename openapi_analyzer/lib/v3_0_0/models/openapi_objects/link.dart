@@ -15,7 +15,7 @@ abstract class Link {
   Map<String, dynamic>? get extensions;
 }
 
-class LinkNode extends OpenApiNode with InternalNode, Referencable implements Link {
+class LinkNode extends Node with InternalNode, Referencable implements Link {
   LinkNode(super.json, super.document, super.jsonPointer);
 
   late final String? operationRef;

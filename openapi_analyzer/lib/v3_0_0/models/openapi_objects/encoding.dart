@@ -13,7 +13,7 @@ abstract class Encoding {
   Map<String, dynamic>? get extensions;
 }
 
-class EncodingNode extends OpenApiNode with InternalNode implements Encoding {
+class EncodingNode extends Node with InternalNode implements Encoding {
   EncodingNode(super.json, super.document, super.jsonPointer);
 
   late final String? contentType;

@@ -4,38 +4,38 @@ import 'openapi_graph.dart';
 import 'node_creation_helpers.dart';
 import '../validation/validation_utils.dart';
 
-abstract class MapNode<CHILD_NODE extends OpenApiNode, MAP> extends OpenApiNode
+abstract class MapNode<CHILD_NODE extends Node, MAP> extends Node
     with InternalNode, MapMixin<String, MAP>
     implements Map<String, MAP> {
   MapNode(super.json, super.document, super.jsonPointer);
 
-  late final Map<String, MAP> childNodes;
+  late final Map<String, MAP> _childNodes;
   late final Map<String, dynamic>? extensions;
 
   @override
   MAP? operator [](Object? key) {
     if (key is! String) return null;
-    return childNodes[key];
+    return _childNodes[key];
   }
 
   @override
   void operator []=(String key, MAP value) {
-    childNodes[key] = value;
+    _childNodes[key] = value;
   }
 
   @override
   void clear() {
-    childNodes.clear();
+    _childNodes.clear();
   }
 
   @override
   MAP? remove(Object? key) {
     if (key is! String) return null;
-    return childNodes.remove(key);
+    return _childNodes.remove(key);
   }
 
   @override
-  Iterable<String> get keys => childNodes.keys;
+  Iterable<String> get keys => _childNodes.keys;
 
   @override
   void validateStructure() {
@@ -52,10 +52,10 @@ abstract class MapNode<CHILD_NODE extends OpenApiNode, MAP> extends OpenApiNode
 
   @override
   void createContent() {
-    childNodes = Map.fromIterable(
+    _childNodes = Map.fromIterable(
       $to.where((edge) => edge.to is MAP),
-      key: (edge) => (edge as OpenApiEdge).via,
-      value: (edge) => (edge as OpenApiEdge).to as MAP,
+      key: (edge) => (edge as Edge).via,
+      value: (edge) => (edge as Edge).to as MAP,
     );
     extensions = extractExtensions(json);
   }

@@ -4,12 +4,10 @@ import '../../../validation_exception.dart';
 import '../referencable.dart';
 import '../node_creation_helpers.dart';
 import 'enums.dart';
-import 'schema/schema_node.dart';
-import 'schema/effective_schema/effective_schema.dart';
-import 'example.dart';
-import 'media_type.dart';
+import 'schema/schema.dart';
 import 'examples_map.dart';
 import 'media_types_map.dart';
+import 'schema/schema_map.dart';
 
 /// Header Object follows the structure of the Parameter Object.
 abstract class Header {
@@ -20,14 +18,14 @@ abstract class Header {
   ParameterStyle? get style;
   bool? get explode;
   bool get allowReserved;
-  EffectiveSchema? get schema;
+  SchemasMap? get schema;
   dynamic get example;
   ExamplesMap? get examples;
   MediaTypesMap? get content;
   Map<String, dynamic>? get extensions;
 }
 
-class HeaderNode extends OpenApiNode with InternalNode, Referencable implements Header {
+class HeaderNode extends Node with InternalNode, Referencable implements Header {
   HeaderNode(super.json, super.document, super.jsonPointer);
 
   late final String? description;
@@ -37,7 +35,7 @@ class HeaderNode extends OpenApiNode with InternalNode, Referencable implements 
   late final ParameterStyle? style;
   late final bool? explode;
   late final bool allowReserved;
-  late final EffectiveSchema? schema;
+  late final SchemasMapNode? schema;
   late final dynamic example;
   late final ExamplesMap? examples;
   late final MediaTypesMap? content;
@@ -178,7 +176,7 @@ class HeaderNode extends OpenApiNode with InternalNode, Referencable implements 
     style = json['style'] != null ? ParameterStyle.values.firstWhere((e) => e.value == json['style']) : null;
     explode = json['explode'];
     allowReserved = json['allowReserved'];
-    schema = $to.to<SchemaNode>('schema');
+    schema = $to.to<SchemasMapNode>('schema');
     example = json['example'];
     examples = $to.to<ExamplesMapNode>('examples');
     content = $to.to<MediaTypesMapNode>('content');

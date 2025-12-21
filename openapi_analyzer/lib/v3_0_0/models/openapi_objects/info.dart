@@ -14,7 +14,7 @@ abstract class Info {
   Map<String, dynamic>? get extensions;
 }
 
-class InfoNode extends OpenApiNode with InternalNode implements Info {
+class InfoNode extends Node with InternalNode implements Info {
   InfoNode(super.json, super.document, super.jsonPointer);
 
   late final String title;

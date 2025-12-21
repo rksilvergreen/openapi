@@ -6,7 +6,7 @@ abstract class SecurityRequirement {
   Map<String, List<String>> get requirements;
 }
 
-class SecurityRequirementNode extends OpenApiNode with LeafNode implements SecurityRequirement {
+class SecurityRequirementNode extends Node with LeafNode implements SecurityRequirement {
   SecurityRequirementNode(super.json, super.document, super.jsonPointer);
 
   late final Map<String, List<String>> requirements;

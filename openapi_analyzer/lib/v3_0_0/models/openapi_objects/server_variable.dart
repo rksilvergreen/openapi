@@ -8,7 +8,7 @@ abstract class ServerVariable {
   Map<String, dynamic>? get extensions;
 }
 
-class ServerVariableNode extends OpenApiNode with LeafNode {
+class ServerVariableNode extends Node with LeafNode {
   ServerVariableNode(super.json, super.document, super.jsonPointer);
 
   late final List<String>? enum_;

@@ -41,7 +41,7 @@ class PathsMapNode extends MapNode<PathItemNode, PathItem> implements PathsMap {
 //   Map<String, dynamic>? get extensions;
 // }
 
-// class PathsNode extends OpenApiNode with InternalNode implements Paths {
+// class PathsNode extends Node with InternalNode implements Paths {
 //   PathsNode(Map<String, dynamic> json, String document, String jsonPointer)
 //     : super(NodeId(document, jsonPointer), json);
 

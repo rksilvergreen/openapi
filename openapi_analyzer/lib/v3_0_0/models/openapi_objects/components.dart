@@ -2,7 +2,7 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 import '../node_creation_helpers.dart';
-import 'schema/schema_node.dart';
+import 'schema/schema.dart';
 import 'responses_map.dart';
 import 'parameters_map.dart';
 import 'examples_map.dart';
@@ -11,9 +11,10 @@ import 'headers_map.dart';
 import 'security_schemes_map.dart';
 import 'links_map.dart';
 import 'callbacks_map.dart';
+import 'schema/schema_map.dart';
 
 abstract class Components {
-  Map<String, SchemaNode>? get schemas;
+  SchemasMap? get schemas;
   ResponsesMap? get responses;
   ParametersMap? get parameters;
   ExamplesMap? get examples;
@@ -25,10 +26,10 @@ abstract class Components {
   Map<String, dynamic>? get extensions;
 }
 
-class ComponentsNode extends OpenApiNode with InternalNode implements Components {
+class ComponentsNode extends Node with InternalNode implements Components {
   ComponentsNode(super.json, super.document, super.jsonPointer);
 
-  late final Map<String, SchemaNode>? schemas;
+  late final SchemasMapNode? schemas;
   late final ResponsesMapNode? responses;
   late final ParametersMapNode? parameters;
   late final ExamplesMapNode? examples;
@@ -109,7 +110,7 @@ class ComponentsNode extends OpenApiNode with InternalNode implements Components
 
   @override
   void createChildNodes() {
-    _createSchemasNodes();
+    createNode<SchemaNode>(jsonKey: 'schemas');
     createNode<ResponsesMapNode>(jsonKey: 'responses');
     createNode<ParametersMapNode>(jsonKey: 'parameters');
     createNode<ExamplesMapNode>(jsonKey: 'examples');
@@ -120,41 +121,9 @@ class ComponentsNode extends OpenApiNode with InternalNode implements Components
     createNode<CallbacksMapNode>(jsonKey: 'callbacks');
   }
 
-  void _createSchemasNodes() {
-    if (json.containsKey('schemas')) {
-      final schemasMap = json['schemas'] as Map<String, dynamic>;
-      for (final entry in schemasMap.entries) {
-        final schemaName = entry.key.toString();
-        final schemaJson = entry.value as Map<String, dynamic>;
-        final schemaNode = SchemaNode(
-          schemaJson,
-          $id.document,
-          ValidationUtils.buildPointer([$id.jsonPointer, 'schemas', schemaName]),
-        );
-        if (!OpenApiGraph.i.schemaNodes.containsKey(schemaNode.$id.absolutePointer)) {
-          OpenApiGraph.i.addSchemaNode(schemaNode);
-          OpenApiGraph.i.addSchemaStructuralEdge(RootEdge($id.absolutePointer, schemaNode.$id.absolutePointer));
-          schemaNode.create();
-        }
-      }
-    }
-  }
-
   @override
   void createContent() {
-    if (json.containsKey('schemas')) {
-      final schemasMap = <String, SchemaNode>{};
-      final schemasJson = json['schemas'] as Map<String, dynamic>;
-      for (final entry in schemasJson.entries) {
-        final schemaName = entry.key.toString();
-        final schemaPointer = ValidationUtils.buildPointer([$id.jsonPointer, 'schemas', schemaName]);
-        final schemaId = NodeId($id.document, schemaPointer);
-        schemasMap[schemaName] = OpenApiGraph.i.schemaNodes[schemaId.absolutePointer]!;
-      }
-      schemas = schemasMap;
-    } else {
-      schemas = null;
-    }
+    schemas = $to.to<SchemasMapNode>('schemas');
     responses = $to.to<ResponsesMapNode>('responses');
     parameters = $to.to<ParametersMapNode>('parameters');
     examples = $to.to<ExamplesMapNode>('examples');

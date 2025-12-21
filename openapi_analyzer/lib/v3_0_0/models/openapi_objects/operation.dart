@@ -21,7 +21,7 @@ abstract class Operation {
   ServerList? get servers;
 }
 
-class OperationNode extends OpenApiNode with InternalNode implements Operation {
+class OperationNode extends Node with InternalNode implements Operation {
   OperationNode(super.json, super.document, super.jsonPointer);
 
   late final List<String>? tags;

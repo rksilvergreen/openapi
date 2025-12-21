@@ -6,7 +6,7 @@ typedef NodeFactory<T> = T Function(Map<String, dynamic> json, String document, 
 
 /// Extension providing helper methods for creating child nodes.
 /// These methods handle the common patterns of node creation, edge addition, and node reuse.
-extension NodeCreationHelpers on OpenApiNode {
+extension NodeCreationHelpers on Node {
   /// Checks if the JSON contains a $ref.
   bool _isRef(Map<String, dynamic> json) {
     return json.containsKey('\$ref');
@@ -41,7 +41,7 @@ extension NodeCreationHelpers on OpenApiNode {
 
   /// Gets an existing node or creates a new one, handling edge creation.
   /// Returns the existing node if found, otherwise creates and returns a new node.
-  T _getOrCreateNode<T extends OpenApiNode>({
+  T _getOrCreateNode<T extends Node>({
     required Map<String, dynamic> json,
     required String document,
     required String jsonPointer,
@@ -53,24 +53,24 @@ extension NodeCreationHelpers on OpenApiNode {
 
     // Check if node already exists at the resolved location
     final absolutePointer = '$document#$jsonPointer';
-    final existingNode = OpenApiGraph.i.openApiNodes[absolutePointer] as T?;
+    final existingNode = OpenApiGraph.i.nodes[absolutePointer] as T?;
 
     if (existingNode != null) {
-      OpenApiGraph.i.addOpenApiEdge(this, existingNode, via, form);
+      OpenApiGraph.i.addEdge(this, existingNode, via, form);
       return existingNode;
     }
 
     // Create new node
     final childNode = Node.ofType<T>(json, document, jsonPointer);
-    OpenApiGraph.i.addOpenApiNode(childNode);
-    OpenApiGraph.i.addOpenApiEdge(this, childNode, via, form);
+    OpenApiGraph.i.addNode(childNode);
+    OpenApiGraph.i.addEdge(this, childNode, via, form);
     childNode.create();
     return childNode;
   }
 
   /// Creates a single node (handles $ref resolution and node reuse for referencable nodes).
   /// Returns the existing node if it was already created (for referencable nodes), otherwise creates and returns a new one.
-  T? createNode<T extends OpenApiNode>({required String jsonKey, bool required = false}) {
+  T? createNode<T extends Node>({required String jsonKey, bool required = false}) {
     if (!_containsKey(jsonKey, required)) {
       return null;
     }
@@ -94,7 +94,7 @@ extension NodeCreationHelpers on OpenApiNode {
   }
 
   /// Creates a list of nodes (handles $ref resolution and node reuse for referencable nodes).
-  List<T>? createListNode<T extends OpenApiNode>() {
+  List<T>? createListNode<T extends Node>() {
     final list = json as List;
     final nodes = <T>[];
     for (var i = 0; i < list.length; i++) {
@@ -120,7 +120,7 @@ extension NodeCreationHelpers on OpenApiNode {
     return nodes;
   }
 
-  Map<String, T>? createMapNode<T extends OpenApiNode>() {
+  Map<String, T>? createMapNode<T extends Node>() {
     final nodes = <String, T>{};
     for (final entry in json.entries) {
       final key = entry.key.toString();

@@ -1,4 +1,4 @@
-import '../schema_node.dart';
+import '../schema.dart';
 import '../schema_type.dart';
 import '../typed_schema/typed_schema.dart';
 import '../typed_schema/integer_typed_schema.dart';

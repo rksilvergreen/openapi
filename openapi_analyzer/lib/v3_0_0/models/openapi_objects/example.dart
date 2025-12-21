@@ -11,7 +11,7 @@ abstract class Example {
   Map<String, dynamic>? get extensions;
 }
 
-class ExampleNode extends OpenApiNode with LeafNode, Referencable implements Example {
+class ExampleNode extends Node with LeafNode, Referencable implements Example {
   ExampleNode(super.json, super.document, super.jsonPointer);
 
   late final String? summary;
@@ -83,5 +83,3 @@ class ExampleNode extends OpenApiNode with LeafNode, Referencable implements Exa
     extensions = extractExtensions(json);
   }
 }
-
-

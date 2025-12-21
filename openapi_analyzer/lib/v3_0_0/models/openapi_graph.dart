@@ -4,7 +4,7 @@ import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/openapi_document.
 import 'package:openapi_analyzer/validation_exception.dart';
 import '../validation/validation_context.dart';
 import '../reference/reference_resolver.dart';
-import 'openapi_objects/schema/schema_node.dart';
+import 'openapi_objects/schema/schema.dart';
 
 abstract class Node {
   final NodeId $id;
@@ -27,12 +27,12 @@ abstract class Node {
   void create();
 
   static T ofType<T extends Node>(Map<String, dynamic> json, String document, String jsonPointer) {
-    if (T is OpenApiNode) {
-      return OpenApiNode(json, document, jsonPointer);
-    } else if (T is SchemaNode) {
-      return SchemaNode(json, document, jsonPointer);
-    }
-    throw Exception('Unsupported node type: $T');
+    // if (T is OpenApiNode) {
+    //   return OpenApiNode(json, document, jsonPointer);
+    // } else if (T is SchemaNode) {
+    //   return SchemaNode(json, document, jsonPointer);
+    // }
+    // throw Exception('Unsupported node type: $T');
   }
 }
 
@@ -44,9 +44,9 @@ class NodeId {
   const NodeId(this.document, this.jsonPointer) : absolutePointer = '$document#$jsonPointer';
 }
 
-abstract class OpenApiNode extends Node {
-  OpenApiNode(super.json, super.document, super.jsonPointer);
-}
+// abstract class OpenApiNode extends Node {
+//   OpenApiNode(super.json, super.document, super.jsonPointer);
+// }
 
 mixin InternalNode on Node {
   @override
@@ -120,7 +120,7 @@ class OpenApiGraph {
 
       // Create root node
       final rootNode = OpenApiDocumentNode(yamlDoc as Map<String, dynamic>, rootDocumentName, '/');
-      addOpenApiNode(rootNode);
+      addNode(rootNode);
 
       // Trigger three-stage pipeline
       rootNode.create();
@@ -139,51 +139,37 @@ class OpenApiGraph {
     }
   }
 
-  final Map<String, OpenApiNode> openApiNodes = {};
-  final Map<String, SchemaNode> schemaNodes = {};
-  final List<OpenApiEdge> openApiEdges = [];
-  final List<StructuralEdge> schemaStructuralEdges = [];
-  final List<ApplicatorEdge> schemaApplicatorEdges = [];
+  final Map<String, Node> nodes = {};
+  final List<Edge> edges = [];
 
-  void addOpenApiNode(OpenApiNode node) => openApiNodes[node.$id.absolutePointer] = node;
+  void addNode(Node node) => nodes[node.$id.absolutePointer] = node;
 
-  void addSchemaNode(SchemaNode node) => schemaNodes[node.$id.absolutePointer] = node;
+  void addEdge(Node from, Node to, String via, EdgeForm form) => edges.add(Edge(from, to, via, form));
 
-  void addOpenApiEdge(OpenApiNode from, OpenApiNode to, String via, EdgeForm form) {
-    final edge = OpenApiEdge(from.$id.absolutePointer, to.$id.absolutePointer, via, form);
-    openApiEdges.add(edge);
-    from.$to.add(edge);
-    to.$from.add(edge);
-  }
+  T getNode<T extends Node>(NodeId id) => nodes[id.absolutePointer]! as T;
 
-  void addSchemaStructuralEdge(StructuralEdge edge) => schemaStructuralEdges.add(edge);
+  // List<OpenApiNode> getOpenApiNodeParents(OpenApiNode node) =>
+  //     openApiEdges.where((edge) => edge.to == node).map((edge) => edge.from).toList();
 
-  void addSchemaApplicatorEdge(ApplicatorEdge edge) => schemaApplicatorEdges.add(edge);
+  // List<Node> getOpenApiNodeChildren(OpenApiNode node) =>
+  //     openApiEdges.where((edge) => edge.from == node).map((edge) => edge.to).toList();
 
-  T getOpenApiNode<T extends OpenApiNode>(NodeId id) => openApiNodes[id.absolutePointer]! as T;
+  // SchemaNode getSchemaNode(NodeId id) => schemaNodes[id.absolutePointer]!;
 
-  List<OpenApiNode> getOpenApiNodeParents(OpenApiNode node) =>
-      openApiEdges.where((edge) => edge.to == node).map((edge) => edge.from).toList();
+  // List<Node> getSchemaNodeStructuralParents<T extends StructuralEdge>(SchemaNode node) =>
+  //     schemaStructuralEdges.where((edge) => edge is T && edge.to == node).map((edge) => edge.from).toList();
 
-  List<Node> getOpenApiNodeChildren(OpenApiNode node) =>
-      openApiEdges.where((edge) => edge.from == node).map((edge) => edge.to).toList();
+  // List<SchemaNode> getSchemaNodeStructuralChildren<T extends StructuralEdge>(SchemaNode node) =>
+  //     schemaStructuralEdges.where((edge) => edge is T && edge.from == node).map((edge) => edge.to).toList();
 
-  SchemaNode getSchemaNode(NodeId id) => schemaNodes[id.absolutePointer]!;
+  // List<SchemaNode> getSchemaNodeApplicatorParents<T extends ApplicatorEdge>(SchemaNode node) =>
+  //     schemaApplicatorEdges.where((edge) => edge is T && edge.to == node).map((edge) => edge.from).toList();
 
-  List<Node> getSchemaNodeStructuralParents<T extends StructuralEdge>(SchemaNode node) =>
-      schemaStructuralEdges.where((edge) => edge is T && edge.to == node).map((edge) => edge.from).toList();
+  // List<SchemaNode> getSchemaNodeApplicatorChildren<T extends ApplicatorEdge>(SchemaNode node) =>
+  //     schemaApplicatorEdges.where((edge) => edge is T && edge.from == node).map((edge) => edge.to).toList();
 
-  List<SchemaNode> getSchemaNodeStructuralChildren<T extends StructuralEdge>(SchemaNode node) =>
-      schemaStructuralEdges.where((edge) => edge is T && edge.from == node).map((edge) => edge.to).toList();
-
-  List<SchemaNode> getSchemaNodeApplicatorParents<T extends ApplicatorEdge>(SchemaNode node) =>
-      schemaApplicatorEdges.where((edge) => edge is T && edge.to == node).map((edge) => edge.from).toList();
-
-  List<SchemaNode> getSchemaNodeApplicatorChildren<T extends ApplicatorEdge>(SchemaNode node) =>
-      schemaApplicatorEdges.where((edge) => edge is T && edge.from == node).map((edge) => edge.to).toList();
-
-  List<SchemaNode> getStructuralSchemaRoots() =>
-      schemaStructuralEdges.where((edge) => edge is RootEdge).map((edge) => edge.to).toList();
+  // List<SchemaNode> getStructuralSchemaRoots() =>
+  //     schemaStructuralEdges.where((edge) => edge is RootEdge).map((edge) => edge.to).toList();
 
   /// Converts an absolute document path to a relative path for use in NodeId.
   /// Returns just the filename for the main document, or a relative path for external documents.
@@ -232,16 +218,13 @@ enum EdgeForm {
   referenced,
 }
 
-abstract class Edge {
-  final String _from;
-  final String _to;
+ class Edge {
+  final Node from;
+  final Node to;
   final String via;
   final EdgeForm form;
 
-  Edge(this._from, this._to, this.via, this.form );
-
-  Node get from;
-  Node get to;
+  Edge(this.from, this.to, this.via, this.form );
 }
 
 extension EdgeIterableExtension on Iterable<Edge> {
@@ -257,59 +240,59 @@ extension EdgeIterableExtension on Iterable<Edge> {
   }
 }
 
-class OpenApiEdge extends Edge {
-  OpenApiEdge(super.from, super.to, super.via, super.form);
+// class OpenApiEdge extends Edge {
+//   OpenApiEdge(super.from, super.to, super.via, super.form);
 
-  late OpenApiNode? _$from;
-  late Node? _$to;
-  OpenApiNode get from => _$from ??= OpenApiGraph.i.openApiNodes[_from]!;
-  Node get to => _$to ??= OpenApiGraph.i.openApiNodes[_to] ?? OpenApiGraph.i.schemaNodes[_to]!;
-}
+//   late OpenApiNode? _$from;
+//   late Node? _$to;
+//   OpenApiNode get from => _$from ??= OpenApiGraph.i.openApiNodes[_from]!;
+//   Node get to => _$to ??= OpenApiGraph.i.openApiNodes[_to] ?? OpenApiGraph.i.schemaNodes[_to]!;
+// }
 
-abstract class SchemaEdge extends Edge {
-  SchemaEdge(super.from, super.to, super.via, super.form);
-}
+// abstract class SchemaEdge extends Edge {
+//   SchemaEdge(super.from, super.to, super.via, super.form);
+// }
 
-abstract class StructuralEdge extends SchemaEdge {
-  late Node? _$from;
-  late SchemaNode? _$to;
-  Node get from => _$from ??= OpenApiGraph.i.schemaNodes[_from] ?? OpenApiGraph.i.openApiNodes[_from]!;
-  SchemaNode get to => _$to ??= OpenApiGraph.i.schemaNodes[_to]!;
-  StructuralEdge(super.from, super.to, super.via, super.form);
-}
+// abstract class StructuralEdge extends SchemaEdge {
+//   late Node? _$from;
+//   late SchemaNode? _$to;
+//   Node get from => _$from ??= OpenApiGraph.i.schemaNodes[_from] ?? OpenApiGraph.i.openApiNodes[_from]!;
+//   SchemaNode get to => _$to ??= OpenApiGraph.i.schemaNodes[_to]!;
+//   StructuralEdge(super.from, super.to, super.via, super.form);
+// }
 
-class RootEdge extends StructuralEdge {
-  RootEdge(String from, String to, EdgeForm form) : super(from, to, 'root', form);
-}
+// class RootEdge extends Edge {
+//   RootEdge(Node from, Node to, EdgeForm form) : super(from, to, 'root', form);
+// }
 
-class PropertiesEdge extends StructuralEdge {
-  PropertiesEdge(String from, String to, EdgeForm form) : super(from, to, 'properties', form);
-}
+// class PropertiesEdge extends StructuralEdge {
+//   PropertiesEdge(String from, String to, EdgeForm form) : super(from, to, 'properties', form);
+// }
 
-class AdditionalPropertiesEdge extends StructuralEdge {
-  AdditionalPropertiesEdge(String from, String to, EdgeForm form) : super(from, to, 'additionalProperties', form);
-}
+// class AdditionalPropertiesEdge extends StructuralEdge {
+//   AdditionalPropertiesEdge(String from, String to, EdgeForm form) : super(from, to, 'additionalProperties', form);
+// }
 
-class ItemsEdge extends StructuralEdge {
-  ItemsEdge(String from, String to, EdgeForm form) : super(from, to, 'items', form);
-}
+// class ItemsEdge extends StructuralEdge {
+//   ItemsEdge(String from, String to, EdgeForm form) : super(from, to, 'items', form);
+// }
 
-abstract class ApplicatorEdge extends SchemaEdge {
-  late SchemaNode? _$from;
-  late SchemaNode? _$to;
-  SchemaNode get from => _$from ??= OpenApiGraph.i.schemaNodes[_from]!;
-  SchemaNode get to => _$to ??= OpenApiGraph.i.schemaNodes[_to]!;
-  ApplicatorEdge(super.from, super.to, super.via, super.form);
-}
+// abstract class ApplicatorEdge extends SchemaEdge {
+//   late SchemaNode? _$from;
+//   late SchemaNode? _$to;
+//   SchemaNode get from => _$from ??= OpenApiGraph.i.schemaNodes[_from]!;
+//   SchemaNode get to => _$to ??= OpenApiGraph.i.schemaNodes[_to]!;
+//   ApplicatorEdge(super.from, super.to, super.via, super.form);
+// }
 
-class AllOfEdge extends ApplicatorEdge {
-  AllOfEdge(String from, String to, EdgeForm form) : super(from, to, 'allOf', form);
-}
+// class AllOfEdge extends ApplicatorEdge {
+//   AllOfEdge(String from, String to, EdgeForm form) : super(from, to, 'allOf', form);
+// }
 
-class OneOfEdge extends ApplicatorEdge {
-  OneOfEdge(String from, String to, EdgeForm form) : super(from, to, 'oneOf', form);
-}
+// class OneOfEdge extends ApplicatorEdge {
+//   OneOfEdge(String from, String to, EdgeForm form) : super(from, to, 'oneOf', form);
+// }
 
-class AnyOfEdge extends ApplicatorEdge {
-  AnyOfEdge(String from, String to, EdgeForm form) : super(from, to, 'anyOf', form);
-}
+// class AnyOfEdge extends ApplicatorEdge {
+//   AnyOfEdge(String from, String to, EdgeForm form) : super(from, to, 'anyOf', form);
+// }

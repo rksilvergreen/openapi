@@ -10,7 +10,7 @@ abstract class XML {
   Map<String, dynamic>? get extensions;
 }
 
-class XMLNode extends OpenApiNode with LeafNode implements XML {
+class XMLNode extends Node with LeafNode implements XML {
   XMLNode(super.json, super.document, super.jsonPointer);
 
   late final String? name;

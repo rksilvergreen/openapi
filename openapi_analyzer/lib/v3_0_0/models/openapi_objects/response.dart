@@ -14,7 +14,7 @@ abstract class Response {
   Map<String, dynamic>? get extensions;
 }
 
-class ResponseNode extends OpenApiNode with InternalNode, Referencable implements Response {
+class ResponseNode extends Node with InternalNode, Referencable implements Response {
   ResponseNode(super.json, super.document, super.jsonPointer);
 
   late final String? description;

@@ -1,4 +1,4 @@
-import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_node.dart';
+import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_graph.dart';
 import '../raw_schema.dart';

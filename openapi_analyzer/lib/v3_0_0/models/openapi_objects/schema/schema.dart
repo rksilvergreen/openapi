@@ -7,45 +7,110 @@ import 'typed_schema/typed_schema.dart';
 import 'effective_schema/effective_schema.dart';
 import '../external_documentation.dart';
 import '../xml.dart';
+import 'schema_map.dart';
+import 'schemas_list.dart';
+import '../../node_creation_helpers.dart';
+import '../discriminator.dart';
 
-class SchemaNode extends Node with Referencable {
-  SchemaNode(Map<String, dynamic> json, String document, String jsonPointer)
-    : super(NodeId(document, jsonPointer), json);
+abstract class Schema {
+  String? get title;
+  String? get description;
+  dynamic get default_;
+  String? get type;
+  String? get format;
+  num? get multipleOf;
+  num? get maximum;
+  num? get exclusiveMaximum;
+  num? get minimum;
+  num? get exclusiveMinimum;
+  int? get maxLength;
+  int? get minLength;
+  String? get pattern;
+  int? get maxItems;
+  int? get minItems;
+  bool get uniqueItems;
+  SchemaNode? get items;
+  int? get maxProperties;
+  int? get minProperties;
+  List<String>? get required_;
+  SchemasMapNode? get properties;
+  bool? get additionalPropertiesAllowed;
+  SchemaNode? get additionalProperties;
+  SchemasListNode? get allOf;
+  SchemasListNode? get oneOf;
+  SchemasListNode? get anyOf;
+  List<dynamic>? get enum_;
+  bool get nullable;
+  DiscriminatorNode? get discriminator;
+  bool get readOnly;
+  bool get writeOnly;
+  XMLNode? get xml;
+  ExternalDocumentationNode? get externalDocs;
+  dynamic get example;
+  bool get deprecated;
+  Map<String, dynamic>? get extensions;
+}
 
-  void create() {
-    _validateStructure();
-    _createChildNodes();
-    _createContent();
-  }
+class SchemaNode extends Node with Referencable, InternalNode implements Schema {
+  // JSON Schema Core keywords
+  late final String? title;
+  late final String? description;
+  late final dynamic default_;
 
-  bool _isStructuralValidationPassed = false;
-  bool _isRawSet = false;
-  bool isTypedSet = false;
-  bool isEffectiveSet = false;
+  // Type and format
+  late final String? type;
+  late final String? format;
 
-  bool get isStructuralValidated => _isStructuralValidationPassed;
-  bool get isRawSet => _isRawSet;
-  bool get isTypedSchemaSet => isTypedSet;
-  bool get isEffectiveSchemaSet => isEffectiveSet;
+  // Numeric validations
+  late final num? multipleOf;
+  late final num? maximum;
+  late final num? exclusiveMaximum;
+  late final num? minimum;
+  late final num? exclusiveMinimum;
 
-  late final List<SchemaNode>? allOfNodes;
-  late final List<SchemaNode>? oneOfNodes;
-  late final List<SchemaNode>? anyOfNodes;
-  late final Map<String, SchemaNode>? propertiesNodes;
-  late final SchemaNode? additionalPropertiesNode;
-  late final SchemaNode itemsNode;
+  // String validations
+  late final int? maxLength;
+  late final int? minLength;
+  late final String? pattern;
 
-  late final ExternalDocumentationNode? externalDocsNode;
-  late final XMLNode? xmlNode;
+  // Array validations
+  late final int? maxItems;
+  late final int? minItems;
+  late final bool uniqueItems;
+  late final SchemaNode? items;
 
-  late final RawSchema raw;
-  late final TypedSchema typed;
-  late final EffectiveSchema effective;
+  // Object validations
+  late final int? maxProperties;
+  late final int? minProperties;
+  late final List<String>? required_;
+  late final SchemasMapNode? properties;
+  late final bool? additionalPropertiesAllowed;
+  late final SchemaNode? additionalProperties;
 
-  void _validateStructure() {
-    _isStructuralValidationPassed = true;
+  // Composition
+  late final SchemasListNode? allOf;
+  late final SchemasListNode? oneOf;
+  late final SchemasListNode? anyOf;
+
+  // Generic
+  late final List<dynamic>? enum_;
+
+  // OpenAPI-specific
+  late final bool nullable;
+  late final DiscriminatorNode? discriminator;
+  late final bool readOnly;
+  late final bool writeOnly;
+  late final XMLNode? xml;
+  late final ExternalDocumentationNode? externalDocs;
+  late final dynamic example;
+  late final bool deprecated;
+  late final Map<String, dynamic>? extensions;
+
+  SchemaNode(super.json, super.document, super.jsonPointer);
+
+  @override
+  void validateStructure() {
     final jsonPointer = $id.jsonPointer;
-
     _validateType(jsonPointer);
     _validateNumericConstraints(jsonPointer);
     _validateStringConstraints(jsonPointer);
@@ -233,184 +298,56 @@ class SchemaNode extends Node with Referencable {
     }
   }
 
-  void _createChildNodes() {
-    // Create Structural Children
-    _createPropertiesNodes();
-    _createItemsNode();
-    _createAdditionalPropertiesNode();
-
-    // Create Applicator Children
-    _createAllOfNodes();
-    _createOneOfNodes();
-    _createAnyOfNodes();
-
-    // Create XML and ExternalDocs nodes if present
-    _createXmlNode();
-    _createExternalDocsNode();
+  @override
+  void createChildNodes() {
+    createNode<SchemasMapNode>(jsonKey: 'properties');
+    createNode<SchemaNode>(jsonKey: 'items');
+    if (json['additionalProperties'] is Map) {
+      createNode<SchemaNode>(jsonKey: 'additionalProperties');
+    }
+    createNode<SchemasListNode>(jsonKey: 'allOf');
+    createNode<SchemasListNode>(jsonKey: 'oneOf');
+    createNode<SchemasListNode>(jsonKey: 'anyOf');
+    createNode<XMLNode>(jsonKey: 'xml');
+    createNode<ExternalDocumentationNode>(jsonKey: 'externalDocs');
   }
 
-  void _createPropertiesNodes() {
-    if (!json.containsKey('properties')) {
-      return;
-    }
-
-    final propertiesMap = json['properties'] as Map<String, dynamic>;
-    propertiesNodes = {};
-    for (final entry in propertiesMap.entries) {
-      final propertyName = entry.key.toString();
-      final propertyJson = entry.value as Map<String, dynamic>;
-      final propertyNode = SchemaNode(
-        propertyJson,
-        $id.document,
-        ValidationUtils.buildPointer([$id.jsonPointer, 'properties', propertyName]),
-      );
-      propertiesNodes![propertyName] = propertyNode;
-      if (!OpenApiGraph.i.schemaNodes.containsKey(propertyNode.$id.absolutePointer)) {
-        OpenApiGraph.i.addSchemaNode(propertyNode);
-        OpenApiGraph.i.addSchemaStructuralEdge(PropertiesEdge($id.absolutePointer, propertyNode.$id.absolutePointer));
-        propertyNode.create();
-      }
-    }
-  }
-
-  void _createItemsNode() {
-    if (!json.containsKey('items')) {
-      return;
-    }
-
-    final items = json['items'] as Map<String, dynamic>;
-    itemsNode = SchemaNode(items, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'items']));
-    if (!OpenApiGraph.i.schemaNodes.containsKey(itemsNode.$id.absolutePointer)) {
-      OpenApiGraph.i.addSchemaNode(itemsNode);
-      OpenApiGraph.i.addSchemaStructuralEdge(ItemsEdge($id.absolutePointer, itemsNode.$id.absolutePointer));
-      itemsNode.create();
-    }
-  }
-
-  void _createAdditionalPropertiesNode() {
-    if (!json.containsKey('additionalProperties')) {
-      return;
-    }
-
-    final additionalProps = json['additionalProperties'];
-    if (additionalProps is Map) {
-      additionalPropertiesNode = SchemaNode(
-        additionalProps as Map<String, dynamic>,
-        $id.document,
-        ValidationUtils.buildPointer([$id.jsonPointer, 'additionalProperties']),
-      );
-      if (!OpenApiGraph.i.schemaNodes.containsKey(additionalPropertiesNode!.$id.absolutePointer)) {
-        OpenApiGraph.i.addSchemaNode(additionalPropertiesNode!);
-        OpenApiGraph.i.addSchemaStructuralEdge(
-          AdditionalPropertiesEdge($id.absolutePointer, additionalPropertiesNode!.$id.absolutePointer),
-        );
-        additionalPropertiesNode!.create();
-      }
-    }
-    // If additionalProperties is boolean, no child node is created
-  }
-
-  void _createAllOfNodes() {
-    if (!json.containsKey('allOf')) {
-      return;
-    }
-
-    final allOfList = json['allOf'] as List;
-    allOfNodes = [];
-    for (var i = 0; i < allOfList.length; i++) {
-      final allOfJson = allOfList[i] as Map<String, dynamic>;
-      final allOfNode = SchemaNode(
-        allOfJson,
-        $id.document,
-        ValidationUtils.buildPointer([$id.jsonPointer, 'allOf', '[$i]']),
-      );
-      allOfNodes!.add(allOfNode);
-      if (!OpenApiGraph.i.schemaNodes.containsKey(allOfNode.$id.absolutePointer)) {
-        OpenApiGraph.i.addSchemaNode(allOfNode);
-        OpenApiGraph.i.addSchemaApplicatorEdge(AllOfEdge($id.absolutePointer, allOfNode.$id.absolutePointer));
-        allOfNode.create();
-      }
-    }
-  }
-
-  void _createOneOfNodes() {
-    if (!json.containsKey('oneOf')) {
-      return;
-    }
-
-    final oneOfList = json['oneOf'] as List;
-    oneOfNodes = [];
-    for (var i = 0; i < oneOfList.length; i++) {
-      final oneOfJson = oneOfList[i] as Map<String, dynamic>;
-      final oneOfNode = SchemaNode(
-        oneOfJson,
-        $id.document,
-        ValidationUtils.buildPointer([$id.jsonPointer, 'oneOf', '[$i]']),
-      );
-      oneOfNodes!.add(oneOfNode);
-      if (!OpenApiGraph.i.schemaNodes.containsKey(oneOfNode.$id.absolutePointer)) {
-        OpenApiGraph.i.addSchemaNode(oneOfNode);
-        OpenApiGraph.i.addSchemaApplicatorEdge(OneOfEdge($id.absolutePointer, oneOfNode.$id.absolutePointer));
-        oneOfNode.create();
-      }
-    }
-  }
-
-  void _createAnyOfNodes() {
-    if (!json.containsKey('anyOf')) {
-      return;
-    }
-
-    final anyOfList = json['anyOf'] as List;
-    anyOfNodes = [];
-    for (var i = 0; i < anyOfList.length; i++) {
-      final anyOfJson = anyOfList[i] as Map<String, dynamic>;
-      final anyOfNode = SchemaNode(
-        anyOfJson,
-        $id.document,
-        ValidationUtils.buildPointer([$id.jsonPointer, 'anyOf', '[$i]']),
-      );
-      anyOfNodes!.add(anyOfNode);
-      if (!OpenApiGraph.i.schemaNodes.containsKey(anyOfNode.$id.absolutePointer)) {
-        OpenApiGraph.i.addSchemaNode(anyOfNode);
-        OpenApiGraph.i.addSchemaApplicatorEdge(AnyOfEdge($id.absolutePointer, anyOfNode.$id.absolutePointer));
-        anyOfNode.create();
-      }
-    }
-  }
-
-  void _createXmlNode() {
-    if (!json.containsKey('xml')) {
-      return;
-    }
-
-    final xmlJson = json['xml'] as Map<String, dynamic>;
-    xmlNode = XMLNode(xmlJson, $id.document, ValidationUtils.buildPointer([$id.jsonPointer, 'xml']));
-    OpenApiGraph.i.addOpenApiNode(xmlNode!);
-    xmlNode!.create();
-    // Note: XML node is connected but not via standard edges
-  }
-
-  void _createExternalDocsNode() {
-    if (!json.containsKey('externalDocs')) {
-      return;
-    }
-
-    final externalDocsJson = json['externalDocs'] as Map<String, dynamic>;
-    externalDocsNode = ExternalDocumentationNode(
-      externalDocsJson,
-      $id.document,
-      ValidationUtils.buildPointer([$id.jsonPointer, 'externalDocs']),
-    );
-    OpenApiGraph.i.addOpenApiNode(externalDocsNode!);
-    externalDocsNode!.create();
-    // Note: ExternalDocs node is connected but not via standard edges
-  }
-
-  void _createContent() {
-    _createRaw();
-    _createTyped();
-    _createEffective();
+  @override
+  void createContent() {
+    title = json['title'];
+    description = json['description'];
+    default_ = json['default'];
+    type = json['type'];
+    format = json['format'];
+    multipleOf = json['multipleOf'];
+    maximum = json['maximum'];
+    exclusiveMaximum = json['exclusiveMaximum'];
+    minimum = json['minimum'];
+    exclusiveMinimum = json['exclusiveMinimum'];
+    maxLength = json['maxLength'];
+    minLength = json['minLength'];
+    pattern = json['pattern'];
+    maxItems = json['maxItems'];
+    minItems = json['minItems'];
+    uniqueItems = json['uniqueItems'];
+    items = $to.to<SchemaNode>('items');
+    maxProperties = json['maxProperties'];
+    minProperties = json['minProperties'];
+    required_ = json['required'];
+    properties = $to.to<SchemasMapNode>('properties');
+    additionalPropertiesAllowed = json['additionalProperties'] is bool ? json['additionalProperties'] : null;
+    additionalProperties = $to.to<SchemaNode>('additionalProperties');
+    allOf = $to.to<SchemasListNode>('allOf');
+    oneOf = $to.to<SchemasListNode>('oneOf');
+    anyOf = $to.to<SchemasListNode>('anyOf');
+    discriminator = $to.to<DiscriminatorNode>('discriminator');
+    readOnly = json['readOnly'];
+    writeOnly = json['writeOnly'];
+    xml = $to.to<XMLNode>('xml');
+    externalDocs = $to.to<ExternalDocumentationNode>('externalDocs');
+    example = json['example'];
+    deprecated = json['deprecated'];
+    extensions = extractExtensions(json);
   }
 
   void _createRaw() {

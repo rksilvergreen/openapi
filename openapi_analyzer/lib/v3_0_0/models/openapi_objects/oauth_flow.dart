@@ -8,7 +8,8 @@ abstract class OAuthFlow {
   Map<String, String> get scopes;
   Map<String, dynamic>? get extensions;
 }
-class OAuthFlowNode extends OpenApiNode with LeafNode implements OAuthFlow {
+
+class OAuthFlowNode extends Node with LeafNode implements OAuthFlow {
   OAuthFlowNode(super.json, super.document, super.jsonPointer);
 
   late final String? authorizationUrl;

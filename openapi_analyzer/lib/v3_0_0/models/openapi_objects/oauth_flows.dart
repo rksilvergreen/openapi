@@ -11,7 +11,7 @@ abstract class OAuthFlows {
   Map<String, dynamic>? get extensions;
 }
 
-class OAuthFlowsNode extends OpenApiNode with InternalNode implements OAuthFlows {
+class OAuthFlowsNode extends Node with InternalNode implements OAuthFlows {
   OAuthFlowsNode(super.json, super.document, super.jsonPointer);
 
   late final OAuthFlowNode? implicit;

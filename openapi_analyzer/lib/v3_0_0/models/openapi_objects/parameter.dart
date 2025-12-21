@@ -4,7 +4,7 @@ import '../../../validation_exception.dart';
 import '../referencable.dart';
 import '../node_creation_helpers.dart';
 import 'enums.dart';
-import 'schema/schema_node.dart';
+import 'schema/schema.dart';
 import 'schema/effective_schema/effective_schema.dart';
 import 'example.dart';
 import 'media_type.dart';
@@ -21,14 +21,14 @@ abstract class Parameter {
   ParameterStyle? get style;
   bool? get explode;
   bool get allowReserved;
-  EffectiveSchema? get schema;
+  Schema? get schema;
   dynamic get example;
   ExamplesMap? get examples;
   MediaTypesMap? get content;
   Map<String, dynamic>? get extensions;
 }
 
-class ParameterNode extends OpenApiNode with InternalNode, Referencable implements Parameter {
+class ParameterNode extends Node with InternalNode, Referencable implements Parameter {
   ParameterNode(super.json, super.document, super.jsonPointer);
 
   late final String name;
@@ -40,7 +40,7 @@ class ParameterNode extends OpenApiNode with InternalNode, Referencable implemen
   late final ParameterStyle? style;
   late final bool? explode;
   late final bool allowReserved;
-  late final EffectiveSchema? schema;
+  late final SchemaNode? schema;
   late final dynamic example;
   late final ExamplesMapNode? examples;
   late final MediaTypesMapNode? content;
@@ -199,7 +199,7 @@ class ParameterNode extends OpenApiNode with InternalNode, Referencable implemen
     style = json['style'] != null ? ParameterStyle.values.firstWhere((e) => e.value == json['style']) : null;
     explode = json['explode'];
     allowReserved = json['allowReserved'] ?? false;
-    schema = $to.to<SchemaNode>('schema')?.effective;
+    schema = $to.to<SchemaNode>('schema');
     example = json['example'];
     examples = $to.to<ExamplesMapNode>('examples');
     content = $to.to<MediaTypesMapNode>('content');

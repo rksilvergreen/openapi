@@ -2,25 +2,23 @@ import '../openapi_graph.dart';
 import '../../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 import '../node_creation_helpers.dart';
-import 'schema/schema_node.dart';
-import 'schema/effective_schema/effective_schema.dart';
-import 'example.dart';
-import 'encoding.dart';
+import 'schema/schema.dart';
 import 'examples_map.dart';
 import 'encodings_map.dart';
+import 'schema/schema_map.dart';
 
 abstract class MediaType {
-  EffectiveSchema? get schema;
+  SchemasMap? get schema;
   dynamic get example;
   ExamplesMap? get examples;
   EncodingsMap? get encoding;
   Map<String, dynamic>? get extensions;
 }
 
-class MediaTypeNode extends OpenApiNode with InternalNode implements MediaType {
+class MediaTypeNode extends Node with InternalNode implements MediaType {
   MediaTypeNode(super.json, super.document, super.jsonPointer);
 
-  late final EffectiveSchema? schema;
+  late final SchemasMapNode? schema;
   late final dynamic example;
   late final ExamplesMapNode? examples;
   late final EncodingsMapNode? encoding;
@@ -86,7 +84,7 @@ class MediaTypeNode extends OpenApiNode with InternalNode implements MediaType {
 
   @override
   void createContent() {
-    schema = $to.to<SchemaNode>('schema');
+    schema = $to.to<SchemasMapNode>('schema');
     example = json['example'];
     examples = $to.to<ExamplesMapNode>('examples');
     encoding = $to.to<EncodingsMapNode>('encoding');
