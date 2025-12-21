@@ -57,6 +57,9 @@ abstract class Node {
   final List<Edge> $from = [];
   final List<Edge> $to = [];
 
+  T? parent<T extends Node>(String via) =>
+      $from.firstWhereOrNull((edge) => edge.from is T && edge.via == via)?.from as T?;
+
   Map<String, dynamic>? extractExtensions(Map<String, dynamic> json) {
     final extensions = <String, dynamic>{};
     for (final entry in json.entries) {
@@ -225,6 +228,8 @@ class OpenApiGraph {
 
   final Map<String, Node> nodes = {};
   final List<Edge> edges = [];
+  final Map<String, String> _schemaNames = {}; // absolutePointer -> name
+  final Map<String, List<String>> _nameRegistry = {}; // name -> list of absolutePointers using this name
 
   void addNode(Node node) => nodes[node.$id.absolutePointer] = node;
 
@@ -236,6 +241,50 @@ class OpenApiGraph {
   }
 
   T getNode<T extends Node>(NodeId id) => nodes[id.absolutePointer]! as T;
+
+  /// Registers a name for a schema, handling collisions with deterministic suffixes.
+  /// Returns the final unique name (may have _2, _3, etc. suffix if there was a collision).
+  String registerSchemaName(String absolutePointer, String baseName) {
+    // Check if this node already has a name
+    if (_schemaNames.containsKey(absolutePointer)) {
+      return _schemaNames[absolutePointer]!;
+    }
+
+    // Check for collisions
+    String finalName = baseName;
+    if (_nameRegistry.containsKey(baseName)) {
+      // Collision detected - add suffix
+      final existingPointers = _nameRegistry[baseName]!;
+      final count = existingPointers.length + 1;
+      finalName = '${baseName}_$count';
+
+      // Add this pointer to the registry
+      existingPointers.add(absolutePointer);
+      _nameRegistry[baseName] = existingPointers;
+
+      // Add low severity validation exception for the collision
+      validationContext.addException(
+        OpenApiValidationException(
+          absolutePointer,
+          'Schema name collision: "$baseName" is already used by schemas at: ${existingPointers.join(", ")}',
+          specReference: 'Schema Naming',
+          severity: ValidationSeverity.low,
+        ),
+      );
+    } else {
+      // First use of this name
+      _nameRegistry[baseName] = [absolutePointer];
+    }
+
+    // Store the final name
+    _schemaNames[absolutePointer] = finalName;
+    return finalName;
+  }
+
+  /// Gets a cached name for a schema if it exists.
+  String? getCachedSchemaName(String absolutePointer) {
+    return _schemaNames[absolutePointer];
+  }
 
   /// Converts an absolute document path to a relative path for use in NodeId.
   /// Returns just the filename for the main document, or a relative path for external documents.
@@ -291,11 +340,13 @@ class Edge {
 }
 
 extension EdgeIterableExtension on Iterable<Edge> {
-  T? to<T extends Node>(String via) => _firstWhereOrNull((edge) => (edge.to is T) && (edge.via == via))!.to as T;
+  T? to<T extends Node>(String via) => firstWhereOrNull((edge) => (edge.to is T) && (edge.via == via))!.to as T;
 
-  T? from<T extends Node>(String via) => _firstWhereOrNull((edge) => (edge.from is T) && (edge.via == via))!.from as T;
+  T? from<T extends Node>(String via) => firstWhereOrNull((edge) => (edge.from is T) && (edge.via == via))!.from as T;
+}
 
-  Edge? _firstWhereOrNull(bool Function(Edge element) test) {
+extension _FirstWhereOrNull<T> on Iterable<T> {
+  T? firstWhereOrNull(bool Function(T element) test) {
     for (final e in this) {
       if (test(e)) return e;
     }

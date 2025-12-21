@@ -11,6 +11,20 @@ import 'schemas_list.dart';
 import '../../node_creation_helpers.dart';
 import '../discriminator.dart';
 import 'schema_type.dart';
+import '../../../naming/naming_utils.dart';
+import '../operation.dart';
+import '../parameter.dart';
+import '../components.dart';
+import '../media_type.dart';
+import '../media_types_map.dart';
+import '../request_body.dart';
+import '../response.dart';
+import '../responses_map.dart';
+import '../header.dart';
+import '../headers_map.dart';
+import '../parameters_list.dart';
+import '../path_item.dart';
+import '../paths_map.dart';
 
 abstract class Schema {
   String? get title;
@@ -367,6 +381,291 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
   }
 
   String get name {
-    
+    // Check if we already computed a name for this schema
+    final cached = OpenApiGraph.i.getCachedSchemaName($id.absolutePointer);
+    if (cached != null) return cached;
+
+    // Compute the base name using the naming algorithm
+    String baseName = _computeBaseName();
+
+    // Sanitize and register the name (handles collisions)
+    final sanitized = NamingUtils.toValidDartIdentifier(baseName);
+    return OpenApiGraph.i.registerSchemaName($id.absolutePointer, sanitized);
+  }
+
+  String _computeBaseName() {
+    final pointer = $id.jsonPointer;
+    final parts = pointer.split('/').where((p) => p.isNotEmpty).toList();
+
+    // Step 1: If node is $ref, name from resolved ref target
+    // (In this architecture, refs are already resolved to their target nodes,
+    // so if we're referenced, we are the target and should use our own location)
+
+    // Step 2: If under components/schemas/{key}, use the key
+    for (final edge in $from.where((e) => e.form == EdgeForm.inline)) {
+      if (edge.from is SchemasMapNode) {
+        final schemasMapNode = edge.from as SchemasMapNode;
+        final componentsNode = schemasMapNode.parent<ComponentsNode>('schemas');
+        if (componentsNode != null) {
+          // This schema is in components/schemas, use the map key
+          final componentKey = edge.via; // The key in the schemas map
+          return NamingUtils.toPascalCase(componentKey);
+        }
+      }
+    }
+
+    // Step 3: If schema has title, use it
+    if (title != null && title!.isNotEmpty) {
+      return NamingUtils.toPascalCase(title!);
+    }
+
+    // Step 4: Derive from OpenAPI context
+    final contextName = _deriveFromContext(parts);
+    if (contextName != null) return contextName;
+
+    // Step 5: Derive from parent schema
+    final parentName = _deriveFromParent(parts);
+    if (parentName != null) return parentName;
+
+    // Step 6: Use hash fallback
+    return _generateHashFallback();
+  }
+
+  String? _deriveFromContext(List<String> parts) {
+    // Traverse edges to determine the context
+    for (final edge in $from.where((e) => e.form == EdgeForm.inline)) {
+      // Check for request body schema
+      // Path: schema ← mediaType ← mediaTypesMap ← requestBody ← operation
+      if (edge.from is MediaTypeNode && edge.via == 'schema') {
+        final mediaTypeNode = edge.from as MediaTypeNode;
+        final mediaTypesMapNode = mediaTypeNode.parent<MediaTypesMapNode>('content');
+        if (mediaTypesMapNode != null) {
+          final requestBodyNode = mediaTypesMapNode.parent<RequestBodyNode>('content');
+          if (requestBodyNode != null) {
+            final operation = requestBodyNode.parent<OperationNode>('requestBody');
+            if (operation != null) {
+              if (operation.operationId != null) {
+                return '${NamingUtils.toPascalCase(operation.operationId!)}Request';
+              }
+              // Fallback to path-based name
+              final pathAndMethod = _getPathAndMethodFromOperation(operation);
+              if (pathAndMethod != null) {
+                return NamingUtils.operationNameFromPath(pathAndMethod.$1, pathAndMethod.$2) + 'Request';
+              }
+            }
+          }
+        }
+      }
+
+      // Check for response body schema
+      // Path: schema ← mediaType ← mediaTypesMap ← response ← responsesMap ← operation
+      if (edge.from is MediaTypeNode && edge.via == 'schema') {
+        final mediaTypeNode = edge.from as MediaTypeNode;
+        final mediaTypesMapNode = mediaTypeNode.parent<MediaTypesMapNode>('content');
+        if (mediaTypesMapNode != null) {
+          final responseNode = mediaTypesMapNode.parent<ResponseNode>('content');
+          if (responseNode != null) {
+            // Find the status code from the edge connecting response to responsesMap
+            for (final respEdge in responseNode.$from.where(
+              (e) => e.form == EdgeForm.inline && e.from is ResponsesMapNode,
+            )) {
+              final responsesMapNode = respEdge.from as ResponsesMapNode;
+              final statusCode = respEdge.via; // The map key is the status code
+              final operation = responsesMapNode.parent<OperationNode>('responses');
+              if (operation != null) {
+                if (operation.operationId != null) {
+                  return '${NamingUtils.toPascalCase(operation.operationId!)}${NamingUtils.statusCodeToName(statusCode)}Response';
+                }
+                // Fallback to path-based name
+                final pathAndMethod = _getPathAndMethodFromOperation(operation);
+                if (pathAndMethod != null) {
+                  return NamingUtils.operationNameFromPath(pathAndMethod.$1, pathAndMethod.$2) +
+                      NamingUtils.statusCodeToName(statusCode) +
+                      'Response';
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Check for parameter schema
+      // Path: schema ← parameter ← parametersList ← operation/pathItem
+      if (edge.from is ParameterNode && edge.via == 'schema') {
+        final parameterNode = edge.from as ParameterNode;
+        final paramName = parameterNode.name;
+        final parametersListNode = parameterNode.parent<ParametersListNode>('parameters');
+
+        if (parametersListNode != null) {
+          // Check if it's from an operation
+          final operation = parametersListNode.parent<OperationNode>('parameters');
+          if (operation != null) {
+            if (operation.operationId != null) {
+              return '${NamingUtils.toPascalCase(operation.operationId!)}${NamingUtils.toPascalCase(paramName)}Param';
+            }
+            // Fallback to path-based name
+            final pathAndMethod = _getPathAndMethodFromOperation(operation);
+            if (pathAndMethod != null) {
+              return NamingUtils.operationNameFromPath(pathAndMethod.$1, pathAndMethod.$2) +
+                  NamingUtils.toPascalCase(paramName) +
+                  'Param';
+            }
+          }
+
+          // Check if it's from a path item
+          final pathItemNode = parametersListNode.parent<PathItemNode>('parameters');
+          if (pathItemNode != null) {
+            final path = _getPathFromPathItem(pathItemNode);
+            if (path != null) {
+              return NamingUtils.toPascalCase(Uri.decodeComponent(path)) +
+                  NamingUtils.toPascalCase(paramName) +
+                  'Param';
+            }
+          }
+        }
+      }
+
+      // Check for header schema
+      // Path: schema ← header ← headersMap ← response
+      if (edge.from is HeaderNode && edge.via == 'schema') {
+        final headerNode = edge.from as HeaderNode;
+
+        // Find the header name from the edge connecting header to headersMap
+        for (final headerEdge in headerNode.$from.where((e) => e.form == EdgeForm.inline && e.from is HeadersMapNode)) {
+          final headersMapNode = headerEdge.from as HeadersMapNode;
+          final headerName = headerEdge.via; // The map key is the header name
+
+          // Check if it's from a response
+          final responseNode = headersMapNode.parent<ResponseNode>('headers');
+          if (responseNode != null) {
+            // Try to find the operation
+            final operation = _findOperationFromResponse(responseNode);
+            if (operation?.operationId != null) {
+              return '${NamingUtils.toPascalCase(operation!.operationId!)}${NamingUtils.toPascalCase(headerName)}Header';
+            }
+          }
+
+          // If no operation found, use just the header name
+          return NamingUtils.toPascalCase(headerName) + 'Header';
+        }
+      }
+    }
+
+    return null;
+  }
+
+  String? _deriveFromParent(List<String> parts) {
+    if (parts.length < 2) return null;
+
+    final parentKey = parts[parts.length - 2];
+    final currentKey = parts.last;
+
+    // Get parent schema if this is nested
+    final parentNode = _findParentSchema();
+    if (parentNode == null) return null;
+
+    final parentName = parentNode.name;
+
+    // Property schema: {Parent}{Prop}
+    if (parentKey == 'properties' && parts.length >= 3) {
+      final propertyName = currentKey;
+      return parentName + NamingUtils.toPascalCase(propertyName);
+    }
+
+    // Array items: {Parent}Item
+    if (currentKey == 'items') {
+      return parentName + 'Item';
+    }
+
+    // Additional properties: {Parent}Value
+    if (currentKey == 'additionalProperties') {
+      return parentName + 'Value';
+    }
+
+    // allOf composition: {Parent}AllOf{i}
+    if (parentKey == 'allOf') {
+      final index = int.tryParse(currentKey);
+      if (index != null) {
+        return '${parentName}AllOf${index + 1}';
+      }
+    }
+
+    // oneOf/anyOf variants: {Parent}Variant{i}
+    if (parentKey == 'oneOf' || parentKey == 'anyOf') {
+      final index = int.tryParse(currentKey);
+      if (index != null) {
+        return '${parentName}Variant${index + 1}';
+      }
+    }
+
+    // not: {Parent}Not
+    if (currentKey == 'not') {
+      return parentName + 'Not';
+    }
+
+    return null;
+  }
+
+  OperationNode? _findOperationFromResponse(ResponseNode responseNode) {
+    final responsesMapNode = responseNode.parent<ResponsesMapNode>('responses');
+    return responsesMapNode?.parent<OperationNode>('responses');
+  }
+
+  (String, String)? _getPathAndMethodFromOperation(OperationNode operation) {
+    // Operation is connected to PathItem, and PathItem is in PathsMap
+    for (final edge in operation.$from.where((e) => e.from is PathItemNode)) {
+      final pathItemNode = edge.from as PathItemNode;
+      final method = edge.via; // get_, post, put, etc.
+
+      // Get the path from the PathsMap
+      final path = _getPathFromPathItem(pathItemNode);
+      if (path != null) {
+        // Clean up method name (remove trailing underscore from get_)
+        final cleanMethod = method.endsWith('_') ? method.substring(0, method.length - 1) : method;
+        return (path, cleanMethod);
+      }
+    }
+    return null;
+  }
+
+  String? _getPathFromPathItem(PathItemNode pathItemNode) {
+    // Get the path from the edge connecting PathItem to PathsMap
+    for (final edge in pathItemNode.$from.where((e) => e.from is PathsMapNode)) {
+      return edge.via; // The map key is the path
+    }
+    return null;
+  }
+
+  SchemaNode? _findParentSchema() {
+    // Look through incoming edges to find parent schema
+    for (final edge in $from) {
+      if (edge.from is SchemaNode) {
+        return edge.from as SchemaNode;
+      }
+      // Properties map - need to go one level up
+      if (edge.from is SchemasMapNode) {
+        final mapNode = edge.from as SchemasMapNode;
+        final parentSchema = mapNode.parent<SchemaNode>('properties');
+        if (parentSchema != null) return parentSchema;
+      }
+      // allOf/oneOf/anyOf list - need to go one level up
+      if (edge.from is SchemasListNode) {
+        final listNode = edge.from as SchemasListNode;
+        // Check all possible composition keywords
+        for (final keyword in ['allOf', 'oneOf', 'anyOf']) {
+          final parentSchema = listNode.parent<SchemaNode>(keyword);
+          if (parentSchema != null) return parentSchema;
+        }
+      }
+    }
+    return null;
+  }
+
+  String _generateHashFallback() {
+    // Create a deterministic hash from the absolute pointer
+    final codeUnits = $id.absolutePointer.codeUnits;
+    final hash = codeUnits.fold<int>(0, (prev, code) => (prev * 31 + code) & 0xFFFFFFFF);
+    final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);
+    return 'Anon_$shortHash';
   }
 }
