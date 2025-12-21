@@ -1,29 +1,46 @@
 import '../schema.dart';
-import '../raw_schema.dart';
 import '../schema_type.dart';
-
+import '../../xml.dart';
+import '../../external_documentation.dart';
 import 'typed_schema.dart';
 
-class UnknownTypedSchema extends TypedSchema<UnknownTypedSchema> {
+class UnknownTypedSchema extends TypedSchema<dynamic> {
   UnknownTypedSchema({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    Map<String, dynamic>? example,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
+    dynamic example,
     bool deprecated = false,
     bool nullable = false,
-  }) : super($node, SchemaType.unknown, description, readOnly, writeOnly, example, deprecated, nullable);
+  }) : super(
+         $node,
+         SchemaType.unknown,
+         description,
+         readOnly,
+         writeOnly,
+         xml,
+         externalDocs,
+         example,
+         deprecated,
+         nullable,
+         null,
+         null,
+       );
 
-  factory UnknownTypedSchema.fromRaw(SchemaNode node, RawSchema raw) {
+  factory UnknownTypedSchema.of(SchemaNode node) {
     return UnknownTypedSchema(
       $node: node,
-      description: raw.description,
-      readOnly: raw.readOnly,
-      writeOnly: raw.writeOnly,
-      example: raw.example,
-      deprecated: raw.deprecated,
-      nullable: raw.nullable,
+      description: node.description,
+      readOnly: node.readOnly,
+      writeOnly: node.writeOnly,
+      xml: node.xml,
+      externalDocs: node.externalDocs,
+      example: node.example,
+      deprecated: node.deprecated,
+      nullable: node.nullable,
     );
   }
 }

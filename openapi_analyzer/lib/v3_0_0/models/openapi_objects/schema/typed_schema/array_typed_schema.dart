@@ -1,38 +1,42 @@
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_graph.dart';
-import '../raw_schema.dart';
 import '../../../../validation/validation_context.dart';
 import '../../../../../validation_exception.dart';
-
+import '../../xml.dart';
+import '../../external_documentation.dart';
 import 'typed_schema.dart';
 
-class ArrayTypedSchema extends SingleTypeTypedSchema<List<dynamic>, ArrayTypedSchema> {
-  final SchemaNode items;
+class ArrayTypedSchema extends TypedSchema<List<dynamic>> {
+  final SchemaNode? items;
   final int? maxItems;
   final int? minItems;
-  final bool? uniqueItems;
+  final bool uniqueItems;
 
   ArrayTypedSchema({
     required SchemaNode $node,
-    required String description,
-    required bool readOnly,
-    required bool writeOnly,
-    required Map<String, dynamic>? example,
-    required bool deprecated,
-    required bool nullable,
-    required List<dynamic>? defaultValue,
-    required List<List<dynamic>> enumValues,
-    required this.items,
+    String? description,
+    bool readOnly = false,
+    bool writeOnly = false,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
+    Map<String, dynamic>? example,
+    bool deprecated = false,
+    bool nullable = false,
+    List<dynamic>? defaultValue,
+    List<List<dynamic>>? enumValues,
+    this.items,
     this.maxItems,
     this.minItems,
-    this.uniqueItems,
+    this.uniqueItems = false,
   }) : super(
          $node,
          SchemaType.array,
          description,
          readOnly,
          writeOnly,
+         xml,
+         externalDocs,
          example,
          deprecated,
          nullable,
@@ -40,35 +44,37 @@ class ArrayTypedSchema extends SingleTypeTypedSchema<List<dynamic>, ArrayTypedSc
          enumValues,
        );
 
-  factory ArrayTypedSchema.fromRaw(SchemaNode node, RawSchema raw) {
-    _validateConstraints(raw, node, OpenApiGraph.i.validationContext);
+  factory ArrayTypedSchema.of(SchemaNode node) {
+    TypedSchema.validateConstraints<List<dynamic>>(node, OpenApiGraph.i.validationContext, validateConstraints);
     return ArrayTypedSchema(
       $node: node,
-      description: raw.description ?? '',
-      readOnly: raw.readOnly,
-      writeOnly: raw.writeOnly,
-      example: raw.example,
-      deprecated: raw.deprecated,
-      nullable: raw.nullable,
-      defaultValue: raw.default_ is List ? raw.default_ as List<dynamic> : null,
-      enumValues: (raw.enum_?.whereType<List>().cast<List<dynamic>>().toList()) ?? [],
-      items: node.itemsNode,
-      minItems: raw.minItems,
-      maxItems: raw.maxItems,
-      uniqueItems: raw.uniqueItems,
+      description: node.description,
+      readOnly: node.readOnly,
+      writeOnly: node.writeOnly,
+      xml: node.xml,
+      externalDocs: node.externalDocs,
+      example: node.example,
+      deprecated: node.deprecated,
+      nullable: node.nullable,
+      defaultValue: node.default_,
+      enumValues: node.enum_ as List<List<dynamic>>?,
+      items: node.items,
+      minItems: node.minItems,
+      maxItems: node.maxItems,
+      uniqueItems: node.uniqueItems,
     );
   }
 
   /// Validates atomic constraints for array type.
-  static void _validateConstraints(RawSchema raw, SchemaNode node, ValidationContext ctx) {
+  static void validateConstraints(SchemaNode node, ValidationContext ctx) {
     final jsonPointer = node.$id.jsonPointer;
 
-    if (raw.minItems != null && raw.maxItems != null) {
-      if (raw.minItems! > raw.maxItems!) {
+    if (node.minItems != null && node.maxItems != null) {
+      if (node.minItems! > node.maxItems!) {
         ctx.addException(
           OpenApiValidationException(
             jsonPointer,
-            'minItems (${raw.minItems}) cannot be greater than maxItems (${raw.maxItems})',
+            'minItems (${node.minItems}) cannot be greater than maxItems (${node.maxItems})',
             specReference: 'JSON Schema Validation',
             severity: ValidationSeverity.critical,
           ),

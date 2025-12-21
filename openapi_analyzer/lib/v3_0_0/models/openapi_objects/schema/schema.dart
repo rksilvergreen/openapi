@@ -2,7 +2,6 @@ import '../../openapi_graph.dart';
 import '../../../validation/validation_utils.dart';
 import '../../../../validation_exception.dart';
 import '../../referencable.dart';
-import 'raw_schema.dart';
 import 'typed_schema/typed_schema.dart';
 import 'effective_schema/effective_schema.dart';
 import '../external_documentation.dart';
@@ -355,10 +354,12 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
     example = json['example'];
     deprecated = json['deprecated'];
     extensions = extractExtensions(json);
+    _createTyped();
+    _createEffective();
   }
 
   void _createTyped() {
-    $typed = TypedSchema.fromRaw(this, raw, OpenApiGraph.i.validationContext);
+    $typed = TypedSchema.of(this, OpenApiGraph.i.validationContext);
   }
 
   void _createEffective() {

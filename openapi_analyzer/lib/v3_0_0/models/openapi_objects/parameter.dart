@@ -5,9 +5,6 @@ import '../referencable.dart';
 import '../node_creation_helpers.dart';
 import 'enums.dart';
 import 'schema/schema.dart';
-import 'schema/effective_schema/effective_schema.dart';
-import 'example.dart';
-import 'media_type.dart';
 import 'examples_map.dart';
 import 'media_types_map.dart';
 

@@ -1,15 +1,16 @@
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
+import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_map.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_graph.dart';
-import '../raw_schema.dart';
 import '../../../../validation/validation_context.dart';
 import '../../../../../validation_exception.dart';
-
+import '../../xml.dart';
+import '../../external_documentation.dart';
 import 'typed_schema.dart';
 
-class ObjectTypedSchema extends SingleTypeTypedSchema<Map<String, dynamic>, ObjectTypedSchema> {
-  final Map<String, SchemaNode>? properties;
-  final bool additionalPropertiesAllowed;
+class ObjectTypedSchema extends TypedSchema<Map<String, dynamic>> {
+  final SchemasMapNode? properties;
+  final bool? additionalPropertiesAllowed;
   final SchemaNode? additionalProperties;
   final int? maxProperties;
   final int? minProperties;
@@ -17,16 +18,18 @@ class ObjectTypedSchema extends SingleTypeTypedSchema<Map<String, dynamic>, Obje
 
   ObjectTypedSchema({
     required SchemaNode $node,
-    required String description,
-    required bool readOnly,
-    required bool writeOnly,
-    required Map<String, dynamic>? example,
-    required bool deprecated,
-    required bool nullable,
-    required Map<String, dynamic>? defaultValue,
-    required List<Map<String, dynamic>> enumValues,
+    String? description,
+    bool readOnly = false,
+    bool writeOnly = false,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
+    Map<String, dynamic>? example,
+    bool deprecated = false,
+    bool nullable = false,
+    Map<String, dynamic>? defaultValue,
+    List<Map<String, dynamic>>? enumValues,
     this.properties,
-    this.additionalPropertiesAllowed = true,
+    this.additionalPropertiesAllowed,
     this.additionalProperties,
     this.maxProperties,
     this.minProperties,
@@ -37,6 +40,8 @@ class ObjectTypedSchema extends SingleTypeTypedSchema<Map<String, dynamic>, Obje
          description,
          readOnly,
          writeOnly,
+         xml,
+         externalDocs,
          example,
          deprecated,
          nullable,
@@ -44,34 +49,39 @@ class ObjectTypedSchema extends SingleTypeTypedSchema<Map<String, dynamic>, Obje
          enumValues,
        );
 
-  factory ObjectTypedSchema.fromRaw(SchemaNode node, RawSchema raw) {
-    _validateConstraints(raw, node, OpenApiGraph.i.validationContext);
+  factory ObjectTypedSchema.of(SchemaNode node) {
+    TypedSchema.validateConstraints<Map<String, dynamic>>(node, OpenApiGraph.i.validationContext, validateConstraints);
     return ObjectTypedSchema(
       $node: node,
-      description: raw.description ?? '',
-      readOnly: raw.readOnly,
-      writeOnly: raw.writeOnly,
-      example: raw.example,
-      deprecated: raw.deprecated,
-      nullable: raw.nullable,
-      defaultValue: raw.default_ is Map ? raw.default_ as Map<String, dynamic> : null,
-      enumValues: (raw.enum_?.whereType<Map>().cast<Map<String, dynamic>>().toList()) ?? [],
-      minProperties: raw.minProperties,
-      maxProperties: raw.maxProperties,
-      required: raw.required_,
+      description: node.description,
+      readOnly: node.readOnly,
+      writeOnly: node.writeOnly,
+      xml: node.xml,
+      externalDocs: node.externalDocs,
+      example: node.example,
+      deprecated: node.deprecated,
+      nullable: node.nullable,
+      defaultValue: node.default_,
+      enumValues: node.enum_ as List<Map<String, dynamic>>?,
+      properties: node.properties,
+      minProperties: node.minProperties,
+      maxProperties: node.maxProperties,
+      required: node.required_,
+      additionalPropertiesAllowed: node.additionalPropertiesAllowed,
+      additionalProperties: node.additionalProperties,
     );
   }
 
   /// Validates atomic constraints for object type.
-  static void _validateConstraints(RawSchema raw, SchemaNode node, ValidationContext ctx) {
+  static void validateConstraints(SchemaNode node, ValidationContext ctx) {
     final jsonPointer = node.$id.jsonPointer;
 
-    if (raw.minProperties != null && raw.maxProperties != null) {
-      if (raw.minProperties! > raw.maxProperties!) {
+    if (node.minProperties != null && node.maxProperties != null) {
+      if (node.minProperties! > node.maxProperties!) {
         ctx.addException(
           OpenApiValidationException(
             jsonPointer,
-            'minProperties (${raw.minProperties}) cannot be greater than maxProperties (${raw.maxProperties})',
+            'minProperties (${node.minProperties}) cannot be greater than maxProperties (${node.maxProperties})',
             specReference: 'JSON Schema Validation',
             severity: ValidationSeverity.critical,
           ),
@@ -80,9 +90,9 @@ class ObjectTypedSchema extends SingleTypeTypedSchema<Map<String, dynamic>, Obje
     }
 
     // Validate required properties exist in properties
-    if (raw.required_ != null && raw.properties != null) {
-      for (final requiredProp in raw.required_!) {
-        if (!raw.properties!.containsKey(requiredProp)) {
+    if (node.required_ != null && node.properties != null) {
+      for (final requiredProp in node.required_!) {
+        if (!node.properties!.containsKey(requiredProp)) {
           ctx.addException(
             OpenApiValidationException(
               jsonPointer,
