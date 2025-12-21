@@ -1,13 +1,13 @@
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_graph.dart';
-import '../raw_schema.dart';
 import '../../../../validation/validation_context.dart';
 import '../../../../../validation_exception.dart';
-
+import '../../xml.dart';
+import '../../external_documentation.dart';
 import 'typed_schema.dart';
 
-class IntegerTypedSchema extends SingleTypeTypedSchema<int, IntegerTypedSchema> {
+class IntegerTypedSchema extends TypedSchema<int> {
   final double? multipleOf;
   final int? maximum;
   final int? exclusiveMaximum;
@@ -17,14 +17,16 @@ class IntegerTypedSchema extends SingleTypeTypedSchema<int, IntegerTypedSchema> 
 
   IntegerTypedSchema({
     required SchemaNode $node,
-    required String description,
-    required bool readOnly,
-    required bool writeOnly,
-    required Map<String, dynamic>? example,
-    required bool deprecated,
-    required bool nullable,
-    required int? defaultValue,
-    required List<int> enumValues,
+    String? description,
+    bool readOnly = false,
+    bool writeOnly = false,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
+    Map<String, dynamic>? example,
+    bool deprecated = false,
+    bool nullable = false,
+    int? defaultValue,
+    List<int>? enumValues,
     this.multipleOf,
     this.maximum,
     this.exclusiveMaximum,
@@ -37,6 +39,8 @@ class IntegerTypedSchema extends SingleTypeTypedSchema<int, IntegerTypedSchema> 
          description,
          readOnly,
          writeOnly,
+         xml,
+         externalDocs,
          example,
          deprecated,
          nullable,
@@ -44,47 +48,50 @@ class IntegerTypedSchema extends SingleTypeTypedSchema<int, IntegerTypedSchema> 
          enumValues,
        );
 
-  factory IntegerTypedSchema.fromRaw(SchemaNode node, RawSchema raw) {
-    _validateConstraints(raw, node, OpenApiGraph.i.validationContext);
+  factory IntegerTypedSchema.of(SchemaNode node) {
+    TypedSchema.validateConstraints<int>(node, OpenApiGraph.i.validationContext, validateConstraints);
     return IntegerTypedSchema(
       $node: node,
-      description: raw.description ?? '',
-      readOnly: raw.readOnly,
-      writeOnly: raw.writeOnly,
-      example: raw.example,
-      deprecated: raw.deprecated,
-      nullable: raw.nullable,
-      defaultValue: raw.default_ is int ? raw.default_ as int : null,
-      enumValues: (raw.enum_?.whereType<int>().toList()) ?? [],
-      multipleOf: raw.multipleOf?.toDouble(),
-      maximum: raw.maximum?.toInt(),
-      exclusiveMaximum: raw.exclusiveMaximum is num ? (raw.exclusiveMaximum as num).toInt() : null,
-      minimum: raw.minimum?.toInt(),
-      exclusiveMinimum: raw.exclusiveMinimum is num ? (raw.exclusiveMinimum as num).toInt() : null,
-      format: raw.format,
+      description: node.description,
+      readOnly: node.readOnly,
+      writeOnly: node.writeOnly,
+      xml: node.xml,
+      externalDocs: node.externalDocs,
+      example: node.example,
+      deprecated: node.deprecated,
+      nullable: node.nullable,
+      defaultValue: node.default_,
+      enumValues: node.enum_ as List<int>?,
+      multipleOf: node.multipleOf?.toDouble(),
+      maximum: node.maximum?.toInt(),
+      exclusiveMaximum: node.exclusiveMaximum?.toInt(),
+      minimum: node.minimum?.toInt(),
+      exclusiveMinimum: node.exclusiveMinimum?.toInt(),
+      format: node.format,
     );
   }
 
   /// Validates atomic constraints for integer type.
-  static void _validateConstraints(RawSchema raw, SchemaNode node, ValidationContext ctx) {
-    final path = node.$id.jsonPointer;
+  static void validateConstraints(SchemaNode node, ValidationContext ctx) {
+    final jsonPointer = node.$id.jsonPointer;
 
-    if (raw.minimum != null && raw.maximum != null) {
-      if (raw.minimum! > raw.maximum!) {
+    if (node.minimum != null && node.maximum != null) {
+      if (node.minimum! > node.maximum!) {
         ctx.addException(
           OpenApiValidationException(
-            path,
-            'minimum (${raw.minimum}) cannot be greater than maximum (${raw.maximum})',
+            jsonPointer,
+            'minimum (${node.minimum}) cannot be greater than maximum (${node.maximum})',
             specReference: 'JSON Schema Validation',
             severity: ValidationSeverity.critical,
           ),
         );
       }
     }
-    if (raw.multipleOf != null && raw.multipleOf! <= 0) {
+    
+    if (node.multipleOf != null && node.multipleOf! <= 0) {
       ctx.addException(
         OpenApiValidationException(
-          path,
+          jsonPointer,
           'multipleOf must be greater than 0',
           specReference: 'JSON Schema Validation',
           severity: ValidationSeverity.critical,

@@ -11,12 +11,13 @@ import 'schema_map.dart';
 import 'schemas_list.dart';
 import '../../node_creation_helpers.dart';
 import '../discriminator.dart';
+import 'schema_type.dart';
 
 abstract class Schema {
   String? get title;
   String? get description;
   dynamic get default_;
-  String? get type;
+  SchemaType? get type;
   String? get format;
   num? get multipleOf;
   num? get maximum;
@@ -49,6 +50,9 @@ abstract class Schema {
   dynamic get example;
   bool get deprecated;
   Map<String, dynamic>? get extensions;
+
+  TypedSchema get $typed;
+  EffectiveSchema get $effective;
 }
 
 class SchemaNode extends Node with Referencable, InternalNode implements Schema {
@@ -58,7 +62,7 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
   late final dynamic default_;
 
   // Type and format
-  late final String? type;
+  late final SchemaType? type;
   late final String? format;
 
   // Numeric validations
@@ -107,6 +111,9 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
   late final Map<String, dynamic>? extensions;
 
   SchemaNode(super.json, super.document, super.jsonPointer);
+
+  late final TypedSchema $typed;
+  late final EffectiveSchema $effective;
 
   @override
   void validateStructure() {
@@ -317,7 +324,7 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
     title = json['title'];
     description = json['description'];
     default_ = json['default'];
-    type = json['type'];
+    type = json['type'] != null ? SchemaType.values.byName(json['type']) : null;
     format = json['format'];
     multipleOf = json['multipleOf'];
     maximum = json['maximum'];
@@ -350,18 +357,11 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
     extensions = extractExtensions(json);
   }
 
-  void _createRaw() {
-    raw = RawSchema.fromJson(json);
-    _isRawSet = true;
-  }
-
   void _createTyped() {
-    typed = TypedSchema.fromRaw(this, raw, OpenApiGraph.i.validationContext);
-    isTypedSet = true;
+    $typed = TypedSchema.fromRaw(this, raw, OpenApiGraph.i.validationContext);
   }
 
   void _createEffective() {
-    effective = EffectiveSchema.fromTyped(this, typed, OpenApiGraph.i.validationContext);
-    isEffectiveSet = true;
+    $effective = EffectiveSchema.fromTyped(this, $typed, OpenApiGraph.i.validationContext);
   }
 }

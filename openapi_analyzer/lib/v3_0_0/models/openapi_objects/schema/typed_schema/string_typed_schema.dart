@@ -1,13 +1,13 @@
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_objects/schema/schema_type.dart';
 import 'package:openapi_analyzer/v3_0_0/models/openapi_graph.dart';
-import '../raw_schema.dart';
 import '../../../../validation/validation_context.dart';
 import '../../../../../validation_exception.dart';
-
+import '../../xml.dart';
+import '../../external_documentation.dart';
 import 'typed_schema.dart';
 
-class StringTypedSchema extends SingleTypeTypedSchema<String, StringTypedSchema> {
+class StringTypedSchema extends TypedSchema<String> {
   final int? maxLength;
   final int? minLength;
   final String? pattern;
@@ -15,14 +15,16 @@ class StringTypedSchema extends SingleTypeTypedSchema<String, StringTypedSchema>
 
   StringTypedSchema({
     required SchemaNode $node,
-    required String description,
-    required bool readOnly,
-    required bool writeOnly,
-    required Map<String, dynamic>? example,
-    required bool deprecated,
-    required bool nullable,
-    required String? defaultValue,
-    required List<String> enumValues,
+    String? description,
+    bool readOnly = false,
+    bool writeOnly = false,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
+    Map<String, dynamic>? example,
+    bool deprecated = false,
+    bool nullable = false,
+    String? defaultValue,
+    List<String>? enumValues,
     this.maxLength,
     this.minLength,
     this.pattern,
@@ -33,6 +35,8 @@ class StringTypedSchema extends SingleTypeTypedSchema<String, StringTypedSchema>
          description,
          readOnly,
          writeOnly,
+         xml,
+         externalDocs,
          example,
          deprecated,
          nullable,
@@ -40,35 +44,37 @@ class StringTypedSchema extends SingleTypeTypedSchema<String, StringTypedSchema>
          enumValues,
        );
 
-  factory StringTypedSchema.fromRaw(SchemaNode node, RawSchema raw) {
-    _validateConstraints(raw, node, OpenApiGraph.i.validationContext);
+  factory StringTypedSchema.of(SchemaNode node) {
+    TypedSchema.validateConstraints<String>(node, OpenApiGraph.i.validationContext, validateConstraints);
     return StringTypedSchema(
       $node: node,
-      description: raw.description ?? '',
-      readOnly: raw.readOnly,
-      writeOnly: raw.writeOnly,
-      example: raw.example,
-      deprecated: raw.deprecated,
-      nullable: raw.nullable,
-      defaultValue: raw.default_ is String ? raw.default_ as String : null,
-      enumValues: (raw.enum_?.whereType<String>().toList()) ?? [],
-      minLength: raw.minLength,
-      maxLength: raw.maxLength,
-      pattern: raw.pattern,
-      format: raw.format,
+      description: node.description,
+      readOnly: node.readOnly,
+      writeOnly: node.writeOnly,
+      xml: node.xml,
+      externalDocs: node.externalDocs,
+      example: node.example,
+      deprecated: node.deprecated,
+      nullable: node.nullable,
+      defaultValue: node.default_,
+      enumValues: node.enum_ as List<String>?,
+      minLength: node.minLength,
+      maxLength: node.maxLength,
+      pattern: node.pattern,
+      format: node.format,
     );
   }
 
   /// Validates atomic constraints for string type.
-  static void _validateConstraints(RawSchema raw, SchemaNode node, ValidationContext ctx) {
-    final path = node.$id.jsonPointer;
+  static void validateConstraints(SchemaNode node, ValidationContext ctx) {
+    final jsonPointer = node.$id.jsonPointer;
 
-    if (raw.minLength != null && raw.maxLength != null) {
-      if (raw.minLength! > raw.maxLength!) {
+    if (node.minLength != null && node.maxLength != null) {
+      if (node.minLength! > node.maxLength!) {
         ctx.addException(
           OpenApiValidationException(
-            path,
-            'minLength (${raw.minLength}) cannot be greater than maxLength (${raw.maxLength})',
+            jsonPointer,
+            'minLength (${node.minLength}) cannot be greater than maxLength (${node.maxLength})',
             specReference: 'JSON Schema Validation',
             severity: ValidationSeverity.critical,
           ),

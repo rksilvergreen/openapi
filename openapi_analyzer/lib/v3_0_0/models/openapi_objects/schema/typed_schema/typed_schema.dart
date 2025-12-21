@@ -13,17 +13,19 @@ import 'array_typed_schema.dart';
 import 'object_typed_schema.dart';
 import 'unknown_typed_schema.dart';
 
-abstract class TypedSchema<T extends TypedSchema<T>> {
+abstract class TypedSchema<T> {
   final SchemaNode $node;
   final SchemaType type;
   final String? description;
   final bool readOnly;
   final bool writeOnly;
-  XML? get xml => $node.xmlNode?.content;
-  ExternalDocumentation? get externalDocs => $node.externalDocsNode?.content;
+  final XML? xml;
+  final ExternalDocumentation? externalDocs;
   final Map<String, dynamic>? example;
   final bool deprecated;
   final bool nullable;
+  final T? defaultValue;
+  final List<T>? enumValues;
 
   TypedSchema(
     this.$node,
@@ -31,26 +33,30 @@ abstract class TypedSchema<T extends TypedSchema<T>> {
     this.description,
     this.readOnly,
     this.writeOnly,
+    this.xml,
+    this.externalDocs,
     this.example,
     this.deprecated,
     this.nullable,
+    this.defaultValue,
+    this.enumValues,
   );
 
-  List<T>? get allOf => $node.allOfNodes?.map((node) => node.typed as T).toList();
-  List<T>? get oneOf => $node.oneOfNodes?.map((node) => node.typed as T).toList();
-  List<T>? get anyOf => $node.anyOfNodes?.map((node) => node.typed as T).toList();
+  List<TypedSchema>? get allOf => $node.allOf?.map((node) => node.$typed).toList();
+  List<TypedSchema>? get oneOf => $node.oneOf?.map((node) => node.$typed).toList();
+  List<TypedSchema>? get anyOf => $node.anyOf?.map((node) => node.$typed).toList();
 
   /// Creates a TypedSchema from a SchemaNode and its RawSchema.
-  static TypedSchema fromRaw(SchemaNode node, RawSchema raw, ValidationContext ctx) {
-    final schemaType = _determineType(raw, node, ctx);
+  static TypedSchema of(SchemaNode node, ValidationContext ctx) {
+    final schemaType = _determineType(node, ctx);
 
     switch (schemaType) {
       case SchemaType.integer:
-        return IntegerTypedSchema.fromRaw(node, raw);
+        return IntegerTypedSchema.of(node);
       case SchemaType.number:
-        return NumberTypedSchema.fromRaw(node, raw);
+        return NumberTypedSchema.of(node);
       case SchemaType.string:
-        return StringTypedSchema.fromRaw(node, raw);
+        return StringTypedSchema.of(node);
       case SchemaType.boolean:
         return BooleanTypedSchema.fromRaw(node, raw);
       case SchemaType.array:
@@ -63,44 +69,19 @@ abstract class TypedSchema<T extends TypedSchema<T>> {
   }
 
   /// Determines the schema type based on the type keyword and type-specific keywords.
-  static SchemaType _determineType(RawSchema raw, SchemaNode node, ValidationContext ctx) {
+  static SchemaType _determineType(SchemaNode node, ValidationContext ctx) {
     // If type keyword is present, use it
-    if (raw.type != null) {
-      switch (raw.type) {
-        case 'integer':
-          return SchemaType.integer;
-        case 'number':
-          return SchemaType.number;
-        case 'string':
-          return SchemaType.string;
-        case 'boolean':
-          return SchemaType.boolean;
-        case 'array':
-          return SchemaType.array;
-        case 'object':
-          return SchemaType.object;
-        case 'null':
-          return SchemaType.unknown; // Handle null type
-        default:
-          ctx.addException(
-            OpenApiValidationException(
-              node.$id.jsonPointer,
-              'Invalid type value: "${raw.type}". Must be one of: integer, number, string, boolean, array, object, null',
-              specReference: 'OpenAPI 3.0.0 - Schema Object',
-              severity: ValidationSeverity.critical,
-            ),
-          );
-          return SchemaType.unknown;
-      }
+    if (node.type != null) {
+      return node.type!;
     }
 
     // Infer type from type-specific keywords
     // Check which type-specific keywords are present
     final hasObjectKeywords =
-        raw.properties != null || raw.required_ != null || raw.minProperties != null || raw.maxProperties != null;
-    final hasArrayKeywords = raw.items != null || raw.minItems != null || raw.maxItems != null || raw.uniqueItems;
-    final hasStringKeywords = raw.minLength != null || raw.maxLength != null || raw.pattern != null;
-    final hasNumericKeywords = raw.minimum != null || raw.maximum != null || raw.multipleOf != null;
+        node.properties != null || node.required_ != null || node.minProperties != null || node.maxProperties != null;
+    final hasArrayKeywords = node.items != null || node.minItems != null || node.maxItems != null || node.uniqueItems;
+    final hasStringKeywords = node.minLength != null || node.maxLength != null || node.pattern != null;
+    final hasNumericKeywords = node.minimum != null || node.maximum != null || node.multipleOf != null;
 
     // Count how many types are indicated
     int typeCount = 0;
@@ -108,6 +89,11 @@ abstract class TypedSchema<T extends TypedSchema<T>> {
     if (hasArrayKeywords) typeCount++;
     if (hasStringKeywords) typeCount++;
     if (hasNumericKeywords) typeCount++;
+
+    // If no types are indicated, return unknown
+    if (typeCount == 0) {
+      return SchemaType.unknown;
+    }
 
     // If multiple types are indicated, that's a conflict
     if (typeCount > 1) {
@@ -144,11 +130,6 @@ abstract class TypedSchema<T extends TypedSchema<T>> {
       return SchemaType.number;
     }
 
-    // If oneOf/anyOf present, may be multi-type (determined later in Effective stage)
-    if (raw.oneOf != null || raw.anyOf != null) {
-      return SchemaType.unknown; // Will be resolved in effective schema
-    }
-
     // No type information available
     ctx.addException(
       OpenApiValidationException(
@@ -160,36 +141,36 @@ abstract class TypedSchema<T extends TypedSchema<T>> {
     );
     return SchemaType.unknown;
   }
-}
 
-abstract class SingleTypeTypedSchema<T, S extends SingleTypeTypedSchema<T, S>> extends TypedSchema<S> {
-  final T? defaultValue;
-  final List<T>? enumValues;
+  static void validateConstraints<T>(
+    SchemaNode node,
+    ValidationContext ctx,
+    void Function(SchemaNode, ValidationContext) typeValidator,
+  ) {
+    final jsonPointer = node.$id.jsonPointer;
 
-  SingleTypeTypedSchema(
-    super.$node,
-    super.type,
-    super.description,
-    super.readOnly,
-    super.writeOnly,
-    super.example,
-    super.deprecated,
-    super.nullable,
-    this.defaultValue,
-    this.enumValues,
-  );
-}
+    if (node.default_ != null && node.default_! is T) {
+      ctx.addException(
+        OpenApiValidationException(
+          jsonPointer,
+          'defaultValue must be a ${T.runtimeType}',
+          specReference: 'JSON Schema Validation',
+          severity: ValidationSeverity.critical,
+        ),
+      );
+    }
 
-class MultiTypeTypedSchema<T, S extends MultiTypeTypedSchema<T, S>> extends TypedSchema<S> {
-  final List<S> variants;
-  MultiTypeTypedSchema({
-    required SchemaNode $node,
-    String? description,
-    bool readOnly = false,
-    bool writeOnly = false,
-    Map<String, dynamic>? example,
-    bool deprecated = false,
-    bool nullable = false,
-    required this.variants,
-  }) : super($node, SchemaType.multiType, description, readOnly, writeOnly, example, deprecated, nullable);
+    if (node.enum_ != null && node.enum_!.any((e) => e! is T)) {
+      ctx.addException(
+        OpenApiValidationException(
+          jsonPointer,
+          'enumValues must be a ${T.runtimeType}',
+          specReference: 'JSON Schema Validation',
+          severity: ValidationSeverity.critical,
+        ),
+      );
+    }
+
+    typeValidator(node, ctx);
+  }
 }

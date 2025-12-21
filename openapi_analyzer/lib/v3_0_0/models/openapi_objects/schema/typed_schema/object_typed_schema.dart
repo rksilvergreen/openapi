@@ -64,13 +64,13 @@ class ObjectTypedSchema extends SingleTypeTypedSchema<Map<String, dynamic>, Obje
 
   /// Validates atomic constraints for object type.
   static void _validateConstraints(RawSchema raw, SchemaNode node, ValidationContext ctx) {
-    final path = node.$id.jsonPointer;
+    final jsonPointer = node.$id.jsonPointer;
 
     if (raw.minProperties != null && raw.maxProperties != null) {
       if (raw.minProperties! > raw.maxProperties!) {
         ctx.addException(
           OpenApiValidationException(
-            path,
+            jsonPointer,
             'minProperties (${raw.minProperties}) cannot be greater than maxProperties (${raw.maxProperties})',
             specReference: 'JSON Schema Validation',
             severity: ValidationSeverity.critical,
@@ -85,7 +85,7 @@ class ObjectTypedSchema extends SingleTypeTypedSchema<Map<String, dynamic>, Obje
         if (!raw.properties!.containsKey(requiredProp)) {
           ctx.addException(
             OpenApiValidationException(
-              path,
+              jsonPointer,
               'Required property "$requiredProp" not found in properties',
               specReference: 'JSON Schema Validation',
               severity: ValidationSeverity.low, // Not critical - could be in allOf
