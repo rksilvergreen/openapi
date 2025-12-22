@@ -141,7 +141,7 @@ class OpenApiDocumentNode extends Node with InternalNode implements OpenApiDocum
   @override
   String get $name {
     // Check if we already computed a name for this document
-    final cached = OpenApiGraph.i.getCachedDocumentName($id.absolutePointer);
+    final cached = OpenApiGraph.i.nameRegistry.getCachedDocumentName($id.absolutePointer);
     if (cached != null) return cached;
 
     // Compute the base name using the naming algorithm
@@ -149,7 +149,7 @@ class OpenApiDocumentNode extends Node with InternalNode implements OpenApiDocum
 
     // Sanitize and register the name (handles collisions)
     final sanitized = NamingUtils.toValidDartIdentifier(baseName);
-    return OpenApiGraph.i.registerDocumentName($id.absolutePointer, sanitized);
+    return OpenApiGraph.i.nameRegistry.registerDocumentName($id.absolutePointer, sanitized);
   }
 
   String _computeBaseName() {

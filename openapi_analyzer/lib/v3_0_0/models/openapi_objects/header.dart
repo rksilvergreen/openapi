@@ -8,6 +8,14 @@ import 'schema/schema.dart';
 import 'examples_map.dart';
 import 'media_types_map.dart';
 import 'schema/schema_map.dart';
+import '../../naming/naming_utils.dart';
+import 'headers_map.dart';
+import 'components.dart';
+import 'response.dart';
+import 'operation.dart';
+import 'responses_map.dart';
+import 'path_item.dart';
+import 'paths_map.dart';
 
 /// Header Object follows the structure of the Parameter Object.
 abstract class Header {
@@ -23,6 +31,7 @@ abstract class Header {
   ExamplesMap? get examples;
   MediaTypesMap? get content;
   Map<String, dynamic>? get extensions;
+  String get $name;
 }
 
 class HeaderNode extends Node with InternalNode, Referencable implements Header {
@@ -181,5 +190,131 @@ class HeaderNode extends Node with InternalNode, Referencable implements Header 
     examples = $to.to<ExamplesMapNode>('examples');
     content = $to.to<MediaTypesMapNode>('content');
     extensions = extractExtensions(json);
+  }
+
+  @override
+  String get $name {
+    // Check if we already computed a name for this header
+    final cached = OpenApiGraph.i.nameRegistry.getCachedHeaderName($id.absolutePointer);
+    if (cached != null) return cached;
+
+    // Compute the base name using the naming algorithm
+    String baseName = _computeBaseName();
+
+    // Sanitize and register the name (handles collisions)
+    final sanitized = NamingUtils.toValidDartIdentifier(baseName);
+    return OpenApiGraph.i.nameRegistry.registerHeaderName($id.absolutePointer, sanitized);
+  }
+
+  String _computeBaseName() {
+    // Step 1: If it's a component, use the component key (check first to take precedence)
+    final componentBased = _deriveFromComponent();
+    if (componentBased != null) return componentBased;
+
+    // Step 2: Use the header map key
+    final keyBased = _deriveFromHeaderKey();
+    if (keyBased != null) return keyBased;
+
+    // Step 3: Hash-based fallback
+    return _generateHashFallback();
+  }
+
+  String? _deriveFromComponent() {
+    // Check if this is a component header
+    // Path: header ← headersMap ← components
+    final edge = trueParentEdge<HeadersMapNode>();
+    if (edge != null) {
+      final headersMapNode = edge.from as HeadersMapNode;
+      // Check if parent is components
+      if (headersMapNode.trueParentEdge<ComponentsNode>('headers') != null) {
+        final componentKey = edge.via; // The map key
+        return NamingUtils.toPascalCase(componentKey);
+      }
+    }
+    return null;
+  }
+
+  String? _deriveFromHeaderKey() {
+    // Get the header key from the HeadersMapNode edge
+    // Path: header ← headersMap
+    // Only use this if it's NOT a component (components are handled in Step 1)
+    final edge = trueParentEdge<HeadersMapNode>();
+    if (edge != null) {
+      final headersMapNode = edge.from as HeadersMapNode;
+      // Skip if it's a component (already handled)
+      if (headersMapNode.trueParentEdge<ComponentsNode>('headers') == null) {
+        final headerKey = edge.via; // The map key (e.g., "X-Rate-Limit", "ETag")
+        return '${NamingUtils.toPascalCase(headerKey)}Header';
+      }
+    }
+    return null;
+  }
+
+  String _generateHashFallback() {
+    // Create a deterministic hash from the identity
+    String identity;
+
+    // Check if it's a component
+    final edge = trueParentEdge<HeadersMapNode>();
+    if (edge != null) {
+      final headersMapNode = edge.from as HeadersMapNode;
+
+      // Check if it's a component header
+      if (headersMapNode.trueParentEdge<ComponentsNode>('headers') != null) {
+        final componentKey = edge.via;
+        identity = '${$id.document}#/components/headers/$componentKey';
+      } else {
+        // It's inline - use document URI, path, method, "headers", headerKey
+        final headerKey = edge.via;
+
+        // Try to find the operation through the response
+        final responseNode = headersMapNode.trueParent<ResponseNode>('headers');
+        if (responseNode != null) {
+          // Get the responses map edge to get status code
+          final respEdge = responseNode.trueParentEdge<ResponsesMapNode>();
+          if (respEdge != null) {
+            final responsesMapNode = respEdge.from as ResponsesMapNode;
+            final operation = responsesMapNode.trueParent<OperationNode>('responses');
+            if (operation != null) {
+              // Get path and method from the operation
+              final pathAndMethod = _getPathAndMethodFromOperation(operation);
+              if (pathAndMethod != null) {
+                identity = '${$id.document}|${pathAndMethod['path']}|${pathAndMethod['method']}|headers|$headerKey';
+              } else {
+                identity = $id.absolutePointer;
+              }
+            } else {
+              identity = $id.absolutePointer;
+            }
+          } else {
+            identity = $id.absolutePointer;
+          }
+        } else {
+          identity = $id.absolutePointer;
+        }
+      }
+    } else {
+      identity = $id.absolutePointer;
+    }
+
+    final codeUnits = identity.codeUnits;
+    final hash = codeUnits.fold<int>(0, (prev, code) => (prev * 31 + code) & 0xFFFFFFFF);
+    final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);
+    return 'Header_$shortHash';
+  }
+
+  Map<String, String>? _getPathAndMethodFromOperation(OperationNode operation) {
+    // Operation is connected to PathItem via HTTP method edge
+    for (final edge in operation.$from.where((e) => e.from is PathItemNode)) {
+      final pathItemNode = edge.from as PathItemNode;
+      final method = edge.via; // get_, post, put, etc.
+
+      // Get the path from PathsMap
+      for (final pathEdge in pathItemNode.$from.where((e) => e.from is PathsMapNode)) {
+        final path = pathEdge.via; // The map key is the path
+        return {'path': path, 'method': method};
+      }
+    }
+    return null;
   }
 }

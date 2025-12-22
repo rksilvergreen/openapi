@@ -3,6 +3,7 @@ import 'package:yaml/yaml.dart';
 import 'package:openapi_analyzer/validation_exception.dart';
 import '../validation/validation_context.dart';
 import '../reference/reference_resolver.dart';
+import 'name_registry.dart';
 import 'openapi_objects/openapi_document.dart';
 import 'openapi_objects/info.dart';
 import 'openapi_objects/components.dart';
@@ -205,6 +206,7 @@ class OpenApiGraph {
   final File file;
   late final ValidationContext validationContext;
   late final ReferenceResolver referenceResolver;
+  late final NameRegistry nameRegistry;
   final Map<String, dynamic> loadedDocuments = {};
   late final String rootDocumentName;
 
@@ -218,6 +220,7 @@ class OpenApiGraph {
     // Initialize validation context
     validationContext = ValidationContext();
     referenceResolver = ReferenceResolver(file, validationContext);
+    nameRegistry = NameRegistry(validationContext);
 
     try {
       // Load and parse YAML
@@ -268,12 +271,6 @@ class OpenApiGraph {
 
   final Map<String, Node> nodes = {};
   final List<Edge> edges = [];
-  final Map<String, String> _schemaNames = {}; // absolutePointer -> name
-  final Map<String, List<String>> _nameRegistry = {}; // name -> list of absolutePointers using this name
-  final Map<String, String> _operationNames = {}; // absolutePointer -> name
-  final Map<String, List<String>> _operationNameRegistry = {}; // name -> list of absolutePointers using this name
-  final Map<String, String> _documentNames = {}; // absolutePointer -> name
-  final Map<String, List<String>> _documentNameRegistry = {}; // name -> list of absolutePointers using this name
 
   void addNode(Node node) => nodes[node.$id.absolutePointer] = node;
 
@@ -285,138 +282,6 @@ class OpenApiGraph {
   }
 
   T getNode<T extends Node>(NodeId id) => nodes[id.absolutePointer]! as T;
-
-  /// Registers a name for a schema, handling collisions with deterministic suffixes.
-  /// Returns the final unique name (may have _2, _3, etc. suffix if there was a collision).
-  String registerSchemaName(String absolutePointer, String baseName) {
-    // Check if this node already has a name
-    if (_schemaNames.containsKey(absolutePointer)) {
-      return _schemaNames[absolutePointer]!;
-    }
-
-    // Check for collisions
-    String finalName = baseName;
-    if (_nameRegistry.containsKey(baseName)) {
-      // Collision detected - add suffix
-      final existingPointers = _nameRegistry[baseName]!;
-      final count = existingPointers.length + 1;
-      finalName = '${baseName}_$count';
-
-      // Add this pointer to the registry
-      existingPointers.add(absolutePointer);
-      _nameRegistry[baseName] = existingPointers;
-
-      // Add low severity validation exception for the collision
-      validationContext.addException(
-        OpenApiValidationException(
-          absolutePointer,
-          'Schema name collision: "$baseName" is already used by schemas at: ${existingPointers.join(", ")}',
-          specReference: 'Schema Naming',
-          severity: ValidationSeverity.low,
-        ),
-      );
-    } else {
-      // First use of this name
-      _nameRegistry[baseName] = [absolutePointer];
-    }
-
-    // Store the final name
-    _schemaNames[absolutePointer] = finalName;
-    return finalName;
-  }
-
-  /// Gets a cached name for a schema if it exists.
-  String? getCachedSchemaName(String absolutePointer) {
-    return _schemaNames[absolutePointer];
-  }
-
-  /// Registers a name for an operation, handling collisions with deterministic suffixes.
-  /// Returns the final unique name (may have _2, _3, etc. suffix if there was a collision).
-  String registerOperationName(String absolutePointer, String baseName) {
-    // Check if this node already has a name
-    if (_operationNames.containsKey(absolutePointer)) {
-      return _operationNames[absolutePointer]!;
-    }
-
-    // Check for collisions
-    String finalName = baseName;
-    if (_operationNameRegistry.containsKey(baseName)) {
-      // Collision detected - add suffix
-      final existingPointers = _operationNameRegistry[baseName]!;
-      final count = existingPointers.length + 1;
-      finalName = '${baseName}_$count';
-
-      // Add this pointer to the registry
-      existingPointers.add(absolutePointer);
-      _operationNameRegistry[baseName] = existingPointers;
-
-      // Add low severity validation exception for the collision
-      validationContext.addException(
-        OpenApiValidationException(
-          absolutePointer,
-          'Operation name collision: "$baseName" is already used by operations at: ${existingPointers.join(", ")}',
-          specReference: 'Operation Naming',
-          severity: ValidationSeverity.low,
-        ),
-      );
-    } else {
-      // First use of this name
-      _operationNameRegistry[baseName] = [absolutePointer];
-    }
-
-    // Store the final name
-    _operationNames[absolutePointer] = finalName;
-    return finalName;
-  }
-
-  /// Gets a cached name for an operation if it exists.
-  String? getCachedOperationName(String absolutePointer) {
-    return _operationNames[absolutePointer];
-  }
-
-  /// Registers a name for a document, handling collisions with deterministic suffixes.
-  /// Returns the final unique name (may have _2, _3, etc. suffix if there was a collision).
-  String registerDocumentName(String absolutePointer, String baseName) {
-    // Check if this node already has a name
-    if (_documentNames.containsKey(absolutePointer)) {
-      return _documentNames[absolutePointer]!;
-    }
-
-    // Check for collisions
-    String finalName = baseName;
-    if (_documentNameRegistry.containsKey(baseName)) {
-      // Collision detected - add suffix
-      final existingPointers = _documentNameRegistry[baseName]!;
-      final count = existingPointers.length + 1;
-      finalName = '${baseName}_$count';
-
-      // Add this pointer to the registry
-      existingPointers.add(absolutePointer);
-      _documentNameRegistry[baseName] = existingPointers;
-
-      // Add low severity validation exception for the collision
-      validationContext.addException(
-        OpenApiValidationException(
-          absolutePointer,
-          'Document name collision: "$baseName" is already used by documents at: ${existingPointers.join(", ")}',
-          specReference: 'Document Naming',
-          severity: ValidationSeverity.low,
-        ),
-      );
-    } else {
-      // First use of this name
-      _documentNameRegistry[baseName] = [absolutePointer];
-    }
-
-    // Store the final name
-    _documentNames[absolutePointer] = finalName;
-    return finalName;
-  }
-
-  /// Gets a cached name for a document if it exists.
-  String? getCachedDocumentName(String absolutePointer) {
-    return _documentNames[absolutePointer];
-  }
 
   /// Converts an absolute document path to a relative path for use in NodeId.
   /// Returns just the filename for the main document, or a relative path for external documents.

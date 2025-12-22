@@ -4,6 +4,9 @@ import '../referencable.dart';
 import '../node_creation_helpers.dart';
 import 'enums.dart';
 import 'oauth_flows.dart';
+import '../../naming/naming_utils.dart';
+import 'security_schemes_map.dart';
+import 'components.dart';
 
 abstract class SecurityScheme {
   SecuritySchemeType get type;
@@ -15,6 +18,7 @@ abstract class SecurityScheme {
   OAuthFlows? get flows;
   String? get openIdConnectUrl;
   Map<String, dynamic>? get extensions;
+  String get $name;
 }
 
 class SecuritySchemeNode extends Node with InternalNode, Referencable implements SecurityScheme {
@@ -126,5 +130,160 @@ class SecuritySchemeNode extends Node with InternalNode, Referencable implements
     flows = $to.to<OAuthFlowsNode>('flows');
     openIdConnectUrl = json['openIdConnectUrl'];
     extensions = extractExtensions(json);
+  }
+
+  @override
+  String get $name {
+    // Check if we already computed a name for this security scheme
+    final cached = OpenApiGraph.i.nameRegistry.getCachedSecuritySchemeName($id.absolutePointer);
+    if (cached != null) return cached;
+
+    // Compute the base name using the naming algorithm
+    String baseName = _computeBaseName();
+
+    // Sanitize and register the name (handles collisions)
+    final sanitized = NamingUtils.toValidDartIdentifier(baseName);
+    return OpenApiGraph.i.nameRegistry.registerSecuritySchemeName($id.absolutePointer, sanitized);
+  }
+
+  String _computeBaseName() {
+    // Step 1: Use the component key
+    final componentBased = _deriveFromComponent();
+    if (componentBased != null) return componentBased;
+
+    // Step 2: Derive from scheme properties
+    final propertiesBased = _deriveFromProperties();
+    if (propertiesBased != null) return propertiesBased;
+
+    // Step 3: Hash-based fallback
+    return _generateHashFallback();
+  }
+
+  String? _deriveFromComponent() {
+    // Check if this is a component security scheme
+    // Path: securityScheme ← securitySchemesMap ← components
+    final edge = trueParentEdge<SecuritySchemesMapNode>();
+    if (edge != null) {
+      final securitySchemesMapNode = edge.from as SecuritySchemesMapNode;
+      // Check if parent is components
+      if (securitySchemesMapNode.trueParentEdge<ComponentsNode>('securitySchemes') != null) {
+        final componentKey = edge.via; // The map key
+        return NamingUtils.toPascalCase(componentKey);
+      }
+    }
+    return null;
+  }
+
+  String? _deriveFromProperties() {
+    // Build name based on type and available properties
+    final parts = <String>[];
+
+    switch (type) {
+      case SecuritySchemeType.http:
+        // For http: include scheme (e.g. bearer, basic)
+        if (scheme != null && scheme!.isNotEmpty) {
+          parts.add(NamingUtils.toPascalCase(scheme!));
+        }
+        parts.add('Http');
+        break;
+
+      case SecuritySchemeType.apiKey:
+        // For apiKey: include in (header/query/cookie) + name if present
+        if (in_ != null) {
+          parts.add(NamingUtils.toPascalCase(in_!.value));
+        }
+        if (name != null && name!.isNotEmpty) {
+          parts.add(NamingUtils.toPascalCase(name!));
+        }
+        parts.add('ApiKey');
+        break;
+
+      case SecuritySchemeType.oauth2:
+        // For oauth2: include a flow name if available
+        final flowName = _getOAuthFlowName();
+        if (flowName != null) {
+          parts.add(NamingUtils.toPascalCase(flowName));
+        }
+        parts.add('OAuth2');
+        break;
+
+      case SecuritySchemeType.openIdConnect:
+        // For openIdConnect: include a short token from the URL host/path if desired
+        if (openIdConnectUrl != null && openIdConnectUrl!.isNotEmpty) {
+          final urlToken = _extractUrlToken(openIdConnectUrl!);
+          if (urlToken != null && urlToken.isNotEmpty) {
+            parts.add(NamingUtils.toPascalCase(urlToken));
+          }
+        }
+        parts.add('OpenIdConnect');
+        break;
+    }
+
+    if (parts.isEmpty) {
+      return null;
+    }
+
+    return '${parts.join()}SecurityScheme';
+  }
+
+  String? _getOAuthFlowName() {
+    // Check which OAuth flow is present
+    if (flows == null) return null;
+
+    if (flows!.implicit != null) return 'implicit';
+    if (flows!.password != null) return 'password';
+    if (flows!.clientCredentials != null) return 'clientCredentials';
+    if (flows!.authorizationCode != null) return 'authorizationCode';
+
+    return null;
+  }
+
+  String? _extractUrlToken(String url) {
+    // Extract a short token from the URL host/path
+    try {
+      final uri = Uri.parse(url);
+      // Use host if available, otherwise use path segments
+      if (uri.host.isNotEmpty) {
+        // Take first part of host (e.g., "auth.example.com" -> "auth")
+        final hostParts = uri.host.split('.');
+        if (hostParts.isNotEmpty) {
+          return hostParts.first;
+        }
+      }
+      // Fallback to last path segment
+      if (uri.pathSegments.isNotEmpty) {
+        return uri.pathSegments.last;
+      }
+    } catch (e) {
+      // If parsing fails, return null
+    }
+    return null;
+  }
+
+  String _generateHashFallback() {
+    // Create a deterministic hash from the identity
+    String identity;
+
+    // Check if it's a component
+    final edge = trueParentEdge<SecuritySchemesMapNode>();
+    if (edge != null) {
+      final securitySchemesMapNode = edge.from as SecuritySchemesMapNode;
+
+      // Check if it's a component security scheme
+      if (securitySchemesMapNode.trueParentEdge<ComponentsNode>('securitySchemes') != null) {
+        final componentKey = edge.via;
+        identity = '${$id.document}#/components/securitySchemes/$componentKey';
+      } else {
+        // It's inline - use document URI and jsonPointer path
+        identity = $id.absolutePointer;
+      }
+    } else {
+      identity = $id.absolutePointer;
+    }
+
+    final codeUnits = identity.codeUnits;
+    final hash = codeUnits.fold<int>(0, (prev, code) => (prev * 31 + code) & 0xFFFFFFFF);
+    final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);
+    return 'SecurityScheme_$shortHash';
   }
 }

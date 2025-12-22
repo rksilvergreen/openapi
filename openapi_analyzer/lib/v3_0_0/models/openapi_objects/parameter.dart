@@ -7,6 +7,11 @@ import 'enums.dart';
 import 'schema/schema.dart';
 import 'examples_map.dart';
 import 'media_types_map.dart';
+import '../../naming/naming_utils.dart';
+import 'operation.dart';
+import 'path_item.dart';
+import 'paths_map.dart';
+import 'parameters_list.dart';
 
 abstract class Parameter {
   String get name;
@@ -23,6 +28,7 @@ abstract class Parameter {
   ExamplesMap? get examples;
   MediaTypesMap? get content;
   Map<String, dynamic>? get extensions;
+  String get $name;
 }
 
 class ParameterNode extends Node with InternalNode, Referencable implements Parameter {
@@ -201,5 +207,188 @@ class ParameterNode extends Node with InternalNode, Referencable implements Para
     examples = $to.to<ExamplesMapNode>('examples');
     content = $to.to<MediaTypesMapNode>('content');
     extensions = extractExtensions(json);
+  }
+
+  @override
+  String get $name {
+    // Check if we already computed a name for this parameter
+    final cached = OpenApiGraph.i.nameRegistry.getCachedParameterName($id.absolutePointer);
+    if (cached != null) return cached;
+
+    // Compute the base name using the naming algorithm
+    String baseName = _computeBaseName();
+
+    // Sanitize and register the name (handles collisions)
+    final sanitized = NamingUtils.toValidDartIdentifier(baseName);
+    return OpenApiGraph.i.nameRegistry.registerParameterName($id.absolutePointer, sanitized);
+  }
+
+  String _computeBaseName() {
+    // Step 1: Use parameter.name if present and valid
+    final nameBased = _deriveFromName();
+    if (nameBased != null) return nameBased;
+
+    // Step 2: Derive from context
+    final contextBased = _deriveFromContext();
+    if (contextBased != null) return contextBased;
+
+    // Step 3: Hash-based fallback
+    return _generateHashFallback();
+  }
+
+  String? _deriveFromName() {
+    if (name.isNotEmpty) {
+      final sanitized = NamingUtils.toValidDartIdentifier(name);
+      if (sanitized.isNotEmpty && sanitized != 'unnamed') {
+        return NamingUtils.toPascalCase(name);
+      }
+    }
+    return null;
+  }
+
+  String? _deriveFromContext() {
+    final parametersListNode = trueParent<ParametersListNode>('parameters');
+    if (parametersListNode == null) return null;
+
+    // For path parameters, use the corresponding path segment name
+    if (in_ == ParameterLocation.path) {
+      final pathSegmentName = _getPathSegmentName();
+      if (pathSegmentName != null) {
+        return NamingUtils.toPascalCase(pathSegmentName);
+      }
+      // If we can't find the segment, fall through to hash fallback
+      return null;
+    }
+
+    // For query/header/cookie parameters, derive from operation name + parameter location
+    final operation = parametersListNode.trueParent<OperationNode>('parameters');
+    if (operation != null) {
+      final locationName = _getLocationName();
+      return '${operation.$name}$locationName';
+    }
+
+    // If no operation, try to derive from path item
+    final pathItemNode = parametersListNode.trueParent<PathItemNode>('parameters');
+    if (pathItemNode != null) {
+      final path = _getPathFromPathItem(pathItemNode);
+      if (path != null) {
+        final locationName = _getLocationName();
+        final pathName = NamingUtils.toPascalCase(Uri.decodeComponent(path));
+        return '$pathName$locationName';
+      }
+    }
+
+    return null;
+  }
+
+  String? _getPathSegmentName() {
+    // Get the path template from PathItem
+    final pathItemNode = _findPathItem();
+    if (pathItemNode == null) return null;
+
+    final path = _getPathFromPathItem(pathItemNode);
+    if (path == null) return null;
+
+    // Extract path segments (e.g., "/pets/{petId}" -> ["pets", "{petId}"])
+    final segments = path.split('/').where((s) => s.isNotEmpty).toList();
+
+    // Find the segment that matches this parameter's name
+    for (final segment in segments) {
+      // Remove curly braces and compare
+      final segmentName = segment.replaceAll(RegExp(r'[{}]'), '');
+      if (segmentName == name) {
+        return segmentName;
+      }
+    }
+
+    return null;
+  }
+
+  String _getLocationName() {
+    switch (in_) {
+      case ParameterLocation.query:
+        return 'QueryParam';
+      case ParameterLocation.header:
+        return 'HeaderParam';
+      case ParameterLocation.cookie:
+        return 'CookieParam';
+      case ParameterLocation.path:
+        return 'PathParam';
+    }
+  }
+
+  PathItemNode? _findPathItem() {
+    final parametersListNode = trueParent<ParametersListNode>('parameters');
+    if (parametersListNode == null) return null;
+
+    // Check if it's from a path item
+    final pathItemNode = parametersListNode.trueParent<PathItemNode>('parameters');
+    if (pathItemNode != null) return pathItemNode;
+
+    // Check if it's from an operation, then get the path item
+    final operation = parametersListNode.trueParent<OperationNode>('parameters');
+    if (operation != null) {
+      // Operation is connected to PathItem via the HTTP method edge
+      for (final edge in operation.$from.where((e) => e.from is PathItemNode)) {
+        return edge.from as PathItemNode;
+      }
+    }
+
+    return null;
+  }
+
+  String? _getPathFromPathItem(PathItemNode pathItemNode) {
+    // Get the path from the edge connecting PathItem to PathsMap
+    for (final edge in pathItemNode.$from.where((e) => e.from is PathsMapNode)) {
+      return edge.via; // The map key is the path
+    }
+    return null;
+  }
+
+  int? _getParameterIndex() {
+    final parametersListNode = trueParent<ParametersListNode>('parameters');
+    if (parametersListNode == null) return null;
+
+    // Find the index of this parameter in the list
+    final parameters = parametersListNode.toList();
+    for (int i = 0; i < parameters.length; i++) {
+      if (parameters[i] == this) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  String? _getHttpMethod() {
+    final operation = _findOperation();
+    if (operation == null) return null;
+
+    // Get the HTTP method from the edge connecting Operation to PathItem
+    for (final edge in operation.$from.where((e) => e.from is PathItemNode)) {
+      return edge.via; // get_, post, put, etc.
+    }
+    return null;
+  }
+
+  OperationNode? _findOperation() {
+    final parametersListNode = trueParent<ParametersListNode>('parameters');
+    if (parametersListNode == null) return null;
+
+    return parametersListNode.trueParent<OperationNode>('parameters');
+  }
+
+  String _generateHashFallback() {
+    // Create a deterministic hash from: document URI, path template, HTTP method, parameter location, parameter index
+    final pathItemNode = _findPathItem();
+    final path = pathItemNode != null ? _getPathFromPathItem(pathItemNode) ?? '' : '';
+    final method = _getHttpMethod() ?? '';
+    final location = in_.value;
+    final index = _getParameterIndex() ?? 0;
+
+    final identity = '${$id.document}|$path|$method|$location|$index';
+    final codeUnits = identity.codeUnits;
+    final hash = codeUnits.fold<int>(0, (prev, code) => (prev * 31 + code) & 0xFFFFFFFF);
+    final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);
+    return 'Param_$shortHash';
   }
 }

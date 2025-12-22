@@ -383,7 +383,7 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
 
   String get $name {
     // Check if we already computed a name for this schema
-    final cached = OpenApiGraph.i.getCachedSchemaName($id.absolutePointer);
+    final cached = OpenApiGraph.i.nameRegistry.getCachedSchemaName($id.absolutePointer);
     if (cached != null) return cached;
 
     // Compute the base name using the naming algorithm
@@ -391,7 +391,7 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
 
     // Sanitize and register the name (handles collisions)
     final sanitized = NamingUtils.toValidDartIdentifier(baseName);
-    return OpenApiGraph.i.registerSchemaName($id.absolutePointer, sanitized);
+    return OpenApiGraph.i.nameRegistry.registerSchemaName($id.absolutePointer, sanitized);
   }
 
   String _computeBaseName() {

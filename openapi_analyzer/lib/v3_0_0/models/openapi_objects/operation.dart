@@ -188,7 +188,7 @@ class OperationNode extends Node with InternalNode implements Operation {
   @override
   String get $name {
     // Check if we already computed a name for this operation
-    final cached = OpenApiGraph.i.getCachedOperationName($id.absolutePointer);
+    final cached = OpenApiGraph.i.nameRegistry.getCachedOperationName($id.absolutePointer);
     if (cached != null) return cached;
 
     // Compute the base name using the naming algorithm
@@ -196,7 +196,7 @@ class OperationNode extends Node with InternalNode implements Operation {
 
     // Sanitize and register the name (handles collisions)
     final sanitized = NamingUtils.toValidDartIdentifier(baseName);
-    return OpenApiGraph.i.registerOperationName($id.absolutePointer, sanitized);
+    return OpenApiGraph.i.nameRegistry.registerOperationName($id.absolutePointer, sanitized);
   }
 
   String _computeBaseName() {
