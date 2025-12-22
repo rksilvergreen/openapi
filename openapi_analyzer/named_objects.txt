@@ -1,0 +1,23 @@
+Minimal “must-name” list (core)
+
+If you want the irreducible set that cannot be avoided in codegen:
+
+OpenAPI (document)
+
+Operation
+
+Schema
+
+Parameter
+
+Request Body
+
+Response
+
+Header
+
+Callback
+
+Security Scheme
+
+Server

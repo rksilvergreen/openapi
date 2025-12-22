@@ -395,27 +395,23 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
   }
 
   String _computeBaseName() {
-    // Step 1: If node is $ref, name from resolved ref target
-    // (In this architecture, refs are already resolved to their target nodes,
-    // so if we're referenced, we are the target and should use our own location)
-
-    // Step 2: If under components/schemas/{key}, use the key
+    // Step 1: If under components/schemas/{key}, use the key
     final componentsName = _deriveFromComponents();
     if (componentsName != null) return componentsName;
 
-    // Step 3: If schema has title, use it
+    // Step 2: If schema has title, use it
     final titleName = _deriveFromTitle();
     if (titleName != null) return titleName;
 
-    // Step 4: Derive from OpenAPI context
+    // Step 3: Derive from OpenAPI context
     final contextName = _deriveFromContext();
     if (contextName != null) return contextName;
 
-    // Step 5: Derive from parent schema
+    // Step 4: Derive from parent schema
     final parentName = _deriveFromParent();
     if (parentName != null) return parentName;
 
-    // Step 6: Use hash fallback
+    // Step 5: Use hash fallback
     return _generateHashFallback();
   }
 
@@ -447,14 +443,7 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
       final operation = requestBodyNode?.trueParent<OperationNode>('requestBody');
 
       if (operation != null) {
-        if (operation.operationId != null) {
-          return '${NamingUtils.toPascalCase(operation.operationId!)}Request';
-        }
-        // Fallback to path-based name
-        final pathAndMethod = _getPathAndMethodFromOperation(operation);
-        if (pathAndMethod != null) {
-          return NamingUtils.operationNameFromPath(pathAndMethod.$1, pathAndMethod.$2) + 'Request';
-        }
+        return '${operation.$name}Request';
       }
 
       // Check for response body schema (same mediaType, different path)
@@ -469,16 +458,7 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
           final operation = responsesMapNode.trueParent<OperationNode>('responses');
 
           if (operation != null) {
-            if (operation.operationId != null) {
-              return '${NamingUtils.toPascalCase(operation.operationId!)}${NamingUtils.statusCodeToName(statusCode)}Response';
-            }
-            // Fallback to path-based name
-            final pathAndMethod = _getPathAndMethodFromOperation(operation);
-            if (pathAndMethod != null) {
-              return NamingUtils.operationNameFromPath(pathAndMethod.$1, pathAndMethod.$2) +
-                  NamingUtils.statusCodeToName(statusCode) +
-                  'Response';
-            }
+            return '${operation.$name}${NamingUtils.statusCodeToName(statusCode)}Response';
           }
         }
       }
@@ -495,16 +475,7 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
         // Check if it's from an operation
         final operation = parametersListNode.trueParent<OperationNode>('parameters');
         if (operation != null) {
-          if (operation.operationId != null) {
-            return '${NamingUtils.toPascalCase(operation.operationId!)}${NamingUtils.toPascalCase(paramName)}Param';
-          }
-          // Fallback to path-based name
-          final pathAndMethod = _getPathAndMethodFromOperation(operation);
-          if (pathAndMethod != null) {
-            return NamingUtils.operationNameFromPath(pathAndMethod.$1, pathAndMethod.$2) +
-                NamingUtils.toPascalCase(paramName) +
-                'Param';
-          }
+          return '${operation.$name}${NamingUtils.toPascalCase(paramName)}Param';
         }
 
         // Check if it's from a path item
@@ -533,8 +504,8 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
         if (responseNode != null) {
           // Try to find the operation
           final operation = _findOperationFromResponse(responseNode);
-          if (operation?.operationId != null) {
-            return '${NamingUtils.toPascalCase(operation!.operationId!)}${NamingUtils.toPascalCase(headerName)}Header';
+          if (operation != null) {
+            return '${operation.$name}${NamingUtils.toPascalCase(headerName)}Header';
           }
         }
 
@@ -615,23 +586,6 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
   OperationNode? _findOperationFromResponse(ResponseNode responseNode) {
     final responsesMapNode = responseNode.parent<ResponsesMapNode>('responses', EdgeForm.inline);
     return responsesMapNode?.parent<OperationNode>('responses', EdgeForm.inline);
-  }
-
-  (String, String)? _getPathAndMethodFromOperation(OperationNode operation) {
-    // Operation is connected to PathItem, and PathItem is in PathsMap
-    for (final edge in operation.$from.where((e) => e.from is PathItemNode)) {
-      final pathItemNode = edge.from as PathItemNode;
-      final method = edge.via; // get_, post, put, etc.
-
-      // Get the path from the PathsMap
-      final path = _getPathFromPathItem(pathItemNode);
-      if (path != null) {
-        // Clean up method name (remove trailing underscore from get_)
-        final cleanMethod = method.endsWith('_') ? method.substring(0, method.length - 1) : method;
-        return (path, cleanMethod);
-      }
-    }
-    return null;
   }
 
   String? _getPathFromPathItem(PathItemNode pathItemNode) {

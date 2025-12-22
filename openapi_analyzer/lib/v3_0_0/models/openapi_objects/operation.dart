@@ -10,6 +10,9 @@ import 'callbacks_map.dart';
 import 'parameters_list.dart';
 import 'security_requirements_list.dart';
 import 'server_list.dart';
+import '../../naming/naming_utils.dart';
+import 'path_item.dart';
+import 'paths_map.dart';
 
 abstract class Operation {
   ExternalDocumentation? get externalDocs;
@@ -182,6 +185,74 @@ class OperationNode extends Node with InternalNode implements Operation {
     extensions = extractExtensions(json);
   }
 
+  @override
   String get $name {
+    // Check if we already computed a name for this operation
+    final cached = OpenApiGraph.i.getCachedOperationName($id.absolutePointer);
+    if (cached != null) return cached;
+
+    // Compute the base name using the naming algorithm
+    String baseName = _computeBaseName();
+
+    // Sanitize and register the name (handles collisions)
+    final sanitized = NamingUtils.toValidDartIdentifier(baseName);
+    return OpenApiGraph.i.registerOperationName($id.absolutePointer, sanitized);
+  }
+
+  String _computeBaseName() {
+    // Step 1: Derive from operationId if present
+    final operationIdName = _deriveFromOperationId();
+    if (operationIdName != null) return operationIdName;
+
+    // Step 2: Derive from HTTP method + path template
+    final pathAndMethodName = _deriveFromPathAndMethod();
+    if (pathAndMethodName != null) return pathAndMethodName;
+
+    // Step 3: Hash-based fallback
+    return _generateHashFallback();
+  }
+
+  String? _deriveFromOperationId() {
+    if (operationId != null && operationId!.isNotEmpty) {
+      final sanitized = NamingUtils.toValidDartIdentifier(operationId!);
+      if (sanitized.isNotEmpty && sanitized != 'unnamed') {
+        return NamingUtils.toPascalCase(operationId!);
+      }
+    }
+    return null;
+  }
+
+  String? _deriveFromPathAndMethod() {
+    // Operation is connected to PathItem
+    for (final edge in $from.where((e) => e.from is PathItemNode)) {
+      final pathItemNode = edge.from as PathItemNode;
+      final method = edge.via; // get_, post, put, etc.
+
+      // Get the path from the PathsMap
+      for (final pathEdge in pathItemNode.$from.where((e) => e.from is PathsMapNode)) {
+        final path = pathEdge.via; // The map key is the path
+        // Clean up method name (remove trailing underscore from get_)
+        final cleanMethod = method.endsWith('_') ? method.substring(0, method.length - 1) : method;
+        return NamingUtils.operationNameFromPath(path, cleanMethod);
+      }
+    }
+    return null;
+  }
+
+  String _generateHashFallback() {
+    // Create a deterministic hash from the absolute pointer
+    final codeUnits = $id.absolutePointer.codeUnits;
+    final hash = codeUnits.fold<int>(0, (prev, code) => (prev * 31 + code) & 0xFFFFFFFF);
+    final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);
+
+    // Include method if we can find it
+    for (final edge in $from.where((e) => e.from is PathItemNode)) {
+      final method = edge.via; // get_, post, put, etc.
+      // Clean up method name (remove trailing underscore from get_)
+      final cleanMethod = method.endsWith('_') ? method.substring(0, method.length - 1) : method;
+      return 'op_${cleanMethod}_$shortHash';
+    }
+
+    return 'op_$shortHash';
   }
 }
