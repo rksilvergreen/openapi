@@ -19,6 +19,8 @@ abstract class Operation {
   CallbacksMap? get callbacks;
   SecurityRequirementsList? get security;
   ServerList? get servers;
+
+  String get $name;
 }
 
 class OperationNode extends Node with InternalNode implements Operation {
@@ -178,5 +180,8 @@ class OperationNode extends Node with InternalNode implements Operation {
     security = $to.to<SecurityRequirementsListNode>('security')!;
     servers = $to.to<ServerListNode>('servers')!;
     extensions = extractExtensions(json);
+  }
+
+  String get $name {
   }
 }

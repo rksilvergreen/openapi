@@ -66,6 +66,7 @@ abstract class Schema {
 
   TypedSchema get $typed;
   EffectiveSchema get $effective;
+  String get $name;
 }
 
 class SchemaNode extends Node with Referencable, InternalNode implements Schema {
@@ -380,7 +381,7 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
     $effective = EffectiveSchema.fromTyped(this, $typed, OpenApiGraph.i.validationContext);
   }
 
-  String get name {
+  String get $name {
     // Check if we already computed a name for this schema
     final cached = OpenApiGraph.i.getCachedSchemaName($id.absolutePointer);
     if (cached != null) return cached;
@@ -394,221 +395,226 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
   }
 
   String _computeBaseName() {
-    final pointer = $id.jsonPointer;
-    final parts = pointer.split('/').where((p) => p.isNotEmpty).toList();
-
     // Step 1: If node is $ref, name from resolved ref target
     // (In this architecture, refs are already resolved to their target nodes,
     // so if we're referenced, we are the target and should use our own location)
 
     // Step 2: If under components/schemas/{key}, use the key
-    for (final edge in $from.where((e) => e.form == EdgeForm.inline)) {
-      if (edge.from is SchemasMapNode) {
-        final schemasMapNode = edge.from as SchemasMapNode;
-        final componentsNode = schemasMapNode.parent<ComponentsNode>('schemas');
-        if (componentsNode != null) {
-          // This schema is in components/schemas, use the map key
-          final componentKey = edge.via; // The key in the schemas map
-          return NamingUtils.toPascalCase(componentKey);
-        }
-      }
-    }
+    final componentsName = _deriveFromComponents();
+    if (componentsName != null) return componentsName;
 
     // Step 3: If schema has title, use it
-    if (title != null && title!.isNotEmpty) {
-      return NamingUtils.toPascalCase(title!);
-    }
+    final titleName = _deriveFromTitle();
+    if (titleName != null) return titleName;
 
     // Step 4: Derive from OpenAPI context
-    final contextName = _deriveFromContext(parts);
+    final contextName = _deriveFromContext();
     if (contextName != null) return contextName;
 
     // Step 5: Derive from parent schema
-    final parentName = _deriveFromParent(parts);
+    final parentName = _deriveFromParent();
     if (parentName != null) return parentName;
 
     // Step 6: Use hash fallback
     return _generateHashFallback();
   }
 
-  String? _deriveFromContext(List<String> parts) {
-    // Traverse edges to determine the context
-    for (final edge in $from.where((e) => e.form == EdgeForm.inline)) {
-      // Check for request body schema
-      // Path: schema ← mediaType ← mediaTypesMap ← requestBody ← operation
-      if (edge.from is MediaTypeNode && edge.via == 'schema') {
-        final mediaTypeNode = edge.from as MediaTypeNode;
-        final mediaTypesMapNode = mediaTypeNode.parent<MediaTypesMapNode>('content');
-        if (mediaTypesMapNode != null) {
-          final requestBodyNode = mediaTypesMapNode.parent<RequestBodyNode>('content');
-          if (requestBodyNode != null) {
-            final operation = requestBodyNode.parent<OperationNode>('requestBody');
-            if (operation != null) {
-              if (operation.operationId != null) {
-                return '${NamingUtils.toPascalCase(operation.operationId!)}Request';
-              }
-              // Fallback to path-based name
-              final pathAndMethod = _getPathAndMethodFromOperation(operation);
-              if (pathAndMethod != null) {
-                return NamingUtils.operationNameFromPath(pathAndMethod.$1, pathAndMethod.$2) + 'Request';
-              }
-            }
-          }
+  String? _deriveFromComponents() {
+    final edge = trueParentEdge<SchemasMapNode>();
+    if (edge != null) {
+      final schemasMapNode = edge.from as SchemasMapNode;
+      if (schemasMapNode.trueParentEdge<ComponentsNode>('schemas') != null) {
+        return NamingUtils.toPascalCase(edge.via);
+      }
+    }
+    return null;
+  }
+
+  String? _deriveFromTitle() {
+    if (title != null && title!.isNotEmpty) {
+      return NamingUtils.toPascalCase(title!);
+    }
+    return null;
+  }
+
+  String? _deriveFromContext() {
+    // Check for request body schema
+    // Path: schema ← mediaType ← mediaTypesMap ← requestBody ← operation
+    final mediaTypeNode = trueParent<MediaTypeNode>('schema');
+    if (mediaTypeNode != null) {
+      final mediaTypesMapNode = mediaTypeNode.trueParent<MediaTypesMapNode>('content');
+      final requestBodyNode = mediaTypesMapNode?.trueParent<RequestBodyNode>('content');
+      final operation = requestBodyNode?.trueParent<OperationNode>('requestBody');
+
+      if (operation != null) {
+        if (operation.operationId != null) {
+          return '${NamingUtils.toPascalCase(operation.operationId!)}Request';
+        }
+        // Fallback to path-based name
+        final pathAndMethod = _getPathAndMethodFromOperation(operation);
+        if (pathAndMethod != null) {
+          return NamingUtils.operationNameFromPath(pathAndMethod.$1, pathAndMethod.$2) + 'Request';
         }
       }
 
-      // Check for response body schema
+      // Check for response body schema (same mediaType, different path)
       // Path: schema ← mediaType ← mediaTypesMap ← response ← responsesMap ← operation
-      if (edge.from is MediaTypeNode && edge.via == 'schema') {
-        final mediaTypeNode = edge.from as MediaTypeNode;
-        final mediaTypesMapNode = mediaTypeNode.parent<MediaTypesMapNode>('content');
-        if (mediaTypesMapNode != null) {
-          final responseNode = mediaTypesMapNode.parent<ResponseNode>('content');
-          if (responseNode != null) {
-            // Find the status code from the edge connecting response to responsesMap
-            for (final respEdge in responseNode.$from.where(
-              (e) => e.form == EdgeForm.inline && e.from is ResponsesMapNode,
-            )) {
-              final responsesMapNode = respEdge.from as ResponsesMapNode;
-              final statusCode = respEdge.via; // The map key is the status code
-              final operation = responsesMapNode.parent<OperationNode>('responses');
-              if (operation != null) {
-                if (operation.operationId != null) {
-                  return '${NamingUtils.toPascalCase(operation.operationId!)}${NamingUtils.statusCodeToName(statusCode)}Response';
-                }
-                // Fallback to path-based name
-                final pathAndMethod = _getPathAndMethodFromOperation(operation);
-                if (pathAndMethod != null) {
-                  return NamingUtils.operationNameFromPath(pathAndMethod.$1, pathAndMethod.$2) +
-                      NamingUtils.statusCodeToName(statusCode) +
-                      'Response';
-                }
-              }
-            }
-          }
-        }
-      }
+      final responseNode = mediaTypesMapNode?.trueParent<ResponseNode>('content');
+      if (responseNode != null) {
+        // Need edge to get status code (via)
+        final respEdge = responseNode.trueParentEdge<ResponsesMapNode>('responses');
+        if (respEdge != null) {
+          final responsesMapNode = respEdge.from as ResponsesMapNode;
+          final statusCode = respEdge.via; // The map key is the status code
+          final operation = responsesMapNode.trueParent<OperationNode>('responses');
 
-      // Check for parameter schema
-      // Path: schema ← parameter ← parametersList ← operation/pathItem
-      if (edge.from is ParameterNode && edge.via == 'schema') {
-        final parameterNode = edge.from as ParameterNode;
-        final paramName = parameterNode.name;
-        final parametersListNode = parameterNode.parent<ParametersListNode>('parameters');
-
-        if (parametersListNode != null) {
-          // Check if it's from an operation
-          final operation = parametersListNode.parent<OperationNode>('parameters');
           if (operation != null) {
             if (operation.operationId != null) {
-              return '${NamingUtils.toPascalCase(operation.operationId!)}${NamingUtils.toPascalCase(paramName)}Param';
+              return '${NamingUtils.toPascalCase(operation.operationId!)}${NamingUtils.statusCodeToName(statusCode)}Response';
             }
             // Fallback to path-based name
             final pathAndMethod = _getPathAndMethodFromOperation(operation);
             if (pathAndMethod != null) {
               return NamingUtils.operationNameFromPath(pathAndMethod.$1, pathAndMethod.$2) +
-                  NamingUtils.toPascalCase(paramName) +
-                  'Param';
-            }
-          }
-
-          // Check if it's from a path item
-          final pathItemNode = parametersListNode.parent<PathItemNode>('parameters');
-          if (pathItemNode != null) {
-            final path = _getPathFromPathItem(pathItemNode);
-            if (path != null) {
-              return NamingUtils.toPascalCase(Uri.decodeComponent(path)) +
-                  NamingUtils.toPascalCase(paramName) +
-                  'Param';
+                  NamingUtils.statusCodeToName(statusCode) +
+                  'Response';
             }
           }
         }
       }
+    }
 
-      // Check for header schema
-      // Path: schema ← header ← headersMap ← response
-      if (edge.from is HeaderNode && edge.via == 'schema') {
-        final headerNode = edge.from as HeaderNode;
+    // Check for parameter schema
+    // Path: schema ← parameter ← parametersList ← operation/pathItem
+    final parameterNode = trueParent<ParameterNode>('schema');
+    if (parameterNode != null) {
+      final paramName = parameterNode.name;
+      final parametersListNode = parameterNode.trueParent<ParametersListNode>('parameters');
 
-        // Find the header name from the edge connecting header to headersMap
-        for (final headerEdge in headerNode.$from.where((e) => e.form == EdgeForm.inline && e.from is HeadersMapNode)) {
-          final headersMapNode = headerEdge.from as HeadersMapNode;
-          final headerName = headerEdge.via; // The map key is the header name
-
-          // Check if it's from a response
-          final responseNode = headersMapNode.parent<ResponseNode>('headers');
-          if (responseNode != null) {
-            // Try to find the operation
-            final operation = _findOperationFromResponse(responseNode);
-            if (operation?.operationId != null) {
-              return '${NamingUtils.toPascalCase(operation!.operationId!)}${NamingUtils.toPascalCase(headerName)}Header';
-            }
+      if (parametersListNode != null) {
+        // Check if it's from an operation
+        final operation = parametersListNode.trueParent<OperationNode>('parameters');
+        if (operation != null) {
+          if (operation.operationId != null) {
+            return '${NamingUtils.toPascalCase(operation.operationId!)}${NamingUtils.toPascalCase(paramName)}Param';
           }
-
-          // If no operation found, use just the header name
-          return NamingUtils.toPascalCase(headerName) + 'Header';
+          // Fallback to path-based name
+          final pathAndMethod = _getPathAndMethodFromOperation(operation);
+          if (pathAndMethod != null) {
+            return NamingUtils.operationNameFromPath(pathAndMethod.$1, pathAndMethod.$2) +
+                NamingUtils.toPascalCase(paramName) +
+                'Param';
+          }
         }
+
+        // Check if it's from a path item
+        final pathItemNode = parametersListNode.trueParent<PathItemNode>('parameters');
+        if (pathItemNode != null) {
+          final path = _getPathFromPathItem(pathItemNode);
+          if (path != null) {
+            return NamingUtils.toPascalCase(Uri.decodeComponent(path)) + NamingUtils.toPascalCase(paramName) + 'Param';
+          }
+        }
+      }
+    }
+
+    // Check for header schema
+    // Path: schema ← header ← headersMap ← response
+    // Need edge to get header name (via)
+    final headerNode = trueParent<HeaderNode>('schema');
+    if (headerNode != null) {
+      final headerEdge = headerNode.trueParentEdge<HeadersMapNode>('headers');
+      if (headerEdge != null) {
+        final headersMapNode = headerEdge.from as HeadersMapNode;
+        final headerName = headerEdge.via; // The map key is the header name
+
+        // Check if it's from a response
+        final responseNode = headersMapNode.trueParent<ResponseNode>('headers');
+        if (responseNode != null) {
+          // Try to find the operation
+          final operation = _findOperationFromResponse(responseNode);
+          if (operation?.operationId != null) {
+            return '${NamingUtils.toPascalCase(operation!.operationId!)}${NamingUtils.toPascalCase(headerName)}Header';
+          }
+        }
+
+        // If no operation found, use just the header name
+        return NamingUtils.toPascalCase(headerName) + 'Header';
       }
     }
 
     return null;
   }
 
-  String? _deriveFromParent(List<String> parts) {
-    if (parts.length < 2) return null;
-
-    final parentKey = parts[parts.length - 2];
-    final currentKey = parts.last;
-
+  String? _deriveFromParent() {
     // Get parent schema if this is nested
     final parentNode = _findParentSchema();
     if (parentNode == null) return null;
 
-    final parentName = parentNode.name;
+    final parentName = parentNode.$name;
 
-    // Property schema: {Parent}{Prop}
-    if (parentKey == 'properties' && parts.length >= 3) {
-      final propertyName = currentKey;
-      return parentName + NamingUtils.toPascalCase(propertyName);
-    }
-
-    // Array items: {Parent}Item
-    if (currentKey == 'items') {
-      return parentName + 'Item';
-    }
-
-    // Additional properties: {Parent}Value
-    if (currentKey == 'additionalProperties') {
-      return parentName + 'Value';
-    }
-
-    // allOf composition: {Parent}AllOf{i}
-    if (parentKey == 'allOf') {
-      final index = int.tryParse(currentKey);
-      if (index != null) {
-        return '${parentName}AllOf${index + 1}';
+    // Check the edge to determine relationship
+    for (final edge in $from.where((e) => e.form == EdgeForm.inline)) {
+      // Property schema: {Parent}{Prop}
+      if (edge.from is SchemasMapNode) {
+        final schemasMapNode = edge.from as SchemasMapNode;
+        if (schemasMapNode.trueParent<SchemaNode>('properties') == parentNode) {
+          final propertyName = edge.via;
+          return parentName + NamingUtils.toPascalCase(propertyName);
+        }
       }
-    }
 
-    // oneOf/anyOf variants: {Parent}Variant{i}
-    if (parentKey == 'oneOf' || parentKey == 'anyOf') {
-      final index = int.tryParse(currentKey);
-      if (index != null) {
-        return '${parentName}Variant${index + 1}';
+      // Array items: {Parent}Item
+      if (edge.from == parentNode && edge.via == 'items') {
+        return parentName + 'Item';
       }
-    }
 
-    // not: {Parent}Not
-    if (currentKey == 'not') {
-      return parentName + 'Not';
+      // Additional properties: {Parent}Value
+      if (edge.from == parentNode && edge.via == 'additionalProperties') {
+        return parentName + 'Value';
+      }
+
+      // not: {Parent}Not
+      if (edge.from == parentNode && edge.via == 'not') {
+        return parentName + 'Not';
+      }
+
+      // allOf/oneOf/anyOf composition
+      if (edge.from is SchemasListNode) {
+        final listNode = edge.from as SchemasListNode;
+
+        // allOf: {Parent}AllOf{i}
+        if (listNode.trueParent<SchemaNode>('allOf') == parentNode) {
+          final index = int.tryParse(edge.via);
+          if (index != null) {
+            return '${parentName}AllOf${index + 1}';
+          }
+        }
+
+        // oneOf: {Parent}Variant{i}
+        if (listNode.trueParent<SchemaNode>('oneOf') == parentNode) {
+          final index = int.tryParse(edge.via);
+          if (index != null) {
+            return '${parentName}Variant${index + 1}';
+          }
+        }
+
+        // anyOf: {Parent}Variant{i}
+        if (listNode.trueParent<SchemaNode>('anyOf') == parentNode) {
+          final index = int.tryParse(edge.via);
+          if (index != null) {
+            return '${parentName}Variant${index + 1}';
+          }
+        }
+      }
     }
 
     return null;
   }
 
   OperationNode? _findOperationFromResponse(ResponseNode responseNode) {
-    final responsesMapNode = responseNode.parent<ResponsesMapNode>('responses');
-    return responsesMapNode?.parent<OperationNode>('responses');
+    final responsesMapNode = responseNode.parent<ResponsesMapNode>('responses', EdgeForm.inline);
+    return responsesMapNode?.parent<OperationNode>('responses', EdgeForm.inline);
   }
 
   (String, String)? _getPathAndMethodFromOperation(OperationNode operation) {
@@ -645,7 +651,7 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
       // Properties map - need to go one level up
       if (edge.from is SchemasMapNode) {
         final mapNode = edge.from as SchemasMapNode;
-        final parentSchema = mapNode.parent<SchemaNode>('properties');
+        final parentSchema = mapNode.parent<SchemaNode>('properties', EdgeForm.inline);
         if (parentSchema != null) return parentSchema;
       }
       // allOf/oneOf/anyOf list - need to go one level up
@@ -653,7 +659,7 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
         final listNode = edge.from as SchemasListNode;
         // Check all possible composition keywords
         for (final keyword in ['allOf', 'oneOf', 'anyOf']) {
-          final parentSchema = listNode.parent<SchemaNode>(keyword);
+          final parentSchema = listNode.parent<SchemaNode>(keyword, EdgeForm.inline);
           if (parentSchema != null) return parentSchema;
         }
       }

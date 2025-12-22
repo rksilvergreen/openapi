@@ -1,308 +1,54 @@
-Below is a deterministic naming algorithm for Schema Object instances in an OpenAPI 3.0.0 analyzer, with ordered fallbacks and collision handling. It’s designed so that:
+Operation Naming Algorithm (OpenAPI 3.0.0)
+Step 1 — Use operationId if present
 
-Same schema node ⇒ same name (stable across runs)
+If operation.operationId exists and is non-empty:
 
-Refs get canonical names (based on their target)
+Use it as the operation name after sanitization (target-language safe).
 
-Inline schemas still get meaningful names (based on where they appear)
+If sanitization results in an empty or invalid identifier, ignore and continue.
 
-Every name is unique (via a consistent suffix scheme)
+Rationale: operationId is intended to uniquely identify an operation across the API.
 
-OpenAPI context notes:
+Step 2 — Derive from HTTP method + path template
 
-Components are reusable maps (including components.schemas) and the map keys must match ^[a-zA-Z0-9\.\-_]+$. 
-OpenAPI Initiative Publications
+If no usable operationId:
 
-A Schema position can contain either an inline Schema Object or a Reference Object ($ref). 
-OpenAPI Initiative Publications
-+1
+Take the HTTP method (get, post, put, delete, etc.).
 
-$ref resolution follows JSON Reference rules (internal/external). 
-OpenAPI Initiative Publications
+Take the path template (e.g. /pets/{petId}/owners).
 
-Part A — Normalize the problem
-Step 0 — Define your “schema node identity”
+Split the path into segments by /.
 
-Before naming, decide what “the same schema” means in your analyzer:
+For each segment:
 
-If it’s a $ref: identity is the normalized reference target (resolved absolute URI + JSON Pointer fragment). 
-OpenAPI Initiative Publications
+Literal segment → use as-is.
 
-If it’s inline: identity is the location path inside the OpenAPI document (a JSON Pointer-like path to that schema position, e.g. /paths/~1pets/get/responses/200/content/application~1json/schema).
+Path parameter {param} → use param (no prefix).
 
-This identity is what you’ll memoize to keep names stable.
+Concatenate in order:
 
-Part B — Name resolution pipeline (ordered fallbacks)
-Step 1 — If the node is a $ref, name from the reference target (always)
+<method><Segment1><Segment2>...
 
-Because a Reference Object can appear “any time a Schema Object can be used”, you want one canonical name per target. 
-OpenAPI Initiative Publications
-+1
+Apply casing rules (e.g., lowerCamelCase or PascalCase).
 
-1.1 Extract a base token from the $ref
+Examples
 
-If internal ref like #/components/schemas/Pet: base token = last segment = Pet. 
-OpenAPI Initiative Publications
+GET /pets → getPets
 
-If external ref like models.yaml#/Pet: base token = pointer’s last segment (Pet) if present; otherwise file stem (models) or a safe placeholder.
+GET /pets/{petId} → getPetsPetId
 
-1.2 Sanitize
+DELETE /pets/{petId}/owners/{ownerId} → deletePetsPetIdOwnersOwnerId
 
-Convert to your preferred class-style form (often PascalCase).
+Step 3 — Hash-based fallback (last resort)
 
-Replace illegal characters with _ or strip them.
+If Step 2 produces an empty or invalid name:
 
-If the extracted token is empty/meaningless (e.g., schema, definitions), fall back to Ref_<hash> (see Step 6).
+Compute a stable operation identity:
 
-Result: The $ref target gets exactly one canonical name.
+(documentUri, pathTemplate, httpMethod)
 
-Step 2 — If schema is under components/schemas, use the map key (strongest inline name)
+Generate:
 
-If the schema is defined at:
+op_<method>_<shortHash(identity)>
 
-#/components/schemas/{Key}
-then name = {Key} (after sanitization). Components are explicitly “reusable objects”, and the key is the natural stable identifier. 
-OpenAPI Initiative Publications
-+1
-
-(Even if the schema also has title, the component key wins, because it’s guaranteed stable and intentionally chosen.)
-
-Step 3 — If schema has title, use it (next strongest)
-
-Schema Object is a subset of JSON Schema, and title is a common doc/name hint in practice (even if you treat it as “metadata”). 
-OpenAPI Initiative Publications
-
-Rule: if title exists and is non-empty:
-
-name = PascalCase(title)
-
-Tie-breaker: if you’re inside components and you already have a key, ignore title (Step 2 wins).
-
-Step 4 — Otherwise, derive from semantic OpenAPI context (where the schema appears)
-
-This is where most of the “good names” come from for inline schemas.
-
-4.1 Request body schema
-
-If schema is at:
-
-/paths/{path}/{method}/requestBody/content/{mediaType}/schema
-
-Name it using:
-
-operation basis:
-
-If operationId exists: operationId + "Request"
-
-else: Method + PathTemplate + "Request" (e.g., PostPetsRequest)
-
-Then optionally add media type hint if you want:
-
-...Json for application/json, etc.
-
-4.2 Response body schema
-
-If schema is at:
-
-/paths/{path}/{method}/responses/{status}/content/{mediaType}/schema
-
-Name it:
-
-operationId + Status + "Response" (e.g., ListPets200Response)
-
-fallback: Method + PathTemplate + Status + "Response"
-
-4.3 Parameter schema
-
-If schema is at:
-
-/paths/{path}/{method}/parameters[{i}]/schema (or path-level parameters)
-
-Name it:
-
-operationId + PascalCase(param.name) + "Param"
-
-fallback: Method + PathTemplate + PascalCase(param.name) + "Param"
-
-*(Parameter uniqueness is name+in at the spec level, so include In if you want: UserIdPathParam.) 
-OpenAPI Initiative Publications
-
-4.4 Header schema
-
-If schema is under response/request headers:
-
-...Headers.../schema
-
-Name it:
-
-operationId + PascalCase(headerName) + "Header"
-
-4.5 Callback / webhook-like schemas
-
-If schema is inside callbacks (3.0 callbacks map):
-
-include callback key + expression-derived token if helpful
-
-operationId + PascalCase(callbackKey) + "Callback" + ...
-
-Step 5 — Propagate names to subschemas (properties/items/composition)
-
-Once a parent schema has a name, you want predictable child names.
-
-The Schema Object explicitly allows these nested schema positions: properties, items, additionalProperties, allOf/oneOf/anyOf/not, etc. 
-OpenAPI Initiative Publications
-
-Assume parent is named Parent.
-
-5.1 Object properties
-
-For Parent.properties.foo:
-
-Parent + PascalCase(foo)
-
-5.2 Array items
-
-For Parent.items:
-
-Parent + "Item"
-
-If items is a $ref, Step 1 wins (don’t rename the referenced type).
-
-5.3 Map/dictionary values (additionalProperties as schema)
-
-For Parent.additionalProperties when it’s a schema object:
-
-Parent + "Value"
-
-(If it’s boolean, there’s no schema to name.) 
-OpenAPI Initiative Publications
-
-5.4 allOf (composition)
-
-For Parent.allOf[i]:
-
-If it’s $ref: Step 1 wins
-
-Else: Parent + "AllOf" + (i+1)
-
-5.5 oneOf / anyOf (variants)
-
-For Parent.oneOf[i]:
-
-If $ref: Step 1 wins
-
-Else: Parent + "Variant" + (i+1)
-
-Same for anyOf.
-
-5.6 not
-
-For Parent.not:
-
-Parent + "Not"
-
-Step 6 — If still unnamed, use a stable hash fallback (last resort)
-
-Sometimes you’ll have schemas with no title, no component key, and ambiguous context (e.g., deep inside a schema graph reused via copy/paste).
-
-Use:
-
-Anon_<shortHash(identity)>
-
-Where identity is from Step 0 (pointer path for inline, resolved URI+fragment for refs).
-
-This guarantees:
-
-deterministic
-
-unique (practically)
-
-stable
-
-Part C — Collision handling (must be deterministic)
-
-Even with good naming, collisions happen (same derived name from different places).
-
-Step 7 — Apply a consistent uniqueness suffix rule
-
-Maintain a registry: name -> count.
-
-If BaseName is unused: keep it.
-If already used by a different identity: rename as:
-
-BaseName_2, BaseName_3, …
-
-(I recommend starting at _2 so the first occurrence stays clean.)
-
-Step 8 — Prefer “more authoritative” names when conflicts occur
-
-If two identities want the same name, you can optionally bias:
-
-Priority order:
-
-components/schemas key (Step 2)
-
-$ref target-derived (Step 1)
-
-title (Step 3)
-
-contextual (Step 4–5)
-
-hash fallback (Step 6)
-
-So if an inline schema’s derived name collides with a component schema key, the component keeps the clean name; the inline gets the suffix.
-
-Part D — Practical output rules (so it’s usable for codegen)
-Step 9 — Final sanitization (consistent style)
-
-After you finalize the base name + suffix:
-
-Ensure it starts with a letter (if not, prefix S_)
-
-Convert separators (., -, _, spaces) to PascalCase boundaries (or whatever your target language needs)
-
-Avoid reserved words (Object, String, Map, etc.) by suffixing _ or Type
-
-Remember component keys allow . - _ etc. but your generated type names might not. 
-OpenAPI Initiative Publications
-
-Recommended “one-page” naming order (copy/paste into your design doc)
-
-If node is $ref ⇒ name from resolved ref target (last pointer segment; else file stem; else Ref_<hash>) 
-OpenAPI Initiative Publications
-
-Else if under components/schemas/{key} ⇒ name = {key} 
-OpenAPI Initiative Publications
-+1
-
-Else if title ⇒ name = PascalCase(title) 
-OpenAPI Initiative Publications
-
-Else derive from OpenAPI context:
-
-requestBody ⇒ {op}Request
-
-response ⇒ {op}{status}Response
-
-parameter ⇒ {op}{param}Param
-
-header ⇒ {op}{header}Header
-
-Else derive from parent schema:
-
-property ⇒ {Parent}{Prop}
-
-items ⇒ {Parent}Item
-
-additionalProperties(schema) ⇒ {Parent}Value 
-OpenAPI Initiative Publications
-
-oneOf/anyOf inline branch ⇒ {Parent}Variant{i}
-
-allOf inline branch ⇒ {Parent}AllOf{i}
-
-Else ⇒ Anon_<hash(pointer identity)>
-
-Resolve collisions with deterministic suffix _2, _3, …
-
-Sanitize for target language + reserved words
+This guarantees determinism and uniqueness.
