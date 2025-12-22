@@ -11,6 +11,7 @@ import 'external_documentation.dart';
 import 'security_requirements_list.dart';
 import 'tags_list.dart';
 import 'server_list.dart';
+import '../../naming/naming_utils.dart';
 
 abstract class OpenApiDocument {
   String get openapi;
@@ -22,6 +23,7 @@ abstract class OpenApiDocument {
   TagsList? get tags;
   ExternalDocumentation? get externalDocs;
   Map<String, dynamic>? get extensions;
+  String get $name;
 }
 
 class OpenApiDocumentNode extends Node with InternalNode implements OpenApiDocument {
@@ -134,5 +136,92 @@ class OpenApiDocumentNode extends Node with InternalNode implements OpenApiDocum
     tags = $to.to<TagsListNode>('tags');
     externalDocs = $to.to<ExternalDocumentationNode>('externalDocs');
     extensions = extractExtensions(json);
+  }
+
+  @override
+  String get $name {
+    // Check if we already computed a name for this document
+    final cached = OpenApiGraph.i.getCachedDocumentName($id.absolutePointer);
+    if (cached != null) return cached;
+
+    // Compute the base name using the naming algorithm
+    String baseName = _computeBaseName();
+
+    // Sanitize and register the name (handles collisions)
+    final sanitized = NamingUtils.toValidDartIdentifier(baseName);
+    return OpenApiGraph.i.registerDocumentName($id.absolutePointer, sanitized);
+  }
+
+  String _computeBaseName() {
+    // Step 1: Use info.title if present
+    final titleName = _deriveFromTitle();
+    if (titleName != null) return titleName;
+
+    // Step 2: Use document file/URL stem
+    final fileStemName = _deriveFromDocumentStem();
+    if (fileStemName != null) return fileStemName;
+
+    // Step 3: Hash-based fallback
+    return _generateHashFallback();
+  }
+
+  String? _deriveFromTitle() {
+    if (info.title.isNotEmpty) {
+      return NamingUtils.toPascalCase(info.title);
+    }
+    return null;
+  }
+
+  String? _deriveFromDocumentStem() {
+    // Get the document URI from $id.document
+    final documentUri = $id.document;
+    if (documentUri.isEmpty) return null;
+
+    // Try to extract the file name or URL path stem
+    try {
+      // Handle file:// URIs
+      if (documentUri.startsWith('file://')) {
+        final path = Uri.parse(documentUri).path;
+        final fileName = path.split('/').last;
+        final stem = fileName.contains('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+        if (stem.isNotEmpty) {
+          return NamingUtils.toPascalCase(stem);
+        }
+      }
+      // Handle http/https URIs
+      else if (documentUri.startsWith('http://') || documentUri.startsWith('https://')) {
+        final uri = Uri.parse(documentUri);
+        final pathSegments = uri.pathSegments;
+        if (pathSegments.isNotEmpty) {
+          final lastSegment = pathSegments.last;
+          final stem = lastSegment.contains('.') ? lastSegment.substring(0, lastSegment.lastIndexOf('.')) : lastSegment;
+          if (stem.isNotEmpty) {
+            return NamingUtils.toPascalCase(stem);
+          }
+        }
+      }
+      // Handle plain file paths
+      else {
+        // Assume it's a file path
+        final fileName = documentUri.split(RegExp(r'[/\\]')).last;
+        final stem = fileName.contains('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+        if (stem.isNotEmpty) {
+          return NamingUtils.toPascalCase(stem);
+        }
+      }
+    } catch (e) {
+      // If parsing fails, fall through to next step
+    }
+
+    return null;
+  }
+
+  String _generateHashFallback() {
+    // Create a deterministic hash from the document URI
+    final identity = $id.document + openapi; // Include version for uniqueness
+    final codeUnits = identity.codeUnits;
+    final hash = codeUnits.fold<int>(0, (prev, code) => (prev * 31 + code) & 0xFFFFFFFF);
+    final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);
+    return 'OpenApi_$shortHash';
   }
 }

@@ -272,6 +272,8 @@ class OpenApiGraph {
   final Map<String, List<String>> _nameRegistry = {}; // name -> list of absolutePointers using this name
   final Map<String, String> _operationNames = {}; // absolutePointer -> name
   final Map<String, List<String>> _operationNameRegistry = {}; // name -> list of absolutePointers using this name
+  final Map<String, String> _documentNames = {}; // absolutePointer -> name
+  final Map<String, List<String>> _documentNameRegistry = {}; // name -> list of absolutePointers using this name
 
   void addNode(Node node) => nodes[node.$id.absolutePointer] = node;
 
@@ -370,6 +372,50 @@ class OpenApiGraph {
   /// Gets a cached name for an operation if it exists.
   String? getCachedOperationName(String absolutePointer) {
     return _operationNames[absolutePointer];
+  }
+
+  /// Registers a name for a document, handling collisions with deterministic suffixes.
+  /// Returns the final unique name (may have _2, _3, etc. suffix if there was a collision).
+  String registerDocumentName(String absolutePointer, String baseName) {
+    // Check if this node already has a name
+    if (_documentNames.containsKey(absolutePointer)) {
+      return _documentNames[absolutePointer]!;
+    }
+
+    // Check for collisions
+    String finalName = baseName;
+    if (_documentNameRegistry.containsKey(baseName)) {
+      // Collision detected - add suffix
+      final existingPointers = _documentNameRegistry[baseName]!;
+      final count = existingPointers.length + 1;
+      finalName = '${baseName}_$count';
+
+      // Add this pointer to the registry
+      existingPointers.add(absolutePointer);
+      _documentNameRegistry[baseName] = existingPointers;
+
+      // Add low severity validation exception for the collision
+      validationContext.addException(
+        OpenApiValidationException(
+          absolutePointer,
+          'Document name collision: "$baseName" is already used by documents at: ${existingPointers.join(", ")}',
+          specReference: 'Document Naming',
+          severity: ValidationSeverity.low,
+        ),
+      );
+    } else {
+      // First use of this name
+      _documentNameRegistry[baseName] = [absolutePointer];
+    }
+
+    // Store the final name
+    _documentNames[absolutePointer] = finalName;
+    return finalName;
+  }
+
+  /// Gets a cached name for a document if it exists.
+  String? getCachedDocumentName(String absolutePointer) {
+    return _documentNames[absolutePointer];
   }
 
   /// Converts an absolute document path to a relative path for use in NodeId.
