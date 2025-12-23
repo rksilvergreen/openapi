@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:openapi_analyzer/v3_0_0/openapi_validator_v3_0_0.dart';
+import 'package:openapi_analyzer/v3_0_0/openapi_analyzer_v3_0_0.dart';
 import 'package:openapi_analyzer/validation_exception.dart';
 
 /// Test harness for the OpenAPI Analyzer.
