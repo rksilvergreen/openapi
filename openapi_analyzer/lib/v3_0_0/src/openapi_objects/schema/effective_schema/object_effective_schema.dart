@@ -1,26 +1,25 @@
 import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema.dart';
-import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema_type.dart';
 import '../typed_schema/object_typed_schema.dart';
 import 'effective_schema.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 
-class ObjectEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, dynamic>, ObjectEffectiveSchema>
-    with ObjectEffectiveSchemaVariant {
-  final Map<String, EffectiveSchema>? properties;
+class ObjectEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<Map<String, dynamic>, ObjectEffectiveSchemaImpl>
+    with ObjectEffectiveSchemaImplVariant {
+  final Map<String, EffectiveSchemaImpl>? properties;
   final bool additionalPropertiesAllowed;
-  final EffectiveSchema? additionalProperties;
+  final EffectiveSchemaImpl? additionalProperties;
   final int? maxProperties;
   final int? minProperties;
   final List<String>? required;
 
-  ObjectEffectiveSchema({
+  ObjectEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -47,8 +46,8 @@ class ObjectEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, dynami
          enumValues,
        );
 
-  factory ObjectEffectiveSchema.fromTyped(SchemaNode node, ObjectTypedSchema typed) {
-    return ObjectEffectiveSchema(
+  factory ObjectEffectiveSchemaImpl.fromTyped(SchemaNode node, ObjectTypedSchemaImpl typed) {
+    return ObjectEffectiveSchemaImpl(
       $node: node,
       description: typed.description,
       readOnly: typed.readOnly,
@@ -67,16 +66,17 @@ class ObjectEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, dynami
   }
 }
 
-class ObjectUnionEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, dynamic>, ObjectEffectiveSchema>
-    with ObjectEffectiveSchemaVariant {
-  final List<ObjectEffectiveSchemaVariant> variants;
-  ObjectUnionEffectiveSchema({
+class ObjectUnionEffectiveSchemaImpl
+    extends SingleTypeEffectiveSchemaImpl<Map<String, dynamic>, ObjectEffectiveSchemaImpl>
+    with ObjectEffectiveSchemaImplVariant {
+  final List<ObjectEffectiveSchemaImplVariant> variants;
+  ObjectUnionEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -99,19 +99,19 @@ class ObjectUnionEffectiveSchema extends SingleTypeEffectiveSchema<Map<String, d
        );
 }
 
-mixin ObjectEffectiveSchemaVariant {}
+mixin ObjectEffectiveSchemaImplVariant {}
 
-class ObjectEffectiveSchemaUnregistered with ObjectEffectiveSchemaVariant {
+class ObjectEffectiveSchemaImplUnregistered with ObjectEffectiveSchemaImplVariant {
   final Map<String, dynamic>? defaultValue;
   final List<Map<String, dynamic>>? enumValues;
-  final Map<String, EffectiveSchema>? properties;
+  final Map<String, EffectiveSchemaImpl>? properties;
   final bool additionalPropertiesAllowed;
-  final EffectiveSchema? additionalProperties;
+  final EffectiveSchemaImpl? additionalProperties;
   final int? maxProperties;
   final int? minProperties;
   final List<String>? required;
 
-  ObjectEffectiveSchemaUnregistered({
+  ObjectEffectiveSchemaImplUnregistered({
     this.defaultValue,
     this.enumValues,
     this.properties,

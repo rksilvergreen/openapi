@@ -1,12 +1,11 @@
 import '../openapi_graph.dart';
 import '../validation/validation_utils.dart';
 import '../referencable.dart';
-import 'paths_map.dart';
+import 'path_item.dart';
 import '../node.dart';
 import '../naming/naming_utils.dart';
 import 'components.dart';
 import 'operation.dart';
-import 'path_item.dart';
 import '../edge.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/callback.dart';
 import '../map_node.dart';

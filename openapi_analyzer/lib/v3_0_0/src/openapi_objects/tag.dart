@@ -1,9 +1,9 @@
-import '../openapi_graph.dart';
 import '../validation/validation_utils.dart';
 import 'external_documentation.dart';
 import '../node.dart';
 import '../edge.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/tag.dart';
+import '../list_node.dart';
 
 class TagNode extends Node with InternalNode implements Tag {
   TagNode(super.json, super.document, super.jsonPointer);
@@ -56,4 +56,8 @@ class TagNode extends Node with InternalNode implements Tag {
     externalDocs = $to.to<ExternalDocumentationNode>('externalDocs');
     extensions = extractExtensions(json);
   }
+}
+
+class TagsListNode extends ListNode<TagNode, Tag> implements TagsList {
+  TagsListNode(super.json, super.document, super.jsonPointer);
 }

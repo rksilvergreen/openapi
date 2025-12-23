@@ -6,70 +6,21 @@ import 'typed_schema/typed_schema.dart';
 import 'effective_schema/effective_schema.dart';
 import '../external_documentation.dart';
 import '../xml.dart';
-import 'schema_map.dart';
-import 'schemas_list.dart';
 import '../../node.dart';
 import '../discriminator.dart';
-import 'schema_type.dart';
 import '../../naming/naming_utils.dart';
 import '../operation.dart';
 import '../parameter.dart';
 import '../components.dart';
 import '../media_type.dart';
-import '../media_types_map.dart';
 import '../request_body.dart';
 import '../response.dart';
-import '../responses_map.dart';
 import '../header.dart';
-import '../headers_map.dart';
-import '../parameters_list.dart';
 import '../path_item.dart';
-import '../paths_map.dart';
 import '../../edge.dart';
-
-
-abstract class Schema {
-  String? get title;
-  String? get description;
-  dynamic get default_;
-  SchemaType? get type;
-  String? get format;
-  num? get multipleOf;
-  num? get maximum;
-  num? get exclusiveMaximum;
-  num? get minimum;
-  num? get exclusiveMinimum;
-  int? get maxLength;
-  int? get minLength;
-  String? get pattern;
-  int? get maxItems;
-  int? get minItems;
-  bool get uniqueItems;
-  SchemaNode? get items;
-  int? get maxProperties;
-  int? get minProperties;
-  List<String>? get required_;
-  SchemasMapNode? get properties;
-  bool? get additionalPropertiesAllowed;
-  SchemaNode? get additionalProperties;
-  SchemasListNode? get allOf;
-  SchemasListNode? get oneOf;
-  SchemasListNode? get anyOf;
-  List<dynamic>? get enum_;
-  bool get nullable;
-  DiscriminatorNode? get discriminator;
-  bool get readOnly;
-  bool get writeOnly;
-  XMLNode? get xml;
-  ExternalDocumentationNode? get externalDocs;
-  dynamic get example;
-  bool get deprecated;
-  Map<String, dynamic>? get extensions;
-
-  TypedSchema get $typed;
-  EffectiveSchema get $effective;
-  String get $name;
-}
+import '../../map_node.dart';
+import '../../list_node.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
 
 class SchemaNode extends Node with Referencable, InternalNode implements Schema {
   // JSON Schema Core keywords
@@ -128,8 +79,8 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
 
   SchemaNode(super.json, super.document, super.jsonPointer);
 
-  late final TypedSchema $typed;
-  late final EffectiveSchema $effective;
+  late final TypedSchemaImpl $typed;
+  late final EffectiveSchemaImpl $effective;
 
   @override
   void validateStructure() {
@@ -376,11 +327,11 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
   }
 
   void _createTyped() {
-    $typed = TypedSchema.of(this, OpenApiGraph.i.validationContext);
+    $typed = TypedSchemaImpl.of(this, OpenApiGraph.i.validationContext);
   }
 
   void _createEffective() {
-    $effective = EffectiveSchema.fromTyped(this, $typed, OpenApiGraph.i.validationContext);
+    $effective = EffectiveSchemaImpl.fromTyped(this, $typed, OpenApiGraph.i.validationContext);
   }
 
   String get $name {
@@ -630,4 +581,12 @@ class SchemaNode extends Node with Referencable, InternalNode implements Schema 
     final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);
     return 'Anon_$shortHash';
   }
+}
+
+class SchemasMapNode extends MapNode<SchemaNode, Schema> implements SchemasMap {
+  SchemasMapNode(super.json, super.document, super.jsonPointer);
+}
+
+class SchemasListNode extends ListNode<SchemaNode, Schema> implements SchemasList {
+  SchemasListNode(super.json, super.document, super.jsonPointer);
 }

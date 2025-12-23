@@ -2,14 +2,13 @@ import '../openapi_graph.dart';
 import '../validation/validation_utils.dart';
 import '../node.dart';
 import '../edge.dart';
-import 'server_variables_map.dart';
+import 'server_variable.dart';
 import '../naming/naming_utils.dart';
-import 'server_list.dart';
 import 'openapi_document.dart';
 import 'path_item.dart';
 import 'operation.dart';
-import 'paths_map.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/server.dart';
+import '../list_node.dart';
 
 class ServerNode extends Node with InternalNode implements Server {
   ServerNode(super.json, super.document, super.jsonPointer);
@@ -209,4 +208,8 @@ class ServerNode extends Node with InternalNode implements Server {
     final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);
     return 'Server_$shortHash';
   }
+}
+
+class ServerListNode extends ListNode<ServerNode, Server> implements ServerList {
+  ServerListNode(super.json, super.document, super.jsonPointer);
 }

@@ -1,12 +1,11 @@
 import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema.dart';
-import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema_type.dart';
 import '../typed_schema/integer_typed_schema.dart';
 import 'effective_schema.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 
-class IntegerEffectiveSchema extends SingleTypeEffectiveSchema<int, IntegerEffectiveSchema>
-    with IntegerEffectiveSchemaVariant {
+class IntegerEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<int, IntegerEffectiveSchemaImpl>
+    with IntegerEffectiveSchemaImplVariant {
   final double? multipleOf;
   final int? maximum;
   final int? exclusiveMaximum;
@@ -14,13 +13,13 @@ class IntegerEffectiveSchema extends SingleTypeEffectiveSchema<int, IntegerEffec
   final int? exclusiveMinimum;
   final String? format;
 
-  IntegerEffectiveSchema({
+  IntegerEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -47,8 +46,8 @@ class IntegerEffectiveSchema extends SingleTypeEffectiveSchema<int, IntegerEffec
          enumValues,
        );
 
-  factory IntegerEffectiveSchema.fromTyped(SchemaNode node, IntegerTypedSchema typed) {
-    return IntegerEffectiveSchema(
+  factory IntegerEffectiveSchemaImpl.fromTyped(SchemaNode node, IntegerTypedSchemaImpl typed) {
+    return IntegerEffectiveSchemaImpl(
       $node: node,
       description: typed.description,
       readOnly: typed.readOnly,
@@ -70,16 +69,16 @@ class IntegerEffectiveSchema extends SingleTypeEffectiveSchema<int, IntegerEffec
   }
 }
 
-class IntegerUnionEffectiveSchema extends SingleTypeEffectiveSchema<int, IntegerEffectiveSchema>
-    with IntegerEffectiveSchemaVariant {
-  final List<IntegerEffectiveSchemaVariant> variants;
-  IntegerUnionEffectiveSchema({
+class IntegerUnionEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<int, IntegerEffectiveSchemaImpl>
+    with IntegerEffectiveSchemaImplVariant {
+  final List<IntegerEffectiveSchemaImplVariant> variants;
+  IntegerUnionEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -102,9 +101,9 @@ class IntegerUnionEffectiveSchema extends SingleTypeEffectiveSchema<int, Integer
        );
 }
 
-mixin IntegerEffectiveSchemaVariant {}
+mixin IntegerEffectiveSchemaImplVariant {}
 
-class IntegerEffectiveSchemaUnregistered with IntegerEffectiveSchemaVariant {
+class IntegerEffectiveSchemaImplUnregistered with IntegerEffectiveSchemaImplVariant {
   final int? defaultValue;
   final List<int>? enumValues;
   final double? multipleOf;
@@ -114,7 +113,7 @@ class IntegerEffectiveSchemaUnregistered with IntegerEffectiveSchemaVariant {
   final int? exclusiveMinimum;
   final String? format;
 
-  IntegerEffectiveSchemaUnregistered({
+  IntegerEffectiveSchemaImplUnregistered({
     this.defaultValue,
     this.enumValues,
     this.multipleOf,

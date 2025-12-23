@@ -1,25 +1,26 @@
 import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema.dart';
-import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema_type.dart';
 import 'package:openapi_analyzer/v3_0_0/src/openapi_graph.dart';
 import '../../../validation/validation_context.dart';
 import '../../../../../validation_exception.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 import 'typed_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/typed_schema/array_typed_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
 
-class ArrayTypedSchema extends TypedSchema<List<dynamic>> {
+class ArrayTypedSchemaImpl extends TypedSchemaImpl<List<dynamic>> implements ArrayTypedSchema {
   final SchemaNode? items;
   final int? maxItems;
   final int? minItems;
   final bool uniqueItems;
 
-  ArrayTypedSchema({
+  ArrayTypedSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -44,9 +45,9 @@ class ArrayTypedSchema extends TypedSchema<List<dynamic>> {
          enumValues,
        );
 
-  factory ArrayTypedSchema.of(SchemaNode node) {
-    TypedSchema.validateConstraints<List<dynamic>>(node, OpenApiGraph.i.validationContext, validateConstraints);
-    return ArrayTypedSchema(
+  factory ArrayTypedSchemaImpl.of(SchemaNode node) {
+    TypedSchemaImpl.validateConstraints<List<dynamic>>(node, OpenApiGraph.i.validationContext, validateConstraints);
+    return ArrayTypedSchemaImpl(
       $node: node,
       description: node.description,
       readOnly: node.readOnly,

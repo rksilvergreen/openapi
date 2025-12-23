@@ -14,7 +14,5 @@ abstract class Operation {
   CallbacksMap? get callbacks;
   SecurityRequirementsList? get security;
   ServerList? get servers;
-
   String get $name;
 }
-

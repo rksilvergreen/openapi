@@ -6,15 +6,13 @@ import 'external_documentation.dart';
 import 'request_body.dart';
 import 'security_requirement.dart';
 import 'server.dart';
-import 'responses_map.dart';
+import 'response.dart';
 import 'callback.dart';
-import 'parameters_list.dart';
-import 'security_requirements_list.dart';
-import 'server_list.dart';
+import 'parameter.dart';
 import '../naming/naming_utils.dart';
 import 'path_item.dart';
-import 'paths_map.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/operation.dart';
+
 
 class OperationNode extends Node with InternalNode implements Operation {
   OperationNode(super.json, super.document, super.jsonPointer);

@@ -1,4 +1,7 @@
 import 'dart:collection';
+import 'header.dart';
+import 'media_type.dart';
+import 'link.dart';
 
 abstract class Response {
   String? get description;
@@ -8,11 +11,6 @@ abstract class Response {
   Map<String, dynamic>? get extensions;
   String get $name;
 }
-
-// Forward declarations
-abstract class HeadersMap {}
-abstract class MediaTypesMap {}
-abstract class LinksMap {}
 
 abstract class ResponsesMap implements MapBase<String, Response> {
   Map<String, dynamic>? get extensions;

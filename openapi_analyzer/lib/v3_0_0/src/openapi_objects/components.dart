@@ -4,28 +4,16 @@ import '../../../validation_exception.dart';
 import '../edge.dart';
 import '../node.dart';
 import 'schema/schema.dart';
-import 'responses_map.dart';
-import 'parameters_map.dart';
-import 'examples_map.dart';
-import 'request_bodies_map.dart';
-import 'headers_map.dart';
-import 'security_schemes_map.dart';
-import 'links_map.dart';
+import 'response.dart';
+import 'parameter.dart';
+import 'example.dart';
+import 'request_body.dart';
+import 'header.dart';
+import 'security_scheme.dart';
+import 'link.dart';
 import 'callback.dart';
 import 'schema/schema_map.dart';
-
-abstract class Components {
-  SchemasMap? get schemas;
-  ResponsesMap? get responses;
-  ParametersMap? get parameters;
-  ExamplesMap? get examples;
-  RequestBodiesMap? get requestBodies;
-  HeadersMap? get headers;
-  SecuritySchemesMap? get securitySchemes;
-  LinksMap? get links;
-  CallbacksMap? get callbacks;
-  Map<String, dynamic>? get extensions;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/components.dart';
 
 class ComponentsNode extends Node with InternalNode implements Components {
   ComponentsNode(super.json, super.document, super.jsonPointer);

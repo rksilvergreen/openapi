@@ -4,14 +4,11 @@ import '../node.dart';
 import '../edge.dart';
 import 'info.dart';
 import 'server.dart';
-import 'paths_map.dart';
+import 'path_item.dart';
 import 'components.dart';
 import 'security_requirement.dart';
 import 'tag.dart';
 import 'external_documentation.dart';
-import 'security_requirements_list.dart';
-import 'tags_list.dart';
-import 'server_list.dart';
 import '../naming/naming_utils.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/openapi_document.dart';
 

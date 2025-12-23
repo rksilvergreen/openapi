@@ -7,13 +7,13 @@ import '../edge.dart';
 import 'enums.dart';
 import 'schema/schema.dart';
 import 'example.dart';
-import 'media_types_map.dart';
+import 'media_type.dart';
 import '../naming/naming_utils.dart';
 import 'operation.dart';
 import 'path_item.dart';
-import 'paths_map.dart';
-import 'parameters_list.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/parameter.dart';
+import '../list_node.dart';
+import '../map_node.dart';
 
 class ParameterNode extends Node with InternalNode, Referencable implements Parameter {
   ParameterNode(super.json, super.document, super.jsonPointer);
@@ -375,4 +375,12 @@ class ParameterNode extends Node with InternalNode, Referencable implements Para
     final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);
     return 'Param_$shortHash';
   }
+}
+
+class ParametersListNode extends ListNode<ParameterNode, Parameter> implements ParametersList {
+  ParametersListNode(super.json, super.document, super.jsonPointer);
+}
+
+class ParametersMapNode extends MapNode<ParameterNode, Parameter> implements ParametersMap {
+  ParametersMapNode(super.json, super.document, super.jsonPointer);
 }

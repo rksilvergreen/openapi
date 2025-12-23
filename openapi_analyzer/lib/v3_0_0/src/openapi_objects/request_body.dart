@@ -3,14 +3,13 @@ import '../validation/validation_utils.dart';
 import '../node.dart';
 import '../edge.dart';
 import '../referencable.dart';
-import 'media_types_map.dart';
+import 'media_type.dart';
 import '../naming/naming_utils.dart';
 import 'operation.dart';
-import 'request_bodies_map.dart';
 import 'components.dart';
 import 'path_item.dart';
-import 'paths_map.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/request_body.dart';
+import '../map_node.dart';
 
 class RequestBodyNode extends Node with InternalNode, Referencable implements RequestBody {
   RequestBodyNode(super.json, super.document, super.jsonPointer);
@@ -166,4 +165,8 @@ class RequestBodyNode extends Node with InternalNode, Referencable implements Re
     }
     return null;
   }
+}
+
+class RequestBodiesMapNode extends MapNode<RequestBodyNode, RequestBody> implements RequestBodiesMap {
+  RequestBodiesMapNode(super.json, super.document, super.jsonPointer);
 }

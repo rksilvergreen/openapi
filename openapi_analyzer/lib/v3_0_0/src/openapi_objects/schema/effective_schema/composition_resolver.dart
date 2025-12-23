@@ -1,5 +1,4 @@
 import '../schema.dart';
-import '../schema_type.dart';
 import '../typed_schema/typed_schema.dart';
 import '../typed_schema/integer_typed_schema.dart';
 import '../typed_schema/number_typed_schema.dart';
@@ -24,7 +23,7 @@ class Branch {
 /// Handles composition resolution for schemas with allOf, oneOf, anyOf.
 class CompositionResolver {
   final SchemaNode rootNode;
-  final TypedSchema rootTyped;
+  final TypedSchemaImpl rootTyped;
   final ValidationContext ctx;
 
   CompositionResolver(this.rootNode, this.rootTyped, this.ctx);
@@ -98,7 +97,7 @@ class CompositionResolver {
     SchemaType? commonType;
 
     for (var node in nodes) {
-      if (!node.isTypedSchemaSet) continue;
+      if (!node.isTypedSchemaImplSet) continue;
 
       final nodeType = node.typed.type;
       if (nodeType == SchemaType.unknown) continue;
@@ -138,8 +137,8 @@ class CompositionResolver {
   }
 
   /// Merges constraints from multiple typed schemas.
-  TypedSchema mergeConstraints(List<SchemaNode> nodes) {
-    final typedSchemas = nodes.where((n) => n.isTypedSchemaSet).map((n) => n.typed).toList();
+  TypedSchemaImpl mergeConstraints(List<SchemaNode> nodes) {
+    final typedSchemas = nodes.where((n) => n.isTypedSchemaImplSet).map((n) => n.typed).toList();
 
     if (typedSchemas.isEmpty) {
       return rootTyped;
@@ -150,23 +149,23 @@ class CompositionResolver {
 
     switch (baseTyped.type) {
       case SchemaType.integer:
-        return _mergeIntegerConstraints(typedSchemas.cast<IntegerTypedSchema>());
+        return _mergeIntegerConstraints(typedSchemas.cast<IntegerTypedSchemaImpl>());
       case SchemaType.number:
-        return _mergeNumberConstraints(typedSchemas.cast<NumberTypedSchema>());
+        return _mergeNumberConstraints(typedSchemas.cast<NumberTypedSchemaImpl>());
       case SchemaType.string:
-        return _mergeStringConstraints(typedSchemas.cast<StringTypedSchema>());
+        return _mergeStringConstraints(typedSchemas.cast<StringTypedSchemaImpl>());
       case SchemaType.boolean:
-        return _mergeBooleanConstraints(typedSchemas.cast<BooleanTypedSchema>());
+        return _mergeBooleanConstraints(typedSchemas.cast<BooleanTypedSchemaImpl>());
       case SchemaType.array:
-        return _mergeArrayConstraints(typedSchemas.cast<ArrayTypedSchema>());
+        return _mergeArrayConstraints(typedSchemas.cast<ArrayTypedSchemaImpl>());
       case SchemaType.object:
-        return _mergeObjectConstraints(typedSchemas.cast<ObjectTypedSchema>());
+        return _mergeObjectConstraints(typedSchemas.cast<ObjectTypedSchemaImpl>());
       default:
         return baseTyped;
     }
   }
 
-  IntegerTypedSchema _mergeIntegerConstraints(List<IntegerTypedSchema> schemas) {
+  IntegerTypedSchemaImpl _mergeIntegerConstraints(List<IntegerTypedSchemaImpl> schemas) {
     int? minimum;
     int? maximum;
     int? exclusiveMinimum;
@@ -198,7 +197,7 @@ class CompositionResolver {
       multipleOf ??= schema.multipleOf;
     }
 
-    return IntegerTypedSchema(
+    return IntegerTypedSchemaImpl(
       $node: rootNode,
       description: schemas.first.description ?? '',
       readOnly: schemas.any((s) => s.readOnly),
@@ -217,7 +216,7 @@ class CompositionResolver {
     );
   }
 
-  NumberTypedSchema _mergeNumberConstraints(List<NumberTypedSchema> schemas) {
+  NumberTypedSchemaImpl _mergeNumberConstraints(List<NumberTypedSchemaImpl> schemas) {
     double? minimum;
     double? maximum;
     double? exclusiveMinimum;
@@ -244,7 +243,7 @@ class CompositionResolver {
       multipleOf ??= schema.multipleOf;
     }
 
-    return NumberTypedSchema(
+    return NumberTypedSchemaImpl(
       $node: rootNode,
       description: schemas.first.description ?? '',
       readOnly: schemas.any((s) => s.readOnly),
@@ -263,7 +262,7 @@ class CompositionResolver {
     );
   }
 
-  StringTypedSchema _mergeStringConstraints(List<StringTypedSchema> schemas) {
+  StringTypedSchemaImpl _mergeStringConstraints(List<StringTypedSchemaImpl> schemas) {
     int? minLength;
     int? maxLength;
     String? pattern;
@@ -281,7 +280,7 @@ class CompositionResolver {
       pattern ??= schema.pattern;
     }
 
-    return StringTypedSchema(
+    return StringTypedSchemaImpl(
       $node: rootNode,
       description: schemas.first.description ?? '',
       readOnly: schemas.any((s) => s.readOnly),
@@ -298,8 +297,8 @@ class CompositionResolver {
     );
   }
 
-  BooleanTypedSchema _mergeBooleanConstraints(List<BooleanTypedSchema> schemas) {
-    return BooleanTypedSchema(
+  BooleanTypedSchemaImpl _mergeBooleanConstraints(List<BooleanTypedSchemaImpl> schemas) {
+    return BooleanTypedSchemaImpl(
       $node: rootNode,
       description: schemas.first.description ?? '',
       readOnly: schemas.any((s) => s.readOnly),
@@ -312,7 +311,7 @@ class CompositionResolver {
     );
   }
 
-  ArrayTypedSchema _mergeArrayConstraints(List<ArrayTypedSchema> schemas) {
+  ArrayTypedSchemaImpl _mergeArrayConstraints(List<ArrayTypedSchemaImpl> schemas) {
     int? minItems;
     int? maxItems;
     bool? uniqueItems;
@@ -329,7 +328,7 @@ class CompositionResolver {
       }
     }
 
-    return ArrayTypedSchema(
+    return ArrayTypedSchemaImpl(
       $node: rootNode,
       description: schemas.first.description ?? '',
       readOnly: schemas.any((s) => s.readOnly),
@@ -346,7 +345,7 @@ class CompositionResolver {
     );
   }
 
-  ObjectTypedSchema _mergeObjectConstraints(List<ObjectTypedSchema> schemas) {
+  ObjectTypedSchemaImpl _mergeObjectConstraints(List<ObjectTypedSchemaImpl> schemas) {
     int? minProperties;
     int? maxProperties;
     final requiredSet = <String>{};
@@ -363,7 +362,7 @@ class CompositionResolver {
       }
     }
 
-    return ObjectTypedSchema(
+    return ObjectTypedSchemaImpl(
       $node: rootNode,
       description: schemas.first.description ?? '',
       readOnly: schemas.any((s) => s.readOnly),

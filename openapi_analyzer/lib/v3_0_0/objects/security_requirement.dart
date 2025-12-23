@@ -5,4 +5,3 @@ abstract class SecurityRequirement {
 }
 
 abstract class SecurityRequirementsList implements ListBase<SecurityRequirement> {}
-

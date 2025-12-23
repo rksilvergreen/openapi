@@ -1,21 +1,20 @@
 import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema.dart';
-import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema_type.dart';
 import '../typed_schema/boolean_typed_schema.dart';
 import 'effective_schema.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 
-class BooleanEffectiveSchema extends SingleTypeEffectiveSchema<bool, BooleanEffectiveSchema>
-    with BooleanEffectiveSchemaVariant {
+class BooleanEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<bool, BooleanEffectiveSchemaImpl>
+    with BooleanEffectiveSchemaImplVariant {
   final String? format;
 
-  BooleanEffectiveSchema({
+  BooleanEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -37,8 +36,8 @@ class BooleanEffectiveSchema extends SingleTypeEffectiveSchema<bool, BooleanEffe
          enumValues,
        );
 
-  factory BooleanEffectiveSchema.fromTyped(SchemaNode node, BooleanTypedSchema typed) {
-    return BooleanEffectiveSchema(
+  factory BooleanEffectiveSchemaImpl.fromTyped(SchemaNode node, BooleanTypedSchemaImpl typed) {
+    return BooleanEffectiveSchemaImpl(
       $node: node,
       description: typed.description,
       readOnly: typed.readOnly,
@@ -54,16 +53,16 @@ class BooleanEffectiveSchema extends SingleTypeEffectiveSchema<bool, BooleanEffe
   }
 }
 
-class BooleanUnionEffectiveSchema extends SingleTypeEffectiveSchema<bool, BooleanEffectiveSchema>
-    with BooleanEffectiveSchemaVariant {
-  final List<BooleanEffectiveSchemaVariant> variants;
-  BooleanUnionEffectiveSchema({
+class BooleanUnionEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<bool, BooleanEffectiveSchemaImpl>
+    with BooleanEffectiveSchemaImplVariant {
+  final List<BooleanEffectiveSchemaImplVariant> variants;
+  BooleanUnionEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -86,18 +85,12 @@ class BooleanUnionEffectiveSchema extends SingleTypeEffectiveSchema<bool, Boolea
        );
 }
 
-mixin BooleanEffectiveSchemaVariant {}
+mixin BooleanEffectiveSchemaImplVariant {}
 
-class BooleanEffectiveSchemaUnregistered with BooleanEffectiveSchemaVariant {
+class BooleanEffectiveSchemaImplUnregistered with BooleanEffectiveSchemaImplVariant {
   final bool? defaultValue;
   final List<bool>? enumValues;
   final String? format;
 
-  BooleanEffectiveSchemaUnregistered({
-    this.defaultValue,
-    this.enumValues,
-    this.format,
-  });
+  BooleanEffectiveSchemaImplUnregistered({this.defaultValue, this.enumValues, this.format});
 }
-
-

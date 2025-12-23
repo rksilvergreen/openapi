@@ -3,6 +3,7 @@ import '../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 import '../node.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/security_requirement.dart';
+import '../list_node.dart';
 
 class SecurityRequirementNode extends Node with LeafNode implements SecurityRequirement {
   SecurityRequirementNode(super.json, super.document, super.jsonPointer);
@@ -41,4 +42,9 @@ class SecurityRequirementNode extends Node with LeafNode implements SecurityRequ
   void createContent() {
     requirements = json['requirements'];
   }
+}
+
+class SecurityRequirementsListNode extends ListNode<SecurityRequirementNode, SecurityRequirement>
+    implements SecurityRequirementsList {
+  SecurityRequirementsListNode(super.json, super.document, super.jsonPointer);
 }

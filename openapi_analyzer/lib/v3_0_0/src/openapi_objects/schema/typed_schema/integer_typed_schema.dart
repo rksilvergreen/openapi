@@ -1,5 +1,4 @@
 import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema.dart';
-import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema_type.dart';
 import 'package:openapi_analyzer/v3_0_0/src/openapi_graph.dart';
 import '../../../validation/validation_context.dart';
 import '../../../../../validation_exception.dart';
@@ -7,7 +6,7 @@ import '../../xml.dart';
 import '../../external_documentation.dart';
 import 'typed_schema.dart';
 
-class IntegerTypedSchema extends TypedSchema<int> {
+class IntegerTypedSchemaImpl extends TypedSchemaImpl<int> {
   final double? multipleOf;
   final int? maximum;
   final int? exclusiveMaximum;
@@ -15,13 +14,13 @@ class IntegerTypedSchema extends TypedSchema<int> {
   final int? exclusiveMinimum;
   final String? format;
 
-  IntegerTypedSchema({
+  IntegerTypedSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -48,9 +47,9 @@ class IntegerTypedSchema extends TypedSchema<int> {
          enumValues,
        );
 
-  factory IntegerTypedSchema.of(SchemaNode node) {
-    TypedSchema.validateConstraints<int>(node, OpenApiGraph.i.validationContext, validateConstraints);
-    return IntegerTypedSchema(
+  factory IntegerTypedSchemaImpl.of(SchemaNode node) {
+    TypedSchemaImpl.validateConstraints<int>(node, OpenApiGraph.i.validationContext, validateConstraints);
+    return IntegerTypedSchemaImpl(
       $node: node,
       description: node.description,
       readOnly: node.readOnly,
@@ -87,7 +86,7 @@ class IntegerTypedSchema extends TypedSchema<int> {
         );
       }
     }
-    
+
     if (node.multipleOf != null && node.multipleOf! <= 0) {
       ctx.addException(
         OpenApiValidationException(

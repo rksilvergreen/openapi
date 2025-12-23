@@ -22,9 +22,9 @@ class OpenApiGraph {
     i = this;
   }
 
-  late final OpenApiDocument root;
+  late final OpenApiDocumentNode root;
 
-  OpenApiDocument create({ValidationStrictness strictness = ValidationStrictness.moderate}) {
+  OpenApiDocumentNode create({ValidationStrictness strictness = ValidationStrictness.moderate}) {
     // Initialize validation context
     validationContext = ValidationContext();
     referenceResolver = ReferenceResolver(file, validationContext);

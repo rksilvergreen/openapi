@@ -1,5 +1,4 @@
 import '../schema.dart';
-import '../schema_type.dart';
 import '../typed_schema/typed_schema.dart';
 import '../typed_schema/integer_typed_schema.dart';
 import '../typed_schema/number_typed_schema.dart';
@@ -18,20 +17,22 @@ import 'object_effective_schema.dart';
 import 'composition_resolver.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/effective_schema/effective_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
 
-abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
+abstract class EffectiveSchemaImpl<T extends EffectiveSchemaImpl<T>> implements EffectiveSchema<T> {
   final SchemaNode $node;
   final SchemaType type;
   final String? description;
   final bool readOnly;
   final bool writeOnly;
-  final XML? xml;
-  final ExternalDocumentation? externalDocs;
+  final XMLNode? xml;
+  final ExternalDocumentationNode? externalDocs;
   final Map<String, dynamic>? example;
   final bool deprecated;
   final bool nullable;
 
-  EffectiveSchema(
+  EffectiveSchemaImpl(
     this.$node,
     this.type,
     this.description,
@@ -44,15 +45,15 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
     this.nullable,
   );
 
-  List<EffectiveSchema>? get allOf => $node.allOf?.map((node) => node.$effective).toList();
-  List<EffectiveSchema>? get oneOf => $node.oneOf?.map((node) => node.$effective).toList();
-  List<EffectiveSchema>? get anyOf => $node.anyOf?.map((node) => node.$effective).toList();
+  List<EffectiveSchemaImpl>? get allOf => $node.allOf?.map((node) => node.$effective).toList();
+  List<EffectiveSchemaImpl>? get oneOf => $node.oneOf?.map((node) => node.$effective).toList();
+  List<EffectiveSchemaImpl>? get anyOf => $node.anyOf?.map((node) => node.$effective).toList();
 
   SchemaNode get raw => $node;
-  TypedSchema get typed => $node.$typed;
+  TypedSchemaImpl get typed => $node.$typed;
 
-  /// Creates an EffectiveSchema from a SchemaNode and its TypedSchema.
-  static EffectiveSchema fromTyped(SchemaNode node, TypedSchema typed, ValidationContext ctx) {
+  /// Creates an EffectiveSchemaImpl from a SchemaNode and its TypedSchemaImpl.
+  static EffectiveSchemaImpl fromTyped(SchemaNode node, TypedSchemaImpl typed, ValidationContext ctx) {
     // Check if schema has compositions
     final hasCompositions = node.allOf != null || node.oneOf != null || node.anyOf != null;
 
@@ -60,12 +61,12 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
       return _createWithCompositions(node, typed, ctx);
     } else {
       // No compositions - create direct effective schema
-      return _createDirectEffectiveSchema(node, typed);
+      return _createDirectEffectiveSchemaImpl(node, typed);
     }
   }
 
   /// Creates an effective schema with full composition resolution.
-  static EffectiveSchema _createWithCompositions(SchemaNode node, TypedSchema typed, ValidationContext ctx) {
+  static EffectiveSchemaImpl _createWithCompositions(SchemaNode node, TypedSchemaImpl typed, ValidationContext ctx) {
     final resolver = CompositionResolver(node, typed, ctx);
 
     // 1. Enumerate branches from applicator graph
@@ -83,14 +84,14 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
         ),
       );
       // Fall back to direct schema creation
-      return _createDirectEffectiveSchema(node, typed);
+      return _createDirectEffectiveSchemaImpl(node, typed);
     }
 
     // 3. Determine if multi-type
     if (resolver.spansMultipleTypes(validBranches)) {
       // Multiple types - create variants for each type
       final variants = _createVariants(node, validBranches, resolver, ctx);
-      return MultiTypeUnionEffectiveSchema(
+      return MultiTypeUnionEffectiveSchemaImpl(
         $node: node,
         description: typed.description,
         readOnly: typed.readOnly,
@@ -106,7 +107,7 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
     if (validBranches.length == 1) {
       // Single branch - merge constraints
       final mergedTyped = resolver.mergeConstraints(validBranches.first.nodes);
-      return _createDirectEffectiveSchema(node, mergedTyped);
+      return _createDirectEffectiveSchemaImpl(node, mergedTyped);
     } else if (node.oneOf != null && node.oneOf!.isNotEmpty) {
       // Multiple oneOf branches - create variants
       return _createOneOfVariants(node, typed, validBranches, resolver, ctx);
@@ -114,12 +115,12 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
       // Multiple branches (anyOf/allOf) - merge all constraints
       final allNodes = validBranches.expand((b) => b.nodes).toSet().toList();
       final mergedTyped = resolver.mergeConstraints(allNodes);
-      return _createDirectEffectiveSchema(node, mergedTyped);
+      return _createDirectEffectiveSchemaImpl(node, mergedTyped);
     }
   }
 
   /// Creates variants from branches spanning multiple types.
-  static List<EffectiveSchema> _createVariants(
+  static List<EffectiveSchemaImpl> _createVariants(
     SchemaNode node,
     List<Branch> branches,
     CompositionResolver resolver,
@@ -139,14 +140,14 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
       final allNodes = typeBranches.expand((b) => b.nodes).toSet().toList();
       final mergedTyped = resolver.mergeConstraints(allNodes);
 
-      return _createDirectEffectiveSchema(node, mergedTyped);
+      return _createDirectEffectiveSchemaImpl(node, mergedTyped);
     }).toList();
   }
 
   /// Creates variants for oneOf branches.
-  static EffectiveSchema _createOneOfVariants(
+  static EffectiveSchemaImpl _createOneOfVariants(
     SchemaNode node,
-    TypedSchema typed,
+    TypedSchemaImpl typed,
     List<Branch> branches,
     CompositionResolver resolver,
     ValidationContext ctx,
@@ -157,42 +158,43 @@ abstract class EffectiveSchema<T extends EffectiveSchema<T>> {
     if (branches.length <= 1) {
       // Only one valid branch, no need for variants
       final mergedTyped = resolver.mergeConstraints(branches.first.nodes);
-      return _createDirectEffectiveSchema(node, mergedTyped);
+      return _createDirectEffectiveSchemaImpl(node, mergedTyped);
     }
 
     // For now, just merge all branches (simplified approach)
     // Full implementation would create distinct variants for each oneOf option
     final allNodes = branches.expand((b) => b.nodes).toSet().toList();
     final mergedTyped = resolver.mergeConstraints(allNodes);
-    return _createDirectEffectiveSchema(node, mergedTyped);
+    return _createDirectEffectiveSchemaImpl(node, mergedTyped);
   }
 
   /// Creates an effective schema directly from typed schema (no composition resolution).
-  static EffectiveSchema _createDirectEffectiveSchema(SchemaNode node, TypedSchema typed) {
+  static EffectiveSchemaImpl _createDirectEffectiveSchemaImpl(SchemaNode node, TypedSchemaImpl typed) {
     switch (typed.type) {
       case SchemaType.integer:
-        return IntegerEffectiveSchema.fromTyped(node, typed as IntegerTypedSchema);
+        return IntegerEffectiveSchemaImpl.fromTyped(node, typed as IntegerTypedSchemaImpl);
       case SchemaType.number:
-        return NumberEffectiveSchema.fromTyped(node, typed as NumberTypedSchema);
+        return NumberEffectiveSchemaImpl.fromTyped(node, typed as NumberTypedSchemaImpl);
       case SchemaType.string:
-        return StringEffectiveSchema.fromTyped(node, typed as StringTypedSchema);
+        return StringEffectiveSchemaImpl.fromTyped(node, typed as StringTypedSchemaImpl);
       case SchemaType.boolean:
-        return BooleanEffectiveSchema.fromTyped(node, typed as BooleanTypedSchema);
+        return BooleanEffectiveSchemaImpl.fromTyped(node, typed as BooleanTypedSchemaImpl);
       case SchemaType.array:
-        return ArrayEffectiveSchema.fromTyped(node, typed as ArrayTypedSchema);
+        return ArrayEffectiveSchemaImpl.fromTyped(node, typed as ArrayTypedSchemaImpl);
       case SchemaType.object:
-        return ObjectEffectiveSchema.fromTyped(node, typed as ObjectTypedSchema);
+        return ObjectEffectiveSchemaImpl.fromTyped(node, typed as ObjectTypedSchemaImpl);
       default:
-        return UnknownEffectiveSchema($node: node, description: typed.description);
+        return UnknownEffectiveSchemaImpl($node: node, description: typed.description);
     }
   }
 }
 
-abstract class SingleTypeEffectiveSchema<T, S extends SingleTypeEffectiveSchema<T, S>> extends EffectiveSchema<S> {
+abstract class SingleTypeEffectiveSchemaImpl<T, S extends SingleTypeEffectiveSchemaImpl<T, S>>
+    extends EffectiveSchemaImpl<S> {
   final T? defaultValue;
   final List<T>? enumValues;
 
-  SingleTypeEffectiveSchema(
+  SingleTypeEffectiveSchemaImpl(
     super.$node,
     super.type,
     super.description,
@@ -208,32 +210,54 @@ abstract class SingleTypeEffectiveSchema<T, S extends SingleTypeEffectiveSchema<
   );
 }
 
-class MultiTypeUnionEffectiveSchema extends EffectiveSchema<MultiTypeUnionEffectiveSchema> {
-  final List<EffectiveSchema> variants;
-  MultiTypeUnionEffectiveSchema({
+class MultiTypeUnionEffectiveSchemaImpl extends EffectiveSchemaImpl<MultiTypeUnionEffectiveSchemaImpl> {
+  final List<EffectiveSchemaImpl> variants;
+  MultiTypeUnionEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
     required this.variants,
-  }) : super($node, SchemaType.multiType, description, readOnly, writeOnly, xml, externalDocs, example, deprecated, nullable);
+  }) : super(
+         $node,
+         SchemaType.multiType,
+         description,
+         readOnly,
+         writeOnly,
+         xml,
+         externalDocs,
+         example,
+         deprecated,
+         nullable,
+       );
 }
 
-class UnknownEffectiveSchema extends EffectiveSchema<UnknownEffectiveSchema> {
-  UnknownEffectiveSchema({
+class UnknownEffectiveSchemaImpl extends EffectiveSchemaImpl<UnknownEffectiveSchemaImpl> {
+  UnknownEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
-  }) : super($node, SchemaType.unknown, description, readOnly, writeOnly, xml, externalDocs, example, deprecated, nullable);
+  }) : super(
+         $node,
+         SchemaType.unknown,
+         description,
+         readOnly,
+         writeOnly,
+         xml,
+         externalDocs,
+         example,
+         deprecated,
+         nullable,
+       );
 }

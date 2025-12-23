@@ -1,6 +1,7 @@
 import '../validation/validation_utils.dart';
 import '../node.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/server.dart';
+import '../map_node.dart';
 
 class ServerVariableNode extends Node with LeafNode implements ServerVariable {
   ServerVariableNode(super.json, super.document, super.jsonPointer);
@@ -56,4 +57,8 @@ class ServerVariableNode extends Node with LeafNode implements ServerVariable {
     description = json['description'];
     extensions = extractExtensions(json);
   }
+}
+
+class ServerVariablesMapNode extends MapNode<ServerVariableNode, ServerVariable> implements ServerVariablesMap {
+  ServerVariablesMapNode(super.json, super.document, super.jsonPointer);
 }

@@ -1,5 +1,4 @@
 import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema.dart';
-import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema_type.dart';
 import 'package:openapi_analyzer/v3_0_0/src/openapi_graph.dart';
 import '../../../validation/validation_context.dart';
 import '../../../../../validation_exception.dart';
@@ -7,19 +6,19 @@ import '../../xml.dart';
 import '../../external_documentation.dart';
 import 'typed_schema.dart';
 
-class StringTypedSchema extends TypedSchema<String> {
+class StringTypedSchemaImpl extends TypedSchemaImpl<String> {
   final int? maxLength;
   final int? minLength;
   final String? pattern;
   final String? format;
 
-  StringTypedSchema({
+  StringTypedSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -44,9 +43,9 @@ class StringTypedSchema extends TypedSchema<String> {
          enumValues,
        );
 
-  factory StringTypedSchema.of(SchemaNode node) {
-    TypedSchema.validateConstraints<String>(node, OpenApiGraph.i.validationContext, validateConstraints);
-    return StringTypedSchema(
+  factory StringTypedSchemaImpl.of(SchemaNode node) {
+    TypedSchemaImpl.validateConstraints<String>(node, OpenApiGraph.i.validationContext, validateConstraints);
+    return StringTypedSchemaImpl(
       $node: node,
       description: node.description,
       readOnly: node.readOnly,

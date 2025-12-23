@@ -6,6 +6,7 @@ import 'server.dart';
 import '../node.dart';
 import '../edge.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/link.dart';
+import '../map_node.dart';
 
 class LinkNode extends Node with InternalNode, Referencable implements Link {
   LinkNode(super.json, super.document, super.jsonPointer);
@@ -98,4 +99,8 @@ class LinkNode extends Node with InternalNode, Referencable implements Link {
     server = $to.to<ServerNode>('server');
     extensions = extractExtensions(json);
   }
+}
+
+class LinksMapNode extends MapNode<LinkNode, Link> implements LinksMap {
+  LinksMapNode(super.json, super.document, super.jsonPointer);
 }

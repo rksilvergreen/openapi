@@ -1,24 +1,23 @@
 import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema.dart';
-import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema_type.dart';
 import '../typed_schema/array_typed_schema.dart';
 import 'effective_schema.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 
-class ArrayEffectiveSchema extends SingleTypeEffectiveSchema<List<dynamic>, ArrayEffectiveSchema>
-    with ArrayEffectiveSchemaVariant {
+class ArrayEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<List<dynamic>, ArrayEffectiveSchemaImpl>
+    with ArrayEffectiveSchemaImplVariant {
   final SchemaNode? items;
   final int? maxItems;
   final int? minItems;
   final bool? uniqueItems;
 
-  ArrayEffectiveSchema({
+  ArrayEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -43,8 +42,8 @@ class ArrayEffectiveSchema extends SingleTypeEffectiveSchema<List<dynamic>, Arra
          enumValues,
        );
 
-  factory ArrayEffectiveSchema.fromTyped(SchemaNode node, ArrayTypedSchema typed) {
-    return ArrayEffectiveSchema(
+  factory ArrayEffectiveSchemaImpl.fromTyped(SchemaNode node, ArrayTypedSchemaImpl typed) {
+    return ArrayEffectiveSchemaImpl(
       $node: node,
       description: typed.description,
       readOnly: typed.readOnly,
@@ -63,16 +62,16 @@ class ArrayEffectiveSchema extends SingleTypeEffectiveSchema<List<dynamic>, Arra
   }
 }
 
-class ArrayUnionEffectiveSchema extends SingleTypeEffectiveSchema<List<dynamic>, ArrayEffectiveSchema>
-    with ArrayEffectiveSchemaVariant {
-  final List<ArrayEffectiveSchemaVariant> variants;
-  ArrayUnionEffectiveSchema({
+class ArrayUnionEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<List<dynamic>, ArrayEffectiveSchemaImpl>
+    with ArrayEffectiveSchemaImplVariant {
+  final List<ArrayEffectiveSchemaImplVariant> variants;
+  ArrayUnionEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -95,9 +94,9 @@ class ArrayUnionEffectiveSchema extends SingleTypeEffectiveSchema<List<dynamic>,
        );
 }
 
-mixin ArrayEffectiveSchemaVariant {}
+mixin ArrayEffectiveSchemaImplVariant {}
 
-class ArrayEffectiveSchemaUnregistered with ArrayEffectiveSchemaVariant {
+class ArrayEffectiveSchemaImplUnregistered with ArrayEffectiveSchemaImplVariant {
   final List<dynamic>? defaultValue;
   final List<List<dynamic>>? enumValues;
   final SchemaNode? items;
@@ -105,7 +104,7 @@ class ArrayEffectiveSchemaUnregistered with ArrayEffectiveSchemaVariant {
   final int? minItems;
   final bool? uniqueItems;
 
-  ArrayEffectiveSchemaUnregistered({
+  ArrayEffectiveSchemaImplUnregistered({
     this.defaultValue,
     this.enumValues,
     this.items,

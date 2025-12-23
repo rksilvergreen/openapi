@@ -1,12 +1,11 @@
 import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema.dart';
-import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema_type.dart';
 import '../typed_schema/number_typed_schema.dart';
 import 'effective_schema.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 
-class NumberEffectiveSchema extends SingleTypeEffectiveSchema<double, NumberEffectiveSchema>
-    with NumberEffectiveSchemaVariant {
+class NumberEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<double, NumberEffectiveSchemaImpl>
+    with NumberEffectiveSchemaImplVariant {
   final double? multipleOf;
   final double? maximum;
   final double? exclusiveMaximum;
@@ -14,13 +13,13 @@ class NumberEffectiveSchema extends SingleTypeEffectiveSchema<double, NumberEffe
   final double? exclusiveMinimum;
   final String? format;
 
-  NumberEffectiveSchema({
+  NumberEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -47,8 +46,8 @@ class NumberEffectiveSchema extends SingleTypeEffectiveSchema<double, NumberEffe
          enumValues,
        );
 
-  factory NumberEffectiveSchema.fromTyped(SchemaNode node, NumberTypedSchema typed) {
-    return NumberEffectiveSchema(
+  factory NumberEffectiveSchemaImpl.fromTyped(SchemaNode node, NumberTypedSchemaImpl typed) {
+    return NumberEffectiveSchemaImpl(
       $node: node,
       description: typed.description,
       readOnly: typed.readOnly,
@@ -70,16 +69,16 @@ class NumberEffectiveSchema extends SingleTypeEffectiveSchema<double, NumberEffe
   }
 }
 
-class NumberUnionEffectiveSchema extends SingleTypeEffectiveSchema<double, NumberEffectiveSchema>
-    with NumberEffectiveSchemaVariant {
-  final List<NumberEffectiveSchemaVariant> variants;
-  NumberUnionEffectiveSchema({
+class NumberUnionEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<double, NumberEffectiveSchemaImpl>
+    with NumberEffectiveSchemaImplVariant {
+  final List<NumberEffectiveSchemaImplVariant> variants;
+  NumberUnionEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -102,9 +101,9 @@ class NumberUnionEffectiveSchema extends SingleTypeEffectiveSchema<double, Numbe
        );
 }
 
-mixin NumberEffectiveSchemaVariant {}
+mixin NumberEffectiveSchemaImplVariant {}
 
-class NumberEffectiveSchemaUnregistered with NumberEffectiveSchemaVariant {
+class NumberEffectiveSchemaImplUnregistered with NumberEffectiveSchemaImplVariant {
   final double? defaultValue;
   final List<double>? enumValues;
   final double? multipleOf;
@@ -114,7 +113,7 @@ class NumberEffectiveSchemaUnregistered with NumberEffectiveSchemaVariant {
   final double? exclusiveMinimum;
   final String? format;
 
-  NumberEffectiveSchemaUnregistered({
+  NumberEffectiveSchemaImplUnregistered({
     this.defaultValue,
     this.enumValues,
     this.multipleOf,
@@ -125,5 +124,3 @@ class NumberEffectiveSchemaUnregistered with NumberEffectiveSchemaVariant {
     this.format,
   });
 }
-
-

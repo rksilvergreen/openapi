@@ -5,9 +5,12 @@ import '../edge.dart';
 import 'operation.dart';
 import 'server.dart';
 import 'parameter.dart';
-import 'parameters_list.dart';
-import 'server_list.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/path_item.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/server.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/parameter.dart';
+import '../map_node.dart';
+import '../openapi_graph.dart';
+import '../../../validation_exception.dart';
 
 class PathItemNode extends Node with InternalNode, Referencable implements PathItem {
   PathItemNode(super.json, super.document, super.jsonPointer);
@@ -22,8 +25,8 @@ class PathItemNode extends Node with InternalNode, Referencable implements PathI
   late final OperationNode? head;
   late final OperationNode? patch;
   late final OperationNode? trace;
-  late final ServerListNode? servers;
-  late final ParametersListNode? parameters;
+  late final ServerList? servers;
+  late final ParametersList? parameters;
   late final Map<String, dynamic>? extensions;
 
   @override
@@ -123,5 +126,32 @@ class PathItemNode extends Node with InternalNode, Referencable implements PathI
     servers = $to.to<ServerListNode>('servers');
     parameters = $to.to<ParametersListNode>('parameters');
     extensions = extractExtensions(json);
+  }
+}
+
+class PathsMapNode extends MapNode<PathItemNode, PathItem> implements PathsMap {
+  PathsMapNode(super.json, super.document, super.jsonPointer);
+
+  @override
+  void validateStructure() {
+    final jsonPointer = $id.jsonPointer;
+    _validateFormat(jsonPointer);
+    super.validateStructure();
+  }
+
+  void _validateFormat(String jsonPointer) {
+    for (final key in json.keys) {
+      final keyStr = key.toString();
+      if (!keyStr.startsWith('/')) {
+        OpenApiGraph.i.validationContext.addException(
+          OpenApiValidationException(
+            ValidationUtils.buildPointer([jsonPointer, keyStr]),
+            'Path must start with "/"',
+            specReference: 'OpenAPI 3.0.0 - Paths Object',
+            severity: ValidationSeverity.critical,
+          ),
+        );
+      }
+    }
   }
 }

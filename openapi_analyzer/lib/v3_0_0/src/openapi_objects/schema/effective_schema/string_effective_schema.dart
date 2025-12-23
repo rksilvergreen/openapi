@@ -1,24 +1,23 @@
 import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema.dart';
-import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema_type.dart';
 import '../typed_schema/string_typed_schema.dart';
 import 'effective_schema.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 
-class StringEffectiveSchema extends SingleTypeEffectiveSchema<String, StringEffectiveSchema>
-    with StringEffectiveSchemaVariant {
+class StringEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<String, StringEffectiveSchemaImpl>
+    with StringEffectiveSchemaImplVariant {
   final int? maxLength;
   final int? minLength;
   final String? pattern;
   final String? format;
 
-  StringEffectiveSchema({
+  StringEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -43,8 +42,8 @@ class StringEffectiveSchema extends SingleTypeEffectiveSchema<String, StringEffe
          enumValues,
        );
 
-  factory StringEffectiveSchema.fromTyped(SchemaNode node, StringTypedSchema typed) {
-    return StringEffectiveSchema(
+  factory StringEffectiveSchemaImpl.fromTyped(SchemaNode node, StringTypedSchemaImpl typed) {
+    return StringEffectiveSchemaImpl(
       $node: node,
       description: typed.description,
       readOnly: typed.readOnly,
@@ -64,16 +63,16 @@ class StringEffectiveSchema extends SingleTypeEffectiveSchema<String, StringEffe
   }
 }
 
-class StringUnionEffectiveSchema extends SingleTypeEffectiveSchema<String, StringEffectiveSchema>
-    with StringEffectiveSchemaVariant {
-  final List<StringEffectiveSchemaVariant> variants;
-  StringUnionEffectiveSchema({
+class StringUnionEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<String, StringEffectiveSchemaImpl>
+    with StringEffectiveSchemaImplVariant {
+  final List<StringEffectiveSchemaImplVariant> variants;
+  StringUnionEffectiveSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -96,9 +95,9 @@ class StringUnionEffectiveSchema extends SingleTypeEffectiveSchema<String, Strin
        );
 }
 
-mixin StringEffectiveSchemaVariant {}
+mixin StringEffectiveSchemaImplVariant {}
 
-class StringEffectiveSchemaUnregistered with StringEffectiveSchemaVariant {
+class StringEffectiveSchemaImplUnregistered with StringEffectiveSchemaImplVariant {
   final String? defaultValue;
   final List<String>? enumValues;
   final int? maxLength;
@@ -106,7 +105,7 @@ class StringEffectiveSchemaUnregistered with StringEffectiveSchemaVariant {
   final String? pattern;
   final String? format;
 
-  StringEffectiveSchemaUnregistered({
+  StringEffectiveSchemaImplUnregistered({
     this.defaultValue,
     this.enumValues,
     this.maxLength,

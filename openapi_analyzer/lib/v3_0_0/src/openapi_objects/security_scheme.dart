@@ -6,9 +6,9 @@ import '../edge.dart';
 import 'enums.dart';
 import 'oauth_flows.dart';
 import '../naming/naming_utils.dart';
-import 'security_schemes_map.dart';
 import 'components.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/security_scheme.dart';
+import '../map_node.dart';
 
 class SecuritySchemeNode extends Node with InternalNode, Referencable implements SecurityScheme {
   SecuritySchemeNode(super.json, super.document, super.jsonPointer);
@@ -275,4 +275,8 @@ class SecuritySchemeNode extends Node with InternalNode, Referencable implements
     final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);
     return 'SecurityScheme_$shortHash';
   }
+}
+
+class SecuritySchemesMapNode extends MapNode<SecuritySchemeNode, SecurityScheme> implements SecuritySchemesMap {
+  SecuritySchemesMapNode(super.json, super.document, super.jsonPointer);
 }

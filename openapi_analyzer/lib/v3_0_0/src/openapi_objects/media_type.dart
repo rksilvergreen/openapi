@@ -4,10 +4,11 @@ import '../../../validation_exception.dart';
 import '../node.dart';
 import '../edge.dart';
 import 'schema/schema.dart';
-import 'examples_map.dart';
-import 'encodings_map.dart';
+import 'example.dart';
+import 'encoding.dart';
 import 'schema/schema_map.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/media_type.dart';
+import '../map_node.dart';
 
 class MediaTypeNode extends Node with InternalNode implements MediaType {
   MediaTypeNode(super.json, super.document, super.jsonPointer);
@@ -84,4 +85,8 @@ class MediaTypeNode extends Node with InternalNode implements MediaType {
     encoding = $to.to<EncodingsMapNode>('encoding');
     extensions = extractExtensions(json);
   }
+}
+
+class MediaTypesMapNode extends MapNode<MediaTypeNode, MediaType> implements MediaTypesMap {
+  MediaTypesMapNode(super.json, super.document, super.jsonPointer);
 }

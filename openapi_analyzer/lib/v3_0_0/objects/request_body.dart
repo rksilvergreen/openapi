@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'media_type.dart';
 
 abstract class RequestBody {
   String? get description;
@@ -11,7 +12,3 @@ abstract class RequestBody {
 abstract class RequestBodiesMap implements MapBase<String, RequestBody> {
   Map<String, dynamic>? get extensions;
 }
-
-// Forward declaration
-abstract class MediaTypesMap {}
-

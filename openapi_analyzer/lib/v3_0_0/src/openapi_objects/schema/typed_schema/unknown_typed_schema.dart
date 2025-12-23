@@ -1,17 +1,16 @@
 import '../schema.dart';
-import '../schema_type.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 import 'typed_schema.dart';
 
-class UnknownTypedSchema extends TypedSchema<dynamic> {
-  UnknownTypedSchema({
+class UnknownTypedSchemaImpl extends TypedSchemaImpl<dynamic> {
+  UnknownTypedSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     dynamic example,
     bool deprecated = false,
     bool nullable = false,
@@ -30,8 +29,8 @@ class UnknownTypedSchema extends TypedSchema<dynamic> {
          null,
        );
 
-  factory UnknownTypedSchema.of(SchemaNode node) {
-    return UnknownTypedSchema(
+  factory UnknownTypedSchemaImpl.of(SchemaNode node) {
+    return UnknownTypedSchemaImpl(
       $node: node,
       description: node.description,
       readOnly: node.readOnly,

@@ -7,7 +7,7 @@ import '../edge.dart';
 import 'enums.dart';
 import 'schema/schema.dart';
 import 'example.dart';
-import 'media_types_map.dart';
+import 'media_type.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/example.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/media_type.dart';
 import 'schema/schema_map.dart';
@@ -15,10 +15,9 @@ import '../naming/naming_utils.dart';
 import 'components.dart';
 import 'response.dart';
 import 'operation.dart';
-import 'responses_map.dart';
 import 'path_item.dart';
-import 'paths_map.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/header.dart';
+import '../map_node.dart';
 
 class HeaderNode extends Node with InternalNode, Referencable implements Header {
   HeaderNode(super.json, super.document, super.jsonPointer);
@@ -303,4 +302,8 @@ class HeaderNode extends Node with InternalNode, Referencable implements Header 
     }
     return null;
   }
+}
+
+class HeadersMapNode extends MapNode<HeaderNode, Header> implements HeadersMap {
+  HeadersMapNode(super.json, super.document, super.jsonPointer);
 }

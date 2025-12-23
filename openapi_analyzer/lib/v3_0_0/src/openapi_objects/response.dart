@@ -3,16 +3,15 @@ import '../validation/validation_utils.dart';
 import '../referencable.dart';
 import '../node.dart';
 import '../edge.dart';
-import 'headers_map.dart';
-import 'media_types_map.dart';
-import 'links_map.dart';
+import 'header.dart';
+import 'media_type.dart';
+import 'link.dart';
 import '../naming/naming_utils.dart';
 import 'operation.dart';
-import 'responses_map.dart';
 import 'components.dart';
 import 'path_item.dart';
-import 'paths_map.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/response.dart';
+import '../map_node.dart';
 
 class ResponseNode extends Node with InternalNode, Referencable implements Response {
   ResponseNode(super.json, super.document, super.jsonPointer);
@@ -195,4 +194,8 @@ class ResponseNode extends Node with InternalNode, Referencable implements Respo
     }
     return null;
   }
+}
+
+class ResponsesMapNode extends MapNode<ResponseNode, Response> implements ResponsesMap {
+  ResponsesMapNode(super.json, super.document, super.jsonPointer);
 }

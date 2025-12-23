@@ -2,7 +2,7 @@ import '../validation/validation_utils.dart';
 import '../node.dart';
 import '../edge.dart';
 import 'enums.dart';
-import 'headers_map.dart';
+import 'header.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/encoding.dart';
 import '../map_node.dart';
 

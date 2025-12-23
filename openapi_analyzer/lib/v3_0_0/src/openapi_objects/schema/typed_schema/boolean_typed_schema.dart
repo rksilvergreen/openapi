@@ -1,21 +1,20 @@
 import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema.dart';
-import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema_type.dart';
 import 'package:openapi_analyzer/v3_0_0/src/openapi_graph.dart';
 import '../../../validation/validation_context.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 import 'typed_schema.dart';
 
-class BooleanTypedSchema extends TypedSchema<bool> {
+class BooleanTypedSchemaImpl extends TypedSchemaImpl<bool> {
   final String? format;
 
-  BooleanTypedSchema({
+  BooleanTypedSchemaImpl({
     required SchemaNode $node,
     String? description,
     bool readOnly = false,
     bool writeOnly = false,
-    XML? xml,
-    ExternalDocumentation? externalDocs,
+    XMLNode? xml,
+    ExternalDocumentationNode? externalDocs,
     Map<String, dynamic>? example,
     bool deprecated = false,
     bool nullable = false,
@@ -37,9 +36,9 @@ class BooleanTypedSchema extends TypedSchema<bool> {
          enumValues,
        );
 
-  factory BooleanTypedSchema.of(SchemaNode node) {
-    TypedSchema.validateConstraints<bool>(node, OpenApiGraph.i.validationContext, validateConstraints);
-    return BooleanTypedSchema(
+  factory BooleanTypedSchemaImpl.of(SchemaNode node) {
+    TypedSchemaImpl.validateConstraints<bool>(node, OpenApiGraph.i.validationContext, validateConstraints);
+    return BooleanTypedSchemaImpl(
       $node: node,
       description: node.description,
       readOnly: node.readOnly,

@@ -1,5 +1,4 @@
 import '../schema.dart';
-import '../schema_type.dart';
 import '../../../validation/validation_context.dart';
 import '../../../validation/validation_utils.dart';
 import '../../../../../validation_exception.dart';
@@ -13,22 +12,24 @@ import 'array_typed_schema.dart';
 import 'object_typed_schema.dart';
 import 'unknown_typed_schema.dart';
 import '../effective_schema/effective_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/typed_schema/typed_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
 
-abstract class TypedSchema<T> {
+abstract class TypedSchemaImpl<T> implements TypedSchema<T> {
   final SchemaNode $node;
   final SchemaType type;
   final String? description;
   final bool readOnly;
   final bool writeOnly;
-  final XML? xml;
-  final ExternalDocumentation? externalDocs;
+  final XMLNode? xml;
+  final ExternalDocumentationNode? externalDocs;
   final Map<String, dynamic>? example;
   final bool deprecated;
   final bool nullable;
   final T? defaultValue;
   final List<T>? enumValues;
 
-  TypedSchema(
+  TypedSchemaImpl(
     this.$node,
     this.type,
     this.description,
@@ -43,31 +44,31 @@ abstract class TypedSchema<T> {
     this.enumValues,
   );
 
-  List<TypedSchema>? get allOf => $node.allOf?.map((node) => node.$typed).toList();
-  List<TypedSchema>? get oneOf => $node.oneOf?.map((node) => node.$typed).toList();
-  List<TypedSchema>? get anyOf => $node.anyOf?.map((node) => node.$typed).toList();
+  List<TypedSchemaImpl>? get allOf => $node.allOf?.map((node) => node.$typed).toList();
+  List<TypedSchemaImpl>? get oneOf => $node.oneOf?.map((node) => node.$typed).toList();
+  List<TypedSchemaImpl>? get anyOf => $node.anyOf?.map((node) => node.$typed).toList();
 
   SchemaNode get raw => $node;
-  EffectiveSchema get effective => $node.$effective;
+  EffectiveSchemaImpl get effective => $node.$effective;
 
-  /// Creates a TypedSchema from a SchemaNode.
-  static TypedSchema of(SchemaNode node, ValidationContext ctx) {
+  /// Creates a TypedSchemaImpl from a SchemaNode.
+  static TypedSchemaImpl of(SchemaNode node, ValidationContext ctx) {
     final schemaType = _inferType(node, ctx);
     switch (schemaType) {
       case SchemaType.integer:
-        return IntegerTypedSchema.of(node);
+        return IntegerTypedSchemaImpl.of(node);
       case SchemaType.number:
-        return NumberTypedSchema.of(node);
+        return NumberTypedSchemaImpl.of(node);
       case SchemaType.string:
-        return StringTypedSchema.of(node);
+        return StringTypedSchemaImpl.of(node);
       case SchemaType.boolean:
-        return BooleanTypedSchema.of(node);
+        return BooleanTypedSchemaImpl.of(node);
       case SchemaType.array:
-        return ArrayTypedSchema.of(node);
+        return ArrayTypedSchemaImpl.of(node);
       case SchemaType.object:
-        return ObjectTypedSchema.of(node);
+        return ObjectTypedSchemaImpl.of(node);
       default:
-        return UnknownTypedSchema.of(node);
+        return UnknownTypedSchemaImpl.of(node);
     }
   }
 
