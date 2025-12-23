@@ -7,14 +7,7 @@ import 'schema/schema.dart';
 import 'examples_map.dart';
 import 'encodings_map.dart';
 import 'schema/schema_map.dart';
-
-abstract class MediaType {
-  SchemasMap? get schema;
-  dynamic get example;
-  ExamplesMap? get examples;
-  EncodingsMap? get encoding;
-  Map<String, dynamic>? get extensions;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/media_type.dart';
 
 class MediaTypeNode extends Node with InternalNode implements MediaType {
   MediaTypeNode(super.json, super.document, super.jsonPointer);

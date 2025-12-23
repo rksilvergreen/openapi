@@ -12,15 +12,7 @@ import 'responses_map.dart';
 import 'components.dart';
 import 'path_item.dart';
 import 'paths_map.dart';
-
-abstract class Response {
-  String? get description;
-  HeadersMap? get headers;
-  MediaTypesMap? get content;
-  LinksMap? get links;
-  Map<String, dynamic>? get extensions;
-  String get $name;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/response.dart';
 
 class ResponseNode extends Node with InternalNode, Referencable implements Response {
   ResponseNode(super.json, super.document, super.jsonPointer);

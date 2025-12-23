@@ -1,5 +1,5 @@
 import 'dart:collection';
-import '../src/openapi_objects/paths_map.dart';
+import 'path_item.dart';
 
 abstract class Callback {
   PathsMap get expressions;

@@ -13,19 +13,7 @@ import 'security_requirements_list.dart';
 import 'tags_list.dart';
 import 'server_list.dart';
 import '../naming/naming_utils.dart';
-
-abstract class OpenApiDocument {
-  String get openapi;
-  Info get info;
-  ServerList? get servers;
-  PathsMap get paths;
-  Components? get components;
-  SecurityRequirementsList? get security;
-  TagsList? get tags;
-  ExternalDocumentation? get externalDocs;
-  Map<String, dynamic>? get extensions;
-  String get $name;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/openapi_document.dart';
 
 class OpenApiDocumentNode extends Node with InternalNode implements OpenApiDocument {
   OpenApiDocumentNode(super.json, super.document, super.jsonPointer);

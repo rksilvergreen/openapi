@@ -6,31 +6,14 @@ import '../node.dart';
 import '../edge.dart';
 import 'enums.dart';
 import 'schema/schema.dart';
-import 'examples_map.dart';
+import 'example.dart';
 import 'media_types_map.dart';
 import '../naming/naming_utils.dart';
 import 'operation.dart';
 import 'path_item.dart';
 import 'paths_map.dart';
 import 'parameters_list.dart';
-
-abstract class Parameter {
-  String get name;
-  ParameterLocation get in_;
-  String? get description;
-  bool get required_;
-  bool get deprecated;
-  bool get allowEmptyValue;
-  ParameterStyle? get style;
-  bool? get explode;
-  bool get allowReserved;
-  Schema? get schema;
-  dynamic get example;
-  ExamplesMap? get examples;
-  MediaTypesMap? get content;
-  Map<String, dynamic>? get extensions;
-  String get $name;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/parameter.dart';
 
 class ParameterNode extends Node with InternalNode, Referencable implements Parameter {
   ParameterNode(super.json, super.document, super.jsonPointer);

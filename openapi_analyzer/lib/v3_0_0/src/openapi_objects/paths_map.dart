@@ -4,10 +4,7 @@ import '../../../validation_exception.dart';
 import 'path_item.dart';
 import '../map_node.dart';
 import 'dart:collection';
-
-abstract class PathsMap implements MapBase<String, PathItem> {
-  Map<String, dynamic>? get extensions;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/path_item.dart';
 
 class PathsMapNode extends MapNode<PathItemNode, PathItem> implements PathsMap {
   PathsMapNode(super.json, super.document, super.jsonPointer);

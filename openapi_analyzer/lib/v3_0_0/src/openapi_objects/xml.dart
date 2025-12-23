@@ -1,14 +1,6 @@
 import '../validation/validation_utils.dart';
 import '../node.dart';
-
-abstract class XML {
-  String? get name;
-  String? get namespace;
-  String? get prefix;
-  bool get attribute;
-  bool get wrapped;
-  Map<String, dynamic>? get extensions;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/xml.dart';
 
 class XMLNode extends Node with LeafNode implements XML {
   XMLNode(super.json, super.document, super.jsonPointer);

@@ -1,10 +1,7 @@
 import 'response.dart';
 import '../map_node.dart';
 import 'dart:collection';
-
-abstract class ResponsesMap implements MapBase<String, Response> {
-  Map<String, dynamic>? get extensions;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/response.dart';
 
 class ResponsesMapNode extends MapNode<ResponseNode, Response> implements ResponsesMap {
   ResponsesMapNode(super.json, super.document, super.jsonPointer);

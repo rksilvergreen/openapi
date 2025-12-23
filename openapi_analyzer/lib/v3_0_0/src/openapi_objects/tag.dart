@@ -3,13 +3,7 @@ import '../validation/validation_utils.dart';
 import 'external_documentation.dart';
 import '../node.dart';
 import '../edge.dart';
-
-abstract class Tag {
-  String get name;
-  String? get description;
-  ExternalDocumentation? get externalDocs;
-  Map<String, dynamic>? get extensions;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/tag.dart';
 
 class TagNode extends Node with InternalNode implements Tag {
   TagNode(super.json, super.document, super.jsonPointer);

@@ -1,4 +1,6 @@
 import 'dart:collection';
+import '../src/openapi_objects/enums.dart';
+import 'header.dart';
 
 abstract class Encoding {
   String? get contentType;

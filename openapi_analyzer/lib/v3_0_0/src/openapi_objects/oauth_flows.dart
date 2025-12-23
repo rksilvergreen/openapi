@@ -2,14 +2,7 @@ import '../validation/validation_utils.dart';
 import 'oauth_flow.dart';
 import '../node.dart';
 import '../edge.dart';
-
-abstract class OAuthFlows {
-  OAuthFlow? get implicit;
-  OAuthFlow? get password;
-  OAuthFlow? get clientCredentials;
-  OAuthFlow? get authorizationCode;
-  Map<String, dynamic>? get extensions;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/oauth_flow.dart';
 
 class OAuthFlowsNode extends Node with InternalNode implements OAuthFlows {
   OAuthFlowsNode(super.json, super.document, super.jsonPointer);

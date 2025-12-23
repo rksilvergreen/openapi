@@ -1,10 +1,7 @@
 import 'link.dart';
 import '../map_node.dart';
 import 'dart:collection';
-
-abstract class LinksMap implements MapBase<String, Link> {
-  Map<String, dynamic>? get extensions;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/link.dart';
 
 class LinksMapNode extends MapNode<LinkNode, Link> implements LinksMap {
   LinksMapNode(super.json, super.document, super.jsonPointer);

@@ -6,34 +6,19 @@ import '../node.dart';
 import '../edge.dart';
 import 'enums.dart';
 import 'schema/schema.dart';
-import 'examples_map.dart';
+import 'example.dart';
 import 'media_types_map.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/example.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/media_type.dart';
 import 'schema/schema_map.dart';
 import '../naming/naming_utils.dart';
-import 'headers_map.dart';
 import 'components.dart';
 import 'response.dart';
 import 'operation.dart';
 import 'responses_map.dart';
 import 'path_item.dart';
 import 'paths_map.dart';
-
-/// Header Object follows the structure of the Parameter Object.
-abstract class Header {
-  String? get description;
-  bool get required_;
-  bool get deprecated;
-  bool get allowEmptyValue;
-  ParameterStyle? get style;
-  bool? get explode;
-  bool get allowReserved;
-  SchemasMap? get schema;
-  dynamic get example;
-  ExamplesMap? get examples;
-  MediaTypesMap? get content;
-  Map<String, dynamic>? get extensions;
-  String get $name;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/header.dart';
 
 class HeaderNode extends Node with InternalNode, Referencable implements Header {
   HeaderNode(super.json, super.document, super.jsonPointer);

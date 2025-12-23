@@ -10,14 +10,7 @@ import 'request_bodies_map.dart';
 import 'components.dart';
 import 'path_item.dart';
 import 'paths_map.dart';
-
-abstract class RequestBody {
-  String? get description;
-  bool get required;
-  MediaTypesMap get content;
-  Map<String, dynamic>? get extensions;
-  String get $name;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/request_body.dart';
 
 class RequestBodyNode extends Node with InternalNode, Referencable implements RequestBody {
   RequestBodyNode(super.json, super.document, super.jsonPointer);

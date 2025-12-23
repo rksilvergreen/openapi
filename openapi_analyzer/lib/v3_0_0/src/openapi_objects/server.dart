@@ -9,14 +9,7 @@ import 'openapi_document.dart';
 import 'path_item.dart';
 import 'operation.dart';
 import 'paths_map.dart';
-
-abstract class Server {
-  String get url;
-  String? get description;
-  ServerVariablesMap? get variables;
-  Map<String, dynamic>? get extensions;
-  String get $name;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/server.dart';
 
 class ServerNode extends Node with InternalNode implements Server {
   ServerNode(super.json, super.document, super.jsonPointer);

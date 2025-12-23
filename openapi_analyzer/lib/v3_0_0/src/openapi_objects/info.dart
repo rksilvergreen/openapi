@@ -3,16 +3,7 @@ import 'contact.dart';
 import 'license.dart';
 import '../node.dart';
 import '../edge.dart';
-
-abstract class Info {
-  String get title;
-  String? get description;
-  String? get termsOfService;
-  Contact? get contact;
-  License? get license;
-  String get version;
-  Map<String, dynamic>? get extensions;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/info.dart';
 
 class InfoNode extends Node with InternalNode implements Info {
   InfoNode(super.json, super.document, super.jsonPointer);

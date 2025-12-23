@@ -1,11 +1,6 @@
 import '../validation/validation_utils.dart';
 import '../node.dart';
-
-abstract class License {
-  String get name;
-  String? get url;
-  Map<String, dynamic>? get extensions;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/license.dart';
 
 class LicenseNode extends Node with LeafNode implements License {
   LicenseNode(super.json, super.document, super.jsonPointer);

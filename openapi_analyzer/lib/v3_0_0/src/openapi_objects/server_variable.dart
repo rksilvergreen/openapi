@@ -1,14 +1,8 @@
 import '../validation/validation_utils.dart';
 import '../node.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/server.dart';
 
-abstract class ServerVariable {
-  List<String>? get enum_;
-  String get default_;
-  String? get description;
-  Map<String, dynamic>? get extensions;
-}
-
-class ServerVariableNode extends Node with LeafNode {
+class ServerVariableNode extends Node with LeafNode implements ServerVariable {
   ServerVariableNode(super.json, super.document, super.jsonPointer);
 
   late final List<String>? enum_;

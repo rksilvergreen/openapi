@@ -7,20 +7,7 @@ import 'server.dart';
 import 'parameter.dart';
 import 'parameters_list.dart';
 import 'server_list.dart';
-
-abstract class PathItem {
-  Operation? get get_;
-  Operation? get put;
-  Operation? get post;
-  Operation? get delete;
-  Operation? get options;
-  Operation? get head;
-  Operation? get patch;
-  Operation? get trace;
-  ServerList? get servers;
-  ParametersList? get parameters;
-  Map<String, dynamic>? get extensions;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/path_item.dart';
 
 class PathItemNode extends Node with InternalNode, Referencable implements PathItem {
   PathItemNode(super.json, super.document, super.jsonPointer);

@@ -1,13 +1,6 @@
 import '../validation/validation_utils.dart';
 import '../node.dart';
-
-abstract class OAuthFlow {
-  String? get authorizationUrl;
-  String? get tokenUrl;
-  String? get refreshUrl;
-  Map<String, String> get scopes;
-  Map<String, dynamic>? get extensions;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/oauth_flow.dart';
 
 class OAuthFlowNode extends Node with LeafNode implements OAuthFlow {
   OAuthFlowNode(super.json, super.document, super.jsonPointer);

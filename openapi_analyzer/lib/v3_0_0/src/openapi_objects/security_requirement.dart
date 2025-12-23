@@ -2,10 +2,7 @@ import '../openapi_graph.dart';
 import '../validation/validation_utils.dart';
 import '../../../validation_exception.dart';
 import '../node.dart';
-
-abstract class SecurityRequirement {
-  Map<String, List<String>> get requirements;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/security_requirement.dart';
 
 class SecurityRequirementNode extends Node with LeafNode implements SecurityRequirement {
   SecurityRequirementNode(super.json, super.document, super.jsonPointer);

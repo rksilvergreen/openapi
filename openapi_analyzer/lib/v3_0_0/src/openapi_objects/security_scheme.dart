@@ -8,19 +8,7 @@ import 'oauth_flows.dart';
 import '../naming/naming_utils.dart';
 import 'security_schemes_map.dart';
 import 'components.dart';
-
-abstract class SecurityScheme {
-  SecuritySchemeType get type;
-  String? get description;
-  String? get name;
-  SecuritySchemeIn? get in_;
-  String? get scheme;
-  String? get bearerFormat;
-  OAuthFlows? get flows;
-  String? get openIdConnectUrl;
-  Map<String, dynamic>? get extensions;
-  String get $name;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/security_scheme.dart';
 
 class SecuritySchemeNode extends Node with InternalNode, Referencable implements SecurityScheme {
   SecuritySchemeNode(super.json, super.document, super.jsonPointer);

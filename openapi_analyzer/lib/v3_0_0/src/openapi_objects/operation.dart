@@ -7,25 +7,14 @@ import 'request_body.dart';
 import 'security_requirement.dart';
 import 'server.dart';
 import 'responses_map.dart';
-import 'callbacks_map.dart';
+import 'callback.dart';
 import 'parameters_list.dart';
 import 'security_requirements_list.dart';
 import 'server_list.dart';
 import '../naming/naming_utils.dart';
 import 'path_item.dart';
 import 'paths_map.dart';
-
-abstract class Operation {
-  ExternalDocumentation? get externalDocs;
-  ParametersList? get parameters;
-  RequestBody? get requestBody;
-  ResponsesMap get responses;
-  CallbacksMap? get callbacks;
-  SecurityRequirementsList? get security;
-  ServerList? get servers;
-
-  String get $name;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/operation.dart';
 
 class OperationNode extends Node with InternalNode implements Operation {
   OperationNode(super.json, super.document, super.jsonPointer);

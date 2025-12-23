@@ -5,16 +5,7 @@ import '../referencable.dart';
 import 'server.dart';
 import '../node.dart';
 import '../edge.dart';
-
-abstract class Link {
-  String? get operationRef;
-  String? get operationId;
-  Map<String, dynamic>? get parameters;
-  dynamic get requestBody;
-  String? get description;
-  Server? get server;
-  Map<String, dynamic>? get extensions;
-}
+import 'package:openapi_analyzer/v3_0_0/objects/link.dart';
 
 class LinkNode extends Node with InternalNode, Referencable implements Link {
   LinkNode(super.json, super.document, super.jsonPointer);
