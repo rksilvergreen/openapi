@@ -5,8 +5,10 @@ import '../../../../../validation_exception.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 import 'typed_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/typed_schema/string_typed_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
 
-class StringTypedSchemaImpl extends TypedSchemaImpl<String> {
+class StringTypedSchemaImpl extends TypedSchemaImpl<String> implements StringTypedSchema {
   final int? maxLength;
   final int? minLength;
   final String? pattern;

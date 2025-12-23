@@ -4,8 +4,10 @@ import '../../../validation/validation_context.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 import 'typed_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/typed_schema/boolean_typed_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
 
-class BooleanTypedSchemaImpl extends TypedSchemaImpl<bool> {
+class BooleanTypedSchemaImpl extends TypedSchemaImpl<bool> implements BooleanTypedSchema {
   final String? format;
 
   BooleanTypedSchemaImpl({

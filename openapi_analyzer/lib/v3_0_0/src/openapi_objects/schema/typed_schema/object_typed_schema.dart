@@ -5,8 +5,10 @@ import '../../../../../validation_exception.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 import 'typed_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/typed_schema/object_typed_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
 
-class ObjectTypedSchemaImpl extends TypedSchemaImpl<Map<String, dynamic>> {
+class ObjectTypedSchemaImpl extends TypedSchemaImpl<Map<String, dynamic>> implements ObjectTypedSchema {
   final SchemasMapNode? properties;
   final bool? additionalPropertiesAllowed;
   final SchemaNode? additionalProperties;

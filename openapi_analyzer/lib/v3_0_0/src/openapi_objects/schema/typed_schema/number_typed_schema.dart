@@ -5,8 +5,10 @@ import '../../../../../validation_exception.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
 import 'typed_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/typed_schema/number_typed_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
 
-class NumberTypedSchemaImpl extends TypedSchemaImpl<double> {
+class NumberTypedSchemaImpl extends TypedSchemaImpl<double> implements NumberTypedSchema {
   final double? multipleOf;
   final double? maximum;
   final double? exclusiveMaximum;
