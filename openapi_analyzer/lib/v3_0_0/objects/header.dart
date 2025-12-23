@@ -1,8 +1,8 @@
 import 'dart:collection';
 import '../src/openapi_objects/enums.dart';
-import '../src/openapi_objects/schema/schema_map.dart';
 import 'example.dart';
 import 'media_type.dart';
+import 'schema/schema.dart';
 
 /// Header Object follows the structure of the Parameter Object.
 abstract class Header {

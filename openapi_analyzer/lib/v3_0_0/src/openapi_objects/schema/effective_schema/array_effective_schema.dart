@@ -3,9 +3,12 @@ import '../typed_schema/array_typed_schema.dart';
 import 'effective_schema.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/effective_schema/array_effective_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
 
 class ArrayEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<List<dynamic>, ArrayEffectiveSchemaImpl>
-    with ArrayEffectiveSchemaImplVariant {
+    with ArrayEffectiveSchemaImplVariant
+    implements ArrayEffectiveSchema {
   final SchemaNode? items;
   final int? maxItems;
   final int? minItems;

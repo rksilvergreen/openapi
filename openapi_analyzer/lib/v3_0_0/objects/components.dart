@@ -1,4 +1,3 @@
-import 'package:openapi_analyzer/v3_0_0/objects/components.dart';
 import 'callback.dart';
 import 'response.dart';
 import 'parameter.dart';
@@ -7,8 +6,7 @@ import 'request_body.dart';
 import 'header.dart';
 import 'security_scheme.dart';
 import 'link.dart';
-import 'callback.dart';
-import 'header.dart';
+import 'schema/schema.dart';
 
 
 abstract class Components {

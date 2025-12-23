@@ -1,5 +1,5 @@
 import 'dart:collection';
-import '../src/openapi_objects/schema/schema_map.dart';
+import 'schema/schema.dart';
 import 'example.dart';
 import 'encoding.dart';
 

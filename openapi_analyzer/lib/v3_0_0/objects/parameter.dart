@@ -1,6 +1,6 @@
 import 'dart:collection';
 import '../src/openapi_objects/enums.dart';
-import '../src/openapi_objects/schema/schema.dart';
+import 'schema/schema.dart';
 import 'example.dart';
 import 'media_type.dart';
 

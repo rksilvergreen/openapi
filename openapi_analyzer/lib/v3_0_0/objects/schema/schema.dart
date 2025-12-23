@@ -1,16 +1,9 @@
 import 'dart:collection';
-import '../../../../validation_exception.dart';
 import '../external_documentation.dart';
 import '../xml.dart';
 import '../discriminator.dart';
-import '../operation.dart';
-import '../parameter.dart';
-import '../components.dart';
-import '../media_type.dart';
-import '../request_body.dart';
-import '../response.dart';
-import '../header.dart';
-import '../path_item.dart';
+import 'typed_schema/typed_schema.dart';
+import 'effective_schema/effective_schema.dart';
 
 /// JSON Schema type values for Schema Objects.
 enum SchemaType {

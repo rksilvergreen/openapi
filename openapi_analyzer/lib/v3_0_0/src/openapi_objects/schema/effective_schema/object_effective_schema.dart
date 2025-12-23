@@ -3,9 +3,12 @@ import '../typed_schema/object_typed_schema.dart';
 import 'effective_schema.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/effective_schema/object_effective_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
 
 class ObjectEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<Map<String, dynamic>, ObjectEffectiveSchemaImpl>
-    with ObjectEffectiveSchemaImplVariant {
+    with ObjectEffectiveSchemaImplVariant
+    implements ObjectEffectiveSchema {
   final Map<String, EffectiveSchemaImpl>? properties;
   final bool additionalPropertiesAllowed;
   final EffectiveSchemaImpl? additionalProperties;

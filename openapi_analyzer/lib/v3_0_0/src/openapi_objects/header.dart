@@ -10,7 +10,6 @@ import 'example.dart';
 import 'media_type.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/example.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/media_type.dart';
-import 'schema/schema_map.dart';
 import '../naming/naming_utils.dart';
 import 'components.dart';
 import 'response.dart';

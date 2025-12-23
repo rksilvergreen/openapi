@@ -3,9 +3,12 @@ import '../typed_schema/number_typed_schema.dart';
 import 'effective_schema.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/effective_schema/number_effective_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
 
 class NumberEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<double, NumberEffectiveSchemaImpl>
-    with NumberEffectiveSchemaImplVariant {
+    with NumberEffectiveSchemaImplVariant
+    implements NumberEffectiveSchema {
   final double? multipleOf;
   final double? maximum;
   final double? exclusiveMaximum;

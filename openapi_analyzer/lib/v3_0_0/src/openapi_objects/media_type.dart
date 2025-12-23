@@ -6,7 +6,6 @@ import '../edge.dart';
 import 'schema/schema.dart';
 import 'example.dart';
 import 'encoding.dart';
-import 'schema/schema_map.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/media_type.dart';
 import '../map_node.dart';
 

@@ -3,9 +3,12 @@ import '../typed_schema/string_typed_schema.dart';
 import 'effective_schema.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/effective_schema/string_effective_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
 
 class StringEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<String, StringEffectiveSchemaImpl>
-    with StringEffectiveSchemaImplVariant {
+    with StringEffectiveSchemaImplVariant
+    implements StringEffectiveSchema {
   final int? maxLength;
   final int? minLength;
   final String? pattern;

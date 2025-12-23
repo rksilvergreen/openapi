@@ -3,9 +3,12 @@ import '../typed_schema/boolean_typed_schema.dart';
 import 'effective_schema.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/effective_schema/boolean_effective_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
 
 class BooleanEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<bool, BooleanEffectiveSchemaImpl>
-    with BooleanEffectiveSchemaImplVariant {
+    with BooleanEffectiveSchemaImplVariant
+    implements BooleanEffectiveSchema {
   final String? format;
 
   BooleanEffectiveSchemaImpl({

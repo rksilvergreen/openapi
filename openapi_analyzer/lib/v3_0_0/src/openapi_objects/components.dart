@@ -12,7 +12,6 @@ import 'header.dart';
 import 'security_scheme.dart';
 import 'link.dart';
 import 'callback.dart';
-import 'schema/schema_map.dart';
 import 'package:openapi_analyzer/v3_0_0/objects/components.dart';
 
 class ComponentsNode extends Node with InternalNode implements Components {
