@@ -3,14 +3,14 @@ import '../validation/validation_utils.dart';
 import '../referencable.dart';
 import '../doc_node.dart';
 import '../edge.dart';
-import 'enums.dart';
-import 'oauth_flows.dart';
+import 'enums_doc_node.dart';
+import 'oauth_flows_doc_node.dart';
 import '../naming/naming_utils.dart';
-import 'components.dart';
+import 'components_doc_node.dart';
 import '../map_doc_node.dart';
 
-class SecuritySchemeNode extends DocNode with DocInternalNode, Referencable {
-  SecuritySchemeNode(super.json, super.document, super.jsonPointer);
+class SecuritySchemeDocNode extends DocNode with DocInternalNode, Referencable {
+  SecuritySchemeDocNode(super.json);
 
   late final SecuritySchemeType type;
   late final String? description;
@@ -24,7 +24,7 @@ class SecuritySchemeNode extends DocNode with DocInternalNode, Referencable {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateType(jsonPointer);
     _validateTypeSpecificFields(jsonPointer);
@@ -123,7 +123,7 @@ class SecuritySchemeNode extends DocNode with DocInternalNode, Referencable {
   @override
   String get $name {
     // Check if we already computed a name for this security scheme
-    final cached = OpenApiGraph.i.nameRegistry.getCachedSecuritySchemeName($id.absolutePointer);
+    final cached = OpenApiGraph.i.nameRegistry.getCachedSecuritySchemeName($id!.absolutePointer);
     if (cached != null) return cached;
 
     // Compute the base name using the naming algorithm
@@ -131,7 +131,7 @@ class SecuritySchemeNode extends DocNode with DocInternalNode, Referencable {
 
     // Sanitize and register the name (handles collisions)
     final sanitized = NamingUtils.toValidDartIdentifier(baseName);
-    return OpenApiGraph.i.nameRegistry.registerSecuritySchemeName($id.absolutePointer, sanitized);
+    return OpenApiGraph.i.nameRegistry.registerSecuritySchemeName($id!.absolutePointer, sanitized);
   }
 
   String _computeBaseName() {
@@ -260,13 +260,13 @@ class SecuritySchemeNode extends DocNode with DocInternalNode, Referencable {
       // Check if it's a component security scheme
       if (securitySchemesMapDocNode.trueParentEdge<ComponentsDocNode>('securitySchemes') != null) {
         final componentKey = edge.via;
-        identity = '${$id.document}#/components/securitySchemes/$componentKey';
+        identity = '${$id!.document}#/components/securitySchemes/$componentKey';
       } else {
         // It's inline - use document URI and jsonPointer path
-        identity = $id.absolutePointer;
+        identity = $id!.absolutePointer;
       }
     } else {
-      identity = $id.absolutePointer;
+      identity = $id!.absolutePointer;
     }
 
     final codeUnits = identity.codeUnits;
@@ -276,6 +276,6 @@ class SecuritySchemeNode extends DocNode with DocInternalNode, Referencable {
   }
 }
 
-class SecuritySchemesMapDocNode extends MapDocNode<SecuritySchemeNode> {
-  SecuritySchemesMapDocNode(super.json, super.document, super.jsonPointer);
+class SecuritySchemesMapDocNode extends MapDocNode<SecuritySchemeDocNode> {
+  SecuritySchemesMapDocNode(super.json);
 }

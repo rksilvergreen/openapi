@@ -4,19 +4,19 @@ import '../../validation_exception.dart';
 import '../referencable.dart';
 import '../doc_node.dart';
 import '../edge.dart';
-import 'enums.dart';
-import 'schema.dart';
-import 'example.dart';
-import 'media_type.dart';
+import 'enums_doc_node.dart';
+import 'schema_doc_node.dart';
+import 'example_doc_node.dart';
+import 'media_type_doc_node.dart';
 import '../naming/naming_utils.dart';
-import 'components.dart';
-import 'response.dart';
-import 'operation.dart';
-import 'path_item.dart';
+import 'components_doc_node.dart';
+import 'response_doc_node.dart';
+import 'operation_doc_node.dart';
+import 'path_item_doc_node.dart';
 import '../map_doc_node.dart';
 
 class HeaderDocNode extends DocNode with DocInternalNode, Referencable {
-  HeaderDocNode(super.json, super.document, super.jsonPointer);
+  HeaderDocNode(super.json);
 
   late final String? description;
   late final bool required_;
@@ -33,7 +33,7 @@ class HeaderDocNode extends DocNode with DocInternalNode, Referencable {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateDescription(jsonPointer);
     _validateRequired(jsonPointer);
@@ -176,7 +176,7 @@ class HeaderDocNode extends DocNode with DocInternalNode, Referencable {
   @override
   String get $name {
     // Check if we already computed a name for this header
-    final cached = OpenApiGraph.i.nameRegistry.getCachedHeaderName($id.absolutePointer);
+    final cached = OpenApiGraph.i.nameRegistry.getCachedHeaderName($id!.absolutePointer);
     if (cached != null) return cached;
 
     // Compute the base name using the naming algorithm
@@ -184,7 +184,7 @@ class HeaderDocNode extends DocNode with DocInternalNode, Referencable {
 
     // Sanitize and register the name (handles collisions)
     final sanitized = NamingUtils.toValidDartIdentifier(baseName);
-    return OpenApiGraph.i.nameRegistry.registerHeaderName($id.absolutePointer, sanitized);
+    return OpenApiGraph.i.nameRegistry.registerHeaderName($id!.absolutePointer, sanitized);
   }
 
   String _computeBaseName() {
@@ -243,7 +243,7 @@ class HeaderDocNode extends DocNode with DocInternalNode, Referencable {
       // Check if it's a component header
       if (headersMapDocNode.trueParentEdge<ComponentsDocNode>('headers') != null) {
         final componentKey = edge.via;
-        identity = '${$id.document}#/components/headers/$componentKey';
+        identity = '${$id!.document}#/components/headers/$componentKey';
       } else {
         // It's inline - use document URI, path, method, "headers", headerKey
         final headerKey = edge.via;
@@ -260,22 +260,22 @@ class HeaderDocNode extends DocNode with DocInternalNode, Referencable {
               // Get path and method from the operation
               final pathAndMethod = _getPathAndMethodFromOperation(operation);
               if (pathAndMethod != null) {
-                identity = '${$id.document}|${pathAndMethod['path']}|${pathAndMethod['method']}|headers|$headerKey';
+                identity = '${$id!.document}|${pathAndMethod['path']}|${pathAndMethod['method']}|headers|$headerKey';
               } else {
-                identity = $id.absolutePointer;
+                identity = $id!.absolutePointer;
               }
             } else {
-              identity = $id.absolutePointer;
+              identity = $id!.absolutePointer;
             }
           } else {
-            identity = $id.absolutePointer;
+            identity = $id!.absolutePointer;
           }
         } else {
-          identity = $id.absolutePointer;
+          identity = $id!.absolutePointer;
         }
       }
     } else {
-      identity = $id.absolutePointer;
+      identity = $id!.absolutePointer;
     }
 
     final codeUnits = identity.codeUnits;
@@ -301,5 +301,5 @@ class HeaderDocNode extends DocNode with DocInternalNode, Referencable {
 }
 
 class HeadersMapDocNode extends MapDocNode<HeaderDocNode> {
-  HeadersMapDocNode(super.json, super.document, super.jsonPointer);
+  HeadersMapDocNode(super.json);
 }

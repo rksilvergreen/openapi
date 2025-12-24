@@ -3,7 +3,7 @@ import '../doc_node.dart';
 import '../map_doc_node.dart';
 
 class ServerVariableDocNode extends DocNode with DocLeafNode {
-  ServerVariableDocNode(super.json, super.document, super.jsonPointer);
+  ServerVariableDocNode(super.json);
 
   late final List<String>? enum_;
   late final String default_;
@@ -12,7 +12,7 @@ class ServerVariableDocNode extends DocNode with DocLeafNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateDefault(jsonPointer);
     _validateEnum(jsonPointer);
@@ -59,5 +59,5 @@ class ServerVariableDocNode extends DocNode with DocLeafNode {
 }
 
 class ServerVariablesMapDocNode extends MapDocNode<ServerVariableDocNode> {
-  ServerVariablesMapDocNode(super.json, super.document, super.jsonPointer);
+  ServerVariablesMapDocNode(super.json);
 }

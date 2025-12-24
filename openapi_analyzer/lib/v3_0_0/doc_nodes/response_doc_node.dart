@@ -3,17 +3,17 @@ import '../validation/validation_utils.dart';
 import '../referencable.dart';
 import '../doc_node.dart';
 import '../edge.dart';
-import 'header.dart';
-import 'media_type.dart';
-import 'link.dart';
+import 'header_doc_node.dart';
+import 'media_type_doc_node.dart';
+import 'link_doc_node.dart';
 import '../naming/naming_utils.dart';
-import 'operation.dart';
-import 'components.dart';
-import 'path_item.dart';
+import 'operation_doc_node.dart';
+import 'components_doc_node.dart';
+import 'path_item_doc_node.dart';
 import '../map_doc_node.dart';
 
 class ResponseDocNode extends DocNode with DocInternalNode, Referencable {
-  ResponseDocNode(super.json, super.document, super.jsonPointer);
+  ResponseDocNode(super.json);
 
   late final String? description;
   late final HeadersMapDocNode? headers;
@@ -23,7 +23,7 @@ class ResponseDocNode extends DocNode with DocInternalNode, Referencable {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateDescription(jsonPointer);
     _validateHeaders(jsonPointer);
@@ -83,7 +83,7 @@ class ResponseDocNode extends DocNode with DocInternalNode, Referencable {
   @override
   String get $name {
     // Check if we already computed a name for this response
-    final cached = OpenApiGraph.i.nameRegistry.getCachedResponseName($id.absolutePointer);
+    final cached = OpenApiGraph.i.nameRegistry.getCachedResponseName($id!.absolutePointer);
     if (cached != null) return cached;
 
     // Compute the base name using the naming algorithm
@@ -91,7 +91,7 @@ class ResponseDocNode extends DocNode with DocInternalNode, Referencable {
 
     // Sanitize and register the name (handles collisions)
     final sanitized = NamingUtils.toValidDartIdentifier(baseName);
-    return OpenApiGraph.i.nameRegistry.registerResponseName($id.absolutePointer, sanitized);
+    return OpenApiGraph.i.nameRegistry.registerResponseName($id!.absolutePointer, sanitized);
   }
 
   String _computeBaseName() {
@@ -152,7 +152,7 @@ class ResponseDocNode extends DocNode with DocInternalNode, Referencable {
       // Check if it's a component response
       if (responsesMapDocNode.trueParentEdge<ComponentsDocNode>('responses') != null) {
         final componentKey = edge.via;
-        identity = '${$id.document}#/components/responses/$componentKey';
+        identity = '${$id!.document}#/components/responses/$componentKey';
       } else {
         // It's inline - use document URI, path, method, "responses", statusKey
         final statusCode = edge.via;
@@ -161,16 +161,16 @@ class ResponseDocNode extends DocNode with DocInternalNode, Referencable {
           // Get path and method from the operation
           final pathAndMethod = _getPathAndMethodFromOperation(operation);
           if (pathAndMethod != null) {
-            identity = '${$id.document}|${pathAndMethod['path']}|${pathAndMethod['method']}|responses|$statusCode';
+            identity = '${$id!.document}|${pathAndMethod['path']}|${pathAndMethod['method']}|responses|$statusCode';
           } else {
-            identity = $id.absolutePointer;
+            identity = $id!.absolutePointer;
           }
         } else {
-          identity = $id.absolutePointer;
+          identity = $id!.absolutePointer;
         }
       }
     } else {
-      identity = $id.absolutePointer;
+      identity = $id!.absolutePointer;
     }
 
     final codeUnits = identity.codeUnits;
@@ -196,5 +196,5 @@ class ResponseDocNode extends DocNode with DocInternalNode, Referencable {
 }
 
 class ResponsesMapDocNode extends MapDocNode<ResponseDocNode> {
-  ResponsesMapDocNode(super.json, super.document, super.jsonPointer);
+  ResponsesMapDocNode(super.json);
 }

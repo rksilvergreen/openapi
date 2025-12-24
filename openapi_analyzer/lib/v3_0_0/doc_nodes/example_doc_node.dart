@@ -6,7 +6,7 @@ import '../doc_node.dart';
 import '../map_doc_node.dart';
 
 class ExampleDocNode extends DocNode with DocLeafNode, Referencable {
-  ExampleDocNode(super.json, super.document, super.jsonPointer);
+  ExampleDocNode(super.json);
 
   late final String? summary;
   late final String? description;
@@ -16,7 +16,7 @@ class ExampleDocNode extends DocNode with DocLeafNode, Referencable {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateSummary(jsonPointer);
     _validateDescription(jsonPointer);
@@ -79,5 +79,5 @@ class ExampleDocNode extends DocNode with DocLeafNode, Referencable {
 }
 
 class ExamplesMapDocNode extends MapDocNode<ExampleDocNode> {
-  ExamplesMapDocNode(super.json, super.document, super.jsonPointer);
+  ExamplesMapDocNode(super.json);
 }

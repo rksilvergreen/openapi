@@ -1,10 +1,10 @@
 import '../validation/validation_utils.dart';
-import 'oauth_flow.dart';
+import 'oauth_flow_doc_node.dart';
 import '../doc_node.dart';
 import '../edge.dart';
 
 class OAuthFlowsDocNode extends DocNode with DocInternalNode {
-  OAuthFlowsDocNode(super.json, super.document, super.jsonPointer);
+  OAuthFlowsDocNode(super.json);
 
   late final OAuthFlowDocNode? implicit;
   late final OAuthFlowDocNode? password;
@@ -14,7 +14,7 @@ class OAuthFlowsDocNode extends DocNode with DocInternalNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateImplicit(jsonPointer);
     _validatePassword(jsonPointer);

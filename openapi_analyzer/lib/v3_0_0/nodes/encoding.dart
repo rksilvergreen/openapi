@@ -1,16 +1,19 @@
-import 'dart:collection';
-import '../doc_nodes/enums.dart';
+import '../doc_nodes/enums_doc_node.dart';
 import 'header.dart';
+import '../node.dart';
+import '../map_node.dart';
 
-abstract class Encoding {
-  String? get contentType;
-  HeadersMap? get headers;
-  ParameterStyle? get style;
-  bool? get explode;
-  bool get allowReserved;
-  Map<String, dynamic>? get extensions;
+class Encoding extends Node {
+  final String? contentType;
+  final HeadersMap? headers;
+  final ParameterStyle? style;
+  final bool? explode;
+  final bool allowReserved;
+  final Map<String, dynamic>? extensions;
+  Encoding({this.contentType, this.headers, this.style, this.explode, required this.allowReserved, this.extensions});
 }
 
-abstract class EncodingsMap implements MapBase<String, Encoding> {
-  Map<String, dynamic>? get extensions;
+class EncodingsMap extends MapNode<Encoding> {
+  final Map<String, dynamic>? extensions;
+  EncodingsMap({this.extensions});
 }

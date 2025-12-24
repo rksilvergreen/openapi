@@ -1,12 +1,10 @@
 import '../node.dart';
 
-// abstract class Contact {
-//   String? get name;
-//   String? get url;
-//   String? get email;
-//   Map<String, dynamic>? get extensions;
-// }
-
 class Contact extends Node {
+  final String? name;
+  final String? url;
+  final String? email;
+  final Map<String, dynamic>? extensions;
 
+  Contact({this.name, this.url, this.email, this.extensions});
 }

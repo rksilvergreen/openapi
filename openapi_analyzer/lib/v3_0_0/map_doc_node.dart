@@ -3,8 +3,9 @@ import 'validation/validation_utils.dart';
 import 'doc_node.dart';
 import 'edge.dart';
 
-abstract class MapDocNode<CHILD_NODE extends DocNode> extends DocNode with DocInternalNode, MapMixin<String, CHILD_NODE> {
-  MapDocNode(super.json, super.document, super.jsonPointer);
+abstract class MapDocNode<CHILD_NODE extends DocNode> extends DocNode
+    with DocInternalNode, MapMixin<String, CHILD_NODE> {
+  MapDocNode(super.json);
 
   late final Map<String, CHILD_NODE> _childNodes;
   late final Map<String, dynamic>? extensions;
@@ -36,7 +37,7 @@ abstract class MapDocNode<CHILD_NODE extends DocNode> extends DocNode with DocIn
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
     for (final key in json.keys) {
       ValidationUtils.requireMap(json[key], ValidationUtils.buildPointer([jsonPointer, key]));
     }

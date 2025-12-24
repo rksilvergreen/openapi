@@ -2,7 +2,7 @@ import '../validation/validation_utils.dart';
 import '../doc_node.dart';
 
 class ContactDocNode extends DocNode with DocLeafNode {
-  ContactDocNode(super.json, super.document, super.jsonPointer);
+  ContactDocNode(super.json);
 
   late final String? name;
   late final String? url;
@@ -11,7 +11,7 @@ class ContactDocNode extends DocNode with DocLeafNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateName(jsonPointer);
     _validateUrl(jsonPointer);

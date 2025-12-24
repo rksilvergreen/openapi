@@ -2,15 +2,15 @@ import '../openapi_graph.dart';
 import '../validation/validation_utils.dart';
 import '../doc_node.dart';
 import '../edge.dart';
-import 'server_variable.dart';
+import 'server_variable_doc_node.dart';
 import '../naming/naming_utils.dart';
-import 'openapi_document.dart';
-import 'path_item.dart';
-import 'operation.dart';
+import 'openapi_document_doc_node.dart';
+import 'path_item_doc_node.dart';
+import 'operation_doc_node.dart';
 import '../list_doc_node.dart';
 
 class ServerDocNode extends DocNode with DocInternalNode {
-  ServerDocNode(super.json, super.document, super.jsonPointer);
+  ServerDocNode(super.json);
 
   late final String url;
   late final String? description;
@@ -19,7 +19,7 @@ class ServerDocNode extends DocNode with DocInternalNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateUrl(jsonPointer);
     _validateDescription(jsonPointer);
@@ -64,7 +64,7 @@ class ServerDocNode extends DocNode with DocInternalNode {
   @override
   String get $name {
     // Check if we already computed a name for this server
-    final cached = OpenApiGraph.i.nameRegistry.getCachedServerName($id.absolutePointer);
+    final cached = OpenApiGraph.i.nameRegistry.getCachedServerName($id!.absolutePointer);
     if (cached != null) return cached;
 
     // Compute the base name using the naming algorithm
@@ -72,7 +72,7 @@ class ServerDocNode extends DocNode with DocInternalNode {
 
     // Sanitize and register the name (handles collisions)
     final sanitized = NamingUtils.toValidDartIdentifier(baseName);
-    return OpenApiGraph.i.nameRegistry.registerServerName($id.absolutePointer, sanitized);
+    return OpenApiGraph.i.nameRegistry.registerServerName($id!.absolutePointer, sanitized);
   }
 
   String _computeBaseName() {
@@ -195,7 +195,7 @@ class ServerDocNode extends DocNode with DocInternalNode {
   String _generateHashFallback() {
     // Create a deterministic hash from the identity
     // Include document URI, jsonPointer, and optionally the resolved URL
-    String identity = '${$id.document}|${$id.jsonPointer}';
+    String identity = '${$id!.document}|${$id!.jsonPointer}';
 
     // Include URL if available
     if (url.isNotEmpty) {
@@ -210,5 +210,5 @@ class ServerDocNode extends DocNode with DocInternalNode {
 }
 
 class ServerListDocNode extends ListDocNode<ServerDocNode> {
-  ServerListDocNode(super.json, super.document, super.jsonPointer);
+  ServerListDocNode(super.json);
 }

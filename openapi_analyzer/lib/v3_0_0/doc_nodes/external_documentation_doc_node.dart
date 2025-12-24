@@ -2,7 +2,7 @@ import '../validation/validation_utils.dart';
 import '../doc_node.dart';
 
 class ExternalDocumentationDocNode extends DocNode with DocLeafNode {
-  ExternalDocumentationDocNode(super.json, super.document, super.jsonPointer);
+  ExternalDocumentationDocNode(super.json);
 
   late final String? description;
   late final String url;
@@ -10,7 +10,7 @@ class ExternalDocumentationDocNode extends DocNode with DocLeafNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateUrl(jsonPointer);
     _validateDescription(jsonPointer);

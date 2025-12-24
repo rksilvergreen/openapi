@@ -5,13 +5,13 @@ import '../doc_node.dart';
 import '../list_doc_node.dart';
 
 class SecurityRequirementDocNode extends DocNode with DocLeafNode {
-  SecurityRequirementDocNode(super.json, super.document, super.jsonPointer);
+  SecurityRequirementDocNode(super.json);
 
   late final Map<String, List<String>> requirements;
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateRequirements(jsonPointer);
   }
@@ -44,5 +44,5 @@ class SecurityRequirementDocNode extends DocNode with DocLeafNode {
 }
 
 class SecurityRequirementsListDocNode extends ListDocNode<SecurityRequirementDocNode> {
-  SecurityRequirementsListDocNode(super.json, super.document, super.jsonPointer);
+  SecurityRequirementsListDocNode(super.json);
 }

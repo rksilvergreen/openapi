@@ -1,11 +1,11 @@
 import '../validation/validation_utils.dart';
-import 'external_documentation.dart';
+import 'external_documentation_doc_node.dart';
 import '../doc_node.dart';
 import '../edge.dart';
 import '../list_doc_node.dart';
 
 class TagDocNode extends DocNode with DocInternalNode {
-  TagDocNode(super.json, super.document, super.jsonPointer);
+  TagDocNode(super.json);
 
   late final String name;
   late final String? description;
@@ -14,7 +14,7 @@ class TagDocNode extends DocNode with DocInternalNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateName(jsonPointer);
     _validateDescription(jsonPointer);
@@ -58,5 +58,5 @@ class TagDocNode extends DocNode with DocInternalNode {
 }
 
 class TagsListDocNode extends ListDocNode<TagDocNode> {
-  TagsListDocNode(super.json, super.document, super.jsonPointer);
+  TagsListDocNode(super.json);
 }

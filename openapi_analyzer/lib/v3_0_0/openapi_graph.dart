@@ -4,7 +4,7 @@ import 'package:openapi_analyzer/validation_exception.dart';
 import 'validation/validation_context.dart';
 import 'reference/reference_resolver.dart';
 import 'name_registry.dart';
-import 'doc_nodes/openapi_document.dart';
+import 'doc_nodes/openapi_document_doc_node.dart';
 import 'node.dart';
 import 'edge.dart';
 

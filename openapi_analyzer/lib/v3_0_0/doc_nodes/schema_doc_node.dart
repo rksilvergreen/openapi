@@ -2,19 +2,19 @@ import '../openapi_graph.dart';
 import '../validation/validation_utils.dart';
 import '../../validation_exception.dart';
 import '../referencable.dart';
-import 'external_documentation.dart';
-import 'xml.dart';
+import 'external_documentation_doc_node.dart';
+import 'xml_doc_node.dart';
 import '../doc_node.dart';
-import 'discriminator.dart';
+import 'discriminator_doc_node.dart';
 import '../naming/naming_utils.dart';
-import 'operation.dart';
-import 'parameter.dart';
-import 'components.dart';
-import 'media_type.dart';
-import 'request_body.dart';
-import 'response.dart';
-import 'header.dart';
-import 'path_item.dart';
+import 'operation_doc_node.dart';
+import 'parameter_doc_node.dart';
+import 'components_doc_node.dart';
+import 'media_type_doc_node.dart';
+import 'request_body_doc_node.dart';
+import 'response_doc_node.dart';
+import 'header_doc_node.dart';
+import 'path_item_doc_node.dart';
 import '../edge.dart';
 import '../map_doc_node.dart';
 import '../list_doc_node.dart';
@@ -75,14 +75,14 @@ class SchemaDocNode extends DocNode with Referencable, DocInternalNode {
   late final bool deprecated;
   late final Map<String, dynamic>? extensions;
 
-  SchemaDocNode(super.json, super.document, super.jsonPointer);
+  SchemaDocNode(super.json);
 
   late final TypedSchemaImpl $typed;
   late final EffectiveSchemaImpl $effective;
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
     _validateType(jsonPointer);
     _validateNumericConstraints(jsonPointer);
     _validateStringConstraints(jsonPointer);
@@ -334,7 +334,7 @@ class SchemaDocNode extends DocNode with Referencable, DocInternalNode {
 
   String get $name {
     // Check if we already computed a name for this schema
-    final cached = OpenApiGraph.i.nameRegistry.getCachedSchemaName($id.absolutePointer);
+    final cached = OpenApiGraph.i.nameRegistry.getCachedSchemaName($id!.absolutePointer);
     if (cached != null) return cached;
 
     // Compute the base name using the naming algorithm
@@ -342,7 +342,7 @@ class SchemaDocNode extends DocNode with Referencable, DocInternalNode {
 
     // Sanitize and register the name (handles collisions)
     final sanitized = NamingUtils.toValidDartIdentifier(baseName);
-    return OpenApiGraph.i.nameRegistry.registerSchemaName($id.absolutePointer, sanitized);
+    return OpenApiGraph.i.nameRegistry.registerSchemaName($id!.absolutePointer, sanitized);
   }
 
   String _computeBaseName() {
@@ -574,7 +574,7 @@ class SchemaDocNode extends DocNode with Referencable, DocInternalNode {
 
   String _generateHashFallback() {
     // Create a deterministic hash from the absolute pointer
-    final codeUnits = $id.absolutePointer.codeUnits;
+    final codeUnits = $id!.absolutePointer.codeUnits;
     final hash = codeUnits.fold<int>(0, (prev, code) => (prev * 31 + code) & 0xFFFFFFFF);
     final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);
     return 'Anon_$shortHash';
@@ -582,9 +582,9 @@ class SchemaDocNode extends DocNode with Referencable, DocInternalNode {
 }
 
 class SchemasMapDocNode extends MapDocNode<SchemaDocNode> {
-  SchemasMapDocNode(super.json, super.document, super.jsonPointer);
+  SchemasMapDocNode(super.json);
 }
 
 class SchemasListDocNode extends ListDocNode<SchemaDocNode> {
-  SchemasListDocNode(super.json, super.document, super.jsonPointer);
+  SchemasListDocNode(super.json);
 }

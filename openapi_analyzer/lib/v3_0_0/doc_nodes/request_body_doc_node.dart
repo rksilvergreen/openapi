@@ -3,15 +3,15 @@ import '../validation/validation_utils.dart';
 import '../doc_node.dart';
 import '../edge.dart';
 import '../referencable.dart';
-import 'media_type.dart';
+import 'media_type_doc_node.dart';
 import '../naming/naming_utils.dart';
-import 'operation.dart';
-import 'components.dart';
-import 'path_item.dart';
+import 'operation_doc_node.dart';
+import 'components_doc_node.dart';
+import 'path_item_doc_node.dart';
 import '../map_doc_node.dart';
 
 class RequestBodyDocNode extends DocNode with DocInternalNode, Referencable {
-  RequestBodyDocNode(super.json, super.document, super.jsonPointer);
+  RequestBodyDocNode(super.json);
 
   late final String? description;
   late final bool required;
@@ -20,7 +20,7 @@ class RequestBodyDocNode extends DocNode with DocInternalNode, Referencable {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateContent(jsonPointer);
     _validateDescription(jsonPointer);
@@ -70,7 +70,7 @@ class RequestBodyDocNode extends DocNode with DocInternalNode, Referencable {
   @override
   String get $name {
     // Check if we already computed a name for this request body
-    final cached = OpenApiGraph.i.nameRegistry.getCachedRequestBodyName($id.absolutePointer);
+    final cached = OpenApiGraph.i.nameRegistry.getCachedRequestBodyName($id!.absolutePointer);
     if (cached != null) return cached;
 
     // Compute the base name using the naming algorithm
@@ -78,7 +78,7 @@ class RequestBodyDocNode extends DocNode with DocInternalNode, Referencable {
 
     // Sanitize and register the name (handles collisions)
     final sanitized = NamingUtils.toValidDartIdentifier(baseName);
-    return OpenApiGraph.i.nameRegistry.registerRequestBodyName($id.absolutePointer, sanitized);
+    return OpenApiGraph.i.nameRegistry.registerRequestBodyName($id!.absolutePointer, sanitized);
   }
 
   String _computeBaseName() {
@@ -127,7 +127,7 @@ class RequestBodyDocNode extends DocNode with DocInternalNode, Referencable {
     final edge = trueParentEdge<RequestBodiesMapDocNode>();
     if (edge != null) {
       final componentKey = edge.via;
-      identity = '${$id.document}#/components/requestBodies/$componentKey';
+      identity = '${$id!.document}#/components/requestBodies/$componentKey';
     } else {
       // It's inline - use document URI, path, method, and "/requestBody"
       final operation = trueParent<OperationDocNode>('requestBody');
@@ -135,12 +135,12 @@ class RequestBodyDocNode extends DocNode with DocInternalNode, Referencable {
         // Get path and method from the operation
         final pathAndMethod = _getPathAndMethodFromOperation(operation);
         if (pathAndMethod != null) {
-          identity = '${$id.document}|${pathAndMethod['path']}|${pathAndMethod['method']}|/requestBody';
+          identity = '${$id!.document}|${pathAndMethod['path']}|${pathAndMethod['method']}|/requestBody';
         } else {
-          identity = $id.absolutePointer;
+          identity = $id!.absolutePointer;
         }
       } else {
-        identity = $id.absolutePointer;
+        identity = $id!.absolutePointer;
       }
     }
 
@@ -167,5 +167,5 @@ class RequestBodyDocNode extends DocNode with DocInternalNode, Referencable {
 }
 
 class RequestBodiesMapDocNode extends MapDocNode<RequestBodyDocNode> {
-  RequestBodiesMapDocNode(super.json, super.document, super.jsonPointer);
+  RequestBodiesMapDocNode(super.json);
 }

@@ -5,7 +5,7 @@ import '../xml.dart';
 import '../discriminator.dart';
 import 'typed_schema/typed_schema.dart';
 import 'effective_schema/effective_schema.dart';
-import '../../doc_nodes/schema.dart';
+import '../../doc_nodes/schema_doc_node.dart';
 
 /// JSON Schema type values for Schema Objects.
 enum SchemaType {

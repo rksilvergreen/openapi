@@ -2,7 +2,7 @@ import '../validation/validation_utils.dart';
 import '../doc_node.dart';
 
 class XMLDocNode extends DocNode with DocLeafNode {
-  XMLDocNode(super.json, super.document, super.jsonPointer);
+  XMLDocNode(super.json);
 
   late final String? name;
   late final String? namespace;
@@ -13,7 +13,7 @@ class XMLDocNode extends DocNode with DocLeafNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateName(jsonPointer);
     _validateNamespace(jsonPointer);

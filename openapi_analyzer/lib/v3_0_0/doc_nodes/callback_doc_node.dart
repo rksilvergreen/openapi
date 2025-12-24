@@ -1,23 +1,23 @@
 import '../openapi_graph.dart';
 import '../validation/validation_utils.dart';
 import '../referencable.dart';
-import 'path_item.dart';
+import 'path_item_doc_node.dart';
 import '../doc_node.dart';
 import '../naming/naming_utils.dart';
-import 'components.dart';
-import 'operation.dart';
+import 'components_doc_node.dart';
+import 'operation_doc_node.dart';
 import '../edge.dart';
 import '../map_doc_node.dart';
 
 class CallbackDocNode extends DocNode with DocInternalNode, Referencable {
-  CallbackDocNode(super.json, super.document, super.jsonPointer);
+  CallbackDocNode(super.json);
 
   late final PathsMapDocNode expressions;
   late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
     _validateExpressions(jsonPointer);
   }
 
@@ -42,7 +42,7 @@ class CallbackDocNode extends DocNode with DocInternalNode, Referencable {
   @override
   String get $name {
     // Check if we already computed a name for this callback
-    final cached = OpenApiGraph.i.nameRegistry.getCachedCallbackName($id.absolutePointer);
+    final cached = OpenApiGraph.i.nameRegistry.getCachedCallbackName($id!.absolutePointer);
     if (cached != null) return cached;
 
     // Compute the base name using the naming algorithm
@@ -50,7 +50,7 @@ class CallbackDocNode extends DocNode with DocInternalNode, Referencable {
 
     // Sanitize and register the name (handles collisions)
     final sanitized = NamingUtils.toValidDartIdentifier(baseName);
-    return OpenApiGraph.i.nameRegistry.registerCallbackName($id.absolutePointer, sanitized);
+    return OpenApiGraph.i.nameRegistry.registerCallbackName($id!.absolutePointer, sanitized);
   }
 
   String _computeBaseName() {
@@ -108,7 +108,7 @@ class CallbackDocNode extends DocNode with DocInternalNode, Referencable {
       // Check if it's a component callback
       if (callbacksMapDocNode.trueParentEdge<ComponentsDocNode>('callbacks') != null) {
         final componentKey = edge.via;
-        identity = '${$id.document}#/components/callbacks/$componentKey';
+        identity = '${$id!.document}#/components/callbacks/$componentKey';
       } else {
         // It's inline - use document URI, path, method, "callbacks", callbackKey
         final callbackKey = edge.via;
@@ -119,16 +119,16 @@ class CallbackDocNode extends DocNode with DocInternalNode, Referencable {
           // Get path and method from the operation
           final pathAndMethod = _getPathAndMethodFromOperation(operation);
           if (pathAndMethod != null) {
-            identity = '${$id.document}|${pathAndMethod['path']}|${pathAndMethod['method']}|callbacks|$callbackKey';
+            identity = '${$id!.document}|${pathAndMethod['path']}|${pathAndMethod['method']}|callbacks|$callbackKey';
           } else {
-            identity = $id.absolutePointer;
+            identity = $id!.absolutePointer;
           }
         } else {
-          identity = $id.absolutePointer;
+          identity = $id!.absolutePointer;
         }
       }
     } else {
-      identity = $id.absolutePointer;
+      identity = $id!.absolutePointer;
     }
 
     final codeUnits = identity.codeUnits;
@@ -154,5 +154,5 @@ class CallbackDocNode extends DocNode with DocInternalNode, Referencable {
 }
 
 class CallbacksMapDocNode extends MapDocNode<CallbackDocNode> {
-  CallbacksMapDocNode(super.json, super.document, super.jsonPointer);
+  CallbacksMapDocNode(super.json);
 }

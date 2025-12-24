@@ -1,4 +1,4 @@
-import 'package:openapi_analyzer/v3_0_0/doc_nodes/schema.dart';
+import 'package:openapi_analyzer/v3_0_0/doc_nodes/schema_doc_node.dart';
 import 'typed_schema.dart';
 
 abstract class ObjectTypedSchema extends TypedSchema<Map<String, dynamic>> {

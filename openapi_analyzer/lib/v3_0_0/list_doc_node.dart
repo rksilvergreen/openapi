@@ -3,7 +3,7 @@ import 'validation/validation_utils.dart';
 import 'doc_node.dart';
 
 abstract class ListDocNode<CHILD_NODE extends DocNode> extends DocNode with DocInternalNode, ListMixin<CHILD_NODE> {
-  ListDocNode(super.json, super.document, super.jsonPointer);
+  ListDocNode(super.json);
 
   late final List<CHILD_NODE> _childNodes;
 
@@ -28,7 +28,7 @@ abstract class ListDocNode<CHILD_NODE extends DocNode> extends DocNode with DocI
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
     final jsonList = json.values.toList();
     for (var i = 0; i < jsonList.length; i++) {
       ValidationUtils.requireMap(jsonList[i], ValidationUtils.buildPointer([jsonPointer, '[$i]']));

@@ -2,18 +2,18 @@ import '../openapi_graph.dart';
 import '../validation/validation_utils.dart';
 import '../doc_node.dart';
 import '../edge.dart';
-import 'external_documentation.dart';
-import 'request_body.dart';
-import 'security_requirement.dart';
-import 'server.dart';
-import 'response.dart';
-import 'callback.dart';
-import 'parameter.dart';
+import 'external_documentation_doc_node.dart';
+import 'request_body_doc_node.dart';
+import 'security_requirement_doc_node.dart';
+import 'server_doc_node.dart';
+import 'response_doc_node.dart';
+import 'callback_doc_node.dart';
+import 'parameter_doc_node.dart';
 import '../naming/naming_utils.dart';
-import 'path_item.dart';
+import 'path_item_doc_node.dart';
 
 class OperationDocNode extends DocNode with DocInternalNode {
-  OperationDocNode(super.json, super.document, super.jsonPointer);
+  OperationDocNode(super.json);
 
   late final List<String>? tags;
   late final String? summary;
@@ -30,7 +30,7 @@ class OperationDocNode extends DocNode with DocInternalNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateResponses(jsonPointer);
     _validateTags(jsonPointer);
@@ -174,7 +174,7 @@ class OperationDocNode extends DocNode with DocInternalNode {
   @override
   String get $name {
     // Check if we already computed a name for this operation
-    final cached = OpenApiGraph.i.nameRegistry.getCachedOperationName($id.absolutePointer);
+    final cached = OpenApiGraph.i.nameRegistry.getCachedOperationName($id!.absolutePointer);
     if (cached != null) return cached;
 
     // Compute the base name using the naming algorithm
@@ -182,7 +182,7 @@ class OperationDocNode extends DocNode with DocInternalNode {
 
     // Sanitize and register the name (handles collisions)
     final sanitized = NamingUtils.toValidDartIdentifier(baseName);
-    return OpenApiGraph.i.nameRegistry.registerOperationName($id.absolutePointer, sanitized);
+    return OpenApiGraph.i.nameRegistry.registerOperationName($id!.absolutePointer, sanitized);
   }
 
   String _computeBaseName() {
@@ -227,7 +227,7 @@ class OperationDocNode extends DocNode with DocInternalNode {
 
   String _generateHashFallback() {
     // Create a deterministic hash from the absolute pointer
-    final codeUnits = $id.absolutePointer.codeUnits;
+    final codeUnits = $id!.absolutePointer.codeUnits;
     final hash = codeUnits.fold<int>(0, (prev, code) => (prev * 31 + code) & 0xFFFFFFFF);
     final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);
 

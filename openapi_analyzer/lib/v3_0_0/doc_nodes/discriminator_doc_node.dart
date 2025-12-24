@@ -2,7 +2,7 @@ import '../validation/validation_utils.dart';
 import '../doc_node.dart';
 
 class DiscriminatorDocNode extends DocNode with DocLeafNode {
-  DiscriminatorDocNode(super.json, super.document, super.jsonPointer);
+  DiscriminatorDocNode(super.json);
 
   late final String propertyName;
   late final Map<String, String>? mapping;
@@ -10,7 +10,7 @@ class DiscriminatorDocNode extends DocNode with DocLeafNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validatePropertyName(jsonPointer);
     _validateMapping(jsonPointer);

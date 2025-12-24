@@ -2,7 +2,7 @@ import '../validation/validation_utils.dart';
 import '../doc_node.dart';
 
 class OAuthFlowDocNode extends DocNode with DocLeafNode {
-  OAuthFlowDocNode(super.json, super.document, super.jsonPointer);
+  OAuthFlowDocNode(super.json);
 
   late final String? authorizationUrl;
   late final String? tokenUrl;
@@ -12,7 +12,7 @@ class OAuthFlowDocNode extends DocNode with DocLeafNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateScopes(jsonPointer);
     _validateAuthorizationUrl(jsonPointer);

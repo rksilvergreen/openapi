@@ -4,18 +4,18 @@ import '../../validation_exception.dart';
 import '../referencable.dart';
 import '../doc_node.dart';
 import '../edge.dart';
-import 'enums.dart';
-import 'schema.dart';
-import 'example.dart';
-import 'media_type.dart';
+import 'enums_doc_node.dart';
+import 'schema_doc_node.dart';
+import 'example_doc_node.dart';
+import 'media_type_doc_node.dart';
 import '../naming/naming_utils.dart';
-import 'operation.dart';
-import 'path_item.dart';
+import 'operation_doc_node.dart';
+import 'path_item_doc_node.dart';
 import '../list_doc_node.dart';
 import '../map_doc_node.dart';
 
 class ParameterDocNode extends DocNode with DocInternalNode, Referencable {
-  ParameterDocNode(super.json, super.document, super.jsonPointer);
+  ParameterDocNode(super.json);
 
   late final String name;
   late final ParameterLocation in_;
@@ -34,7 +34,7 @@ class ParameterDocNode extends DocNode with DocInternalNode, Referencable {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateName(jsonPointer);
     _validateIn(jsonPointer);
@@ -195,7 +195,7 @@ class ParameterDocNode extends DocNode with DocInternalNode, Referencable {
   @override
   String get $name {
     // Check if we already computed a name for this parameter
-    final cached = OpenApiGraph.i.nameRegistry.getCachedParameterName($id.absolutePointer);
+    final cached = OpenApiGraph.i.nameRegistry.getCachedParameterName($id!.absolutePointer);
     if (cached != null) return cached;
 
     // Compute the base name using the naming algorithm
@@ -203,7 +203,7 @@ class ParameterDocNode extends DocNode with DocInternalNode, Referencable {
 
     // Sanitize and register the name (handles collisions)
     final sanitized = NamingUtils.toValidDartIdentifier(baseName);
-    return OpenApiGraph.i.nameRegistry.registerParameterName($id.absolutePointer, sanitized);
+    return OpenApiGraph.i.nameRegistry.registerParameterName($id!.absolutePointer, sanitized);
   }
 
   String _computeBaseName() {
@@ -368,7 +368,7 @@ class ParameterDocNode extends DocNode with DocInternalNode, Referencable {
     final location = in_.value;
     final index = _getParameterIndex() ?? 0;
 
-    final identity = '${$id.document}|$path|$method|$location|$index';
+    final identity = '${$id!.document}|$path|$method|$location|$index';
     final codeUnits = identity.codeUnits;
     final hash = codeUnits.fold<int>(0, (prev, code) => (prev * 31 + code) & 0xFFFFFFFF);
     final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);
@@ -377,9 +377,9 @@ class ParameterDocNode extends DocNode with DocInternalNode, Referencable {
 }
 
 class ParametersListDocNode extends ListDocNode<ParameterDocNode> {
-  ParametersListDocNode(super.json, super.document, super.jsonPointer);
+  ParametersListDocNode(super.json);
 }
 
 class ParametersMapDocNode extends MapDocNode<ParameterDocNode> {
-  ParametersMapDocNode(super.json, super.document, super.jsonPointer);
+  ParametersMapDocNode(super.json);
 }

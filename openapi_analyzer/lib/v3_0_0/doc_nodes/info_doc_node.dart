@@ -1,11 +1,11 @@
 import '../validation/validation_utils.dart';
-import 'contact.dart';
-import 'license.dart';
+import 'contact_doc_node.dart';
+import 'license_doc_node.dart';
 import '../doc_node.dart';
 import '../edge.dart';
 
 class InfoDocNode extends DocNode with DocInternalNode {
-  InfoDocNode(super.json, super.document, super.jsonPointer);
+  InfoDocNode(super.json);
 
   late final String title;
   late final String? description;
@@ -17,7 +17,7 @@ class InfoDocNode extends DocNode with DocInternalNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateTitle(jsonPointer);
     _validateVersion(jsonPointer);

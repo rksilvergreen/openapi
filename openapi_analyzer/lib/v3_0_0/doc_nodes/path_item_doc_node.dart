@@ -2,15 +2,15 @@ import '../validation/validation_utils.dart';
 import '../referencable.dart';
 import '../doc_node.dart';
 import '../edge.dart';
-import 'operation.dart';
-import 'server.dart';
-import 'parameter.dart';
+import 'operation_doc_node.dart';
+import 'server_doc_node.dart';
+import 'parameter_doc_node.dart';
 import '../map_doc_node.dart';
 import '../openapi_graph.dart';
 import '../../validation_exception.dart';
 
 class PathItemDocNode extends DocNode with DocInternalNode, Referencable {
-  PathItemDocNode(super.json, super.document, super.jsonPointer);
+  PathItemDocNode(super.json);
 
   late final String? summary;
   late final String? description;
@@ -28,7 +28,7 @@ class PathItemDocNode extends DocNode with DocInternalNode, Referencable {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateHttpMethods(jsonPointer);
     _validateSummary(jsonPointer);
@@ -127,11 +127,11 @@ class PathItemDocNode extends DocNode with DocInternalNode, Referencable {
 }
 
 class PathsMapDocNode extends MapDocNode<PathItemDocNode> {
-  PathsMapDocNode(super.json, super.document, super.jsonPointer);
+  PathsMapDocNode(super.json);
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
     _validateFormat(jsonPointer);
     super.validateStructure();
   }

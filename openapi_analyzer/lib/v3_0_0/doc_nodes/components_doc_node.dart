@@ -3,18 +3,18 @@ import '../validation/validation_utils.dart';
 import '../../validation_exception.dart';
 import '../edge.dart';
 import '../doc_node.dart';
-import 'schema.dart';
-import 'response.dart';
-import 'parameter.dart';
-import 'example.dart';
-import 'request_body.dart';
-import 'header.dart';
-import 'security_scheme.dart';
-import 'link.dart';
-import 'callback.dart';
+import 'schema_doc_node.dart';
+import 'response_doc_node.dart';
+import 'parameter_doc_node.dart';
+import 'example_doc_node.dart';
+import 'request_body_doc_node.dart';
+import 'header_doc_node.dart';
+import 'security_scheme_doc_node.dart';
+import 'link_doc_node.dart';
+import 'callback_doc_node.dart';
 
 class ComponentsDocNode extends DocNode with DocInternalNode {
-  ComponentsDocNode(super.json, super.document, super.jsonPointer);
+  ComponentsDocNode(super.json);
 
   late final SchemasMapDocNode? schemas;
   late final ResponsesMapDocNode? responses;
@@ -29,7 +29,7 @@ class ComponentsDocNode extends DocNode with DocInternalNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateComponentTypes(jsonPointer);
     _validateNoUnknownFields(jsonPointer);

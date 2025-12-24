@@ -1,32 +1,31 @@
 import 'package:openapi_analyzer/validation_exception.dart';
-import 'package:collection/collection.dart';
-import 'doc_nodes/openapi_document.dart';
-import 'doc_nodes/info.dart';
-import 'doc_nodes/components.dart';
-import 'doc_nodes/operation.dart';
-import 'doc_nodes/parameter.dart';
-import 'doc_nodes/header.dart';
-import 'doc_nodes/response.dart';
-import 'doc_nodes/request_body.dart';
-import 'doc_nodes/media_type.dart';
-import 'doc_nodes/schema.dart';
-import 'doc_nodes/server.dart';
-import 'doc_nodes/server_variable.dart';
-import 'doc_nodes/tag.dart';
-import 'doc_nodes/xml.dart';
-import 'doc_nodes/security_requirement.dart';
-import 'doc_nodes/path_item.dart';
-import 'doc_nodes/oauth_flow.dart';
-import 'doc_nodes/example.dart';
-import 'doc_nodes/encoding.dart';
-import 'doc_nodes/discriminator.dart';
-import 'doc_nodes/link.dart';
-import 'doc_nodes/license.dart';
-import 'doc_nodes/contact.dart';
-import 'doc_nodes/oauth_flows.dart';
-import 'doc_nodes/external_documentation.dart';
-import 'doc_nodes/callback.dart';
-import 'doc_nodes/security_scheme.dart';
+import 'doc_nodes/openapi_document_doc_node.dart';
+import 'doc_nodes/info_doc_node.dart';
+import 'doc_nodes/components_doc_node.dart';
+import 'doc_nodes/operation_doc_node.dart';
+import 'doc_nodes/parameter_doc_node.dart';
+import 'doc_nodes/header_doc_node.dart';
+import 'doc_nodes/response_doc_node.dart';
+import 'doc_nodes/request_body_doc_node.dart';
+import 'doc_nodes/media_type_doc_node.dart';
+import 'doc_nodes/schema_doc_node.dart';
+import 'doc_nodes/server_doc_node.dart';
+import 'doc_nodes/server_variable_doc_node.dart';
+import 'doc_nodes/tag_doc_node.dart';
+import 'doc_nodes/xml_doc_node.dart';
+import 'doc_nodes/security_requirement_doc_node.dart';
+import 'doc_nodes/path_item_doc_node.dart';
+import 'doc_nodes/oauth_flow_doc_node.dart';
+import 'doc_nodes/example_doc_node.dart';
+import 'doc_nodes/encoding_doc_node.dart';
+import 'doc_nodes/discriminator_doc_node.dart';
+import 'doc_nodes/link_doc_node.dart';
+import 'doc_nodes/license_doc_node.dart';
+import 'doc_nodes/contact_doc_node.dart';
+import 'doc_nodes/oauth_flows_doc_node.dart';
+import 'doc_nodes/external_documentation_doc_node.dart';
+import 'doc_nodes/callback_doc_node.dart';
+import 'doc_nodes/security_scheme_doc_node.dart';
 import 'edge.dart';
 import 'validation/validation_utils.dart';
 import 'openapi_graph.dart';
@@ -34,7 +33,7 @@ import 'node.dart';
 
 abstract class DocNode extends Node {
   final Map<String, dynamic> json;
-  DocNode(this.json, super.document, super.jsonPointer);
+  DocNode(this.json) : super();
 
   Map<String, dynamic>? extractExtensions(Map<String, dynamic> json) {
     final extensions = <String, dynamic>{};
@@ -48,52 +47,52 @@ abstract class DocNode extends Node {
 
   void create();
 
-  static T ofType<T extends DocNode>(Map<String, dynamic> json, String document, String jsonPointer) {
-    if (T is CallbacksMapDocNode) return CallbacksMapDocNode(json, document, jsonPointer) as T;
-    if (T is CallbackNode) return CallbackNode(json, document, jsonPointer) as T;
-    if (T is ComponentsNode) return ComponentsNode(json, document, jsonPointer) as T;
-    if (T is ContactNode) return ContactNode(json, document, jsonPointer) as T;
-    if (T is DiscriminatorNode) return DiscriminatorNode(json, document, jsonPointer) as T;
-    if (T is EncodingsMapDocNode) return EncodingsMapDocNode(json, document, jsonPointer) as T;
-    if (T is EncodingNode) return EncodingNode(json, document, jsonPointer) as T;
-    if (T is ExamplesMapDocNode) return ExamplesMapDocNode(json, document, jsonPointer) as T;
-    if (T is ExampleNode) return ExampleNode(json, document, jsonPointer) as T;
-    if (T is ExternalDocumentationNode) return ExternalDocumentationNode(json, document, jsonPointer) as T;
-    if (T is HeadersMapDocNode) return HeadersMapDocNode(json, document, jsonPointer) as T;
-    if (T is HeaderNode) return HeaderNode(json, document, jsonPointer) as T;
-    if (T is InfoNode) return InfoNode(json, document, jsonPointer) as T;
-    if (T is LicenseNode) return LicenseNode(json, document, jsonPointer) as T;
-    if (T is LinksMapDocNode) return LinksMapDocNode(json, document, jsonPointer) as T;
-    if (T is LinkNode) return LinkNode(json, document, jsonPointer) as T;
-    if (T is MediaTypesMapDocNode) return MediaTypesMapDocNode(json, document, jsonPointer) as T;
-    if (T is MediaTypeNode) return MediaTypeNode(json, document, jsonPointer) as T;
-    if (T is OAuthFlowNode) return OAuthFlowNode(json, document, jsonPointer) as T;
-    if (T is OAuthFlowsNode) return OAuthFlowsNode(json, document, jsonPointer) as T;
-    if (T is OpenApiDocumentNode) return OpenApiDocumentNode(json, document, jsonPointer) as T;
-    if (T is OperationNode) return OperationNode(json, document, jsonPointer) as T;
-    if (T is ParametersListDocNode) return ParametersListDocNode(json, document, jsonPointer) as T;
-    if (T is ParametersMapDocNode) return ParametersMapDocNode(json, document, jsonPointer) as T;
-    if (T is ParameterNode) return ParameterNode(json, document, jsonPointer) as T;
-    if (T is PathsMapDocNode) return PathsMapDocNode(json, document, jsonPointer) as T;
-    if (T is PathItemNode) return PathItemNode(json, document, jsonPointer) as T;
-    if (T is RequestBodiesMapDocNode) return RequestBodiesMapDocNode(json, document, jsonPointer) as T;
-    if (T is RequestBodyNode) return RequestBodyNode(json, document, jsonPointer) as T;
-    if (T is ResponsesMapDocNode) return ResponsesMapDocNode(json, document, jsonPointer) as T;
-    if (T is ResponseNode) return ResponseNode(json, document, jsonPointer) as T;
-    if (T is SchemasListDocNode) return SchemasListDocNode(json, document, jsonPointer) as T;
-    if (T is SchemasMapDocNode) return SchemasMapDocNode(json, document, jsonPointer) as T;
-    if (T is SchemaNode) return SchemaNode(json, document, jsonPointer) as T;
-    if (T is SecurityRequirementsListDocNode) return SecurityRequirementsListDocNode(json, document, jsonPointer) as T;
-    if (T is SecurityRequirementNode) return SecurityRequirementNode(json, document, jsonPointer) as T;
-    if (T is SecuritySchemesMapDocNode) return SecuritySchemesMapDocNode(json, document, jsonPointer) as T;
-    if (T is SecuritySchemeNode) return SecuritySchemeNode(json, document, jsonPointer) as T;
-    if (T is ServerListDocNode) return ServerListDocNode(json, document, jsonPointer) as T;
-    if (T is ServerVariablesMapDocNode) return ServerVariablesMapDocNode(json, document, jsonPointer) as T;
-    if (T is ServerNode) return ServerNode(json, document, jsonPointer) as T;
-    if (T is ServerVariableNode) return ServerVariableNode(json, document, jsonPointer) as T;
-    if (T is TagsListDocNode) return TagsListDocNode(json, document, jsonPointer) as T;
-    if (T is TagNode) return TagNode(json, document, jsonPointer) as T;
-    if (T is XMLNode) return XMLNode(json, document, jsonPointer) as T;
+  static T ofType<T extends DocNode>(Map<String, dynamic> json) {
+    if (T is CallbacksMapDocNode) return CallbacksMapDocNode(json) as T;
+    if (T is CallbackDocNode) return CallbackDocNode(json)as T;
+    if (T is ComponentsDocNode) return ComponentsDocNode(json)as T;
+    if (T is ContactDocNode) return ContactDocNode(json)as T;
+    if (T is DiscriminatorDocNode) return DiscriminatorDocNode(json)as T;
+    if (T is EncodingsMapDocNode) return EncodingsMapDocNode(json)as T;
+    if (T is EncodingDocNode) return EncodingDocNode(json)as T;
+    if (T is ExamplesMapDocNode) return ExamplesMapDocNode(json)as T;
+    if (T is ExampleDocNode) return ExampleDocNode(json)as T;
+    if (T is ExternalDocumentationDocNode) return ExternalDocumentationDocNode(json)as T;
+    if (T is HeadersMapDocNode) return HeadersMapDocNode(json)as T;
+    if (T is HeaderDocNode) return HeaderDocNode(json)as T;
+    if (T is InfoDocNode) return InfoDocNode(json)as T;
+    if (T is LicenseDocNode) return LicenseDocNode(json)as T;
+    if (T is LinksMapDocNode) return LinksMapDocNode(json)as T;
+    if (T is LinkDocNode) return LinkDocNode(json)as T;
+    if (T is MediaTypesMapDocNode) return MediaTypesMapDocNode(json)as T;
+    if (T is MediaTypeDocNode) return MediaTypeDocNode(json)as T;
+    if (T is OAuthFlowDocNode) return OAuthFlowDocNode(json)as T;
+    if (T is OAuthFlowsDocNode) return OAuthFlowsDocNode(json)as T;
+    if (T is OpenApiDocumentDocNode) return OpenApiDocumentDocNode(json)as T;
+    if (T is OperationDocNode) return OperationDocNode(json)as T;
+    if (T is ParametersListDocNode) return ParametersListDocNode(json)as T;
+    if (T is ParametersMapDocNode) return ParametersMapDocNode(json)as T;
+    if (T is ParameterDocNode) return ParameterDocNode(json)as T;
+    if (T is PathsMapDocNode) return PathsMapDocNode(json)as T;
+    if (T is PathItemDocNode) return PathItemDocNode(json)as T;
+    if (T is RequestBodiesMapDocNode) return RequestBodiesMapDocNode(json)as T;
+    if (T is RequestBodyDocNode) return RequestBodyDocNode(json)as T;
+    if (T is ResponsesMapDocNode) return ResponsesMapDocNode(json)as T;
+    if (T is ResponseDocNode) return ResponseDocNode(json)as T;
+    if (T is SchemasListDocNode) return SchemasListDocNode(json)as T;
+    if (T is SchemasMapDocNode) return SchemasMapDocNode(json)as T;
+    if (T is SchemaDocNode) return SchemaDocNode(json)as T;
+    if (T is SecurityRequirementsListDocNode) return SecurityRequirementsListDocNode(json)as T;
+    if (T is SecurityRequirementDocNode) return SecurityRequirementDocNode(json)as T;
+    if (T is SecuritySchemesMapDocNode) return SecuritySchemesMapDocNode(json)as T;
+    if (T is SecuritySchemeDocNode) return SecuritySchemeDocNode(json)as T;
+    if (T is ServerListDocNode) return ServerListDocNode(json)as T;
+    if (T is ServerVariablesMapDocNode) return ServerVariablesMapDocNode(json)as T;
+    if (T is ServerDocNode) return ServerDocNode(json)as T;
+    if (T is ServerVariableDocNode) return ServerVariableDocNode(json)as T;
+    if (T is TagsListDocNode) return TagsListDocNode(json)as T;
+    if (T is TagDocNode) return TagDocNode(json)as T;
+    if (T is XMLDocNode) return XMLDocNode(json)as T;
     throw Exception('Unsupported node type: $T');
   }
 }
@@ -147,7 +146,7 @@ extension NodeCreationHelpers on DocNode {
       if (required) {
         OpenApiGraph.i.validationContext.addException(
           OpenApiValidationException(
-            ValidationUtils.buildPointer([$id.jsonPointer, jsonKey]),
+            ValidationUtils.buildPointer([$id!.jsonPointer, jsonKey]),
             'Required field "$jsonKey" is missing',
             specReference: 'OpenAPI 3.0.0 Specification',
             severity: ValidationSeverity.critical,
@@ -181,7 +180,7 @@ extension NodeCreationHelpers on DocNode {
     }
 
     // Create new node
-    final childNode = DocNode.ofType<T>(json, document, jsonPointer);
+    final childNode = DocNode.ofType<T>(json);
     OpenApiGraph.i.addNode(childNode);
     OpenApiGraph.i.addEdge(this, childNode, via, form);
     childNode.create();
@@ -196,8 +195,8 @@ extension NodeCreationHelpers on DocNode {
     }
 
     final originalJson = json[jsonKey] as Map<String, dynamic>;
-    final originalDocument = $id.document;
-    final originalJsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, jsonKey]);
+    final originalDocument = $id!.document;
+    final originalJsonPointer = ValidationUtils.buildPointer([$id!.jsonPointer, jsonKey]);
 
     final isRef = _isRef(originalJson);
     final (resolvedJson, resolvedDocument, resolvedJsonPointer) = isRef
@@ -219,8 +218,8 @@ extension NodeCreationHelpers on DocNode {
     final nodes = <T>[];
     for (var i = 0; i < list.length; i++) {
       final originalJson = list[i] as Map<String, dynamic>;
-      final originalDocument = $id.document;
-      final originalJsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, '$i']);
+      final originalDocument = $id!.document;
+      final originalJsonPointer = ValidationUtils.buildPointer([$id!.jsonPointer, '$i']);
 
       final isRef = _isRef(originalJson);
       final (resolvedJson, resolvedDocument, resolvedJsonPointer) = isRef
@@ -245,8 +244,8 @@ extension NodeCreationHelpers on DocNode {
     for (final entry in json.entries) {
       final key = entry.key.toString();
       final originalJson = entry.value as Map<String, dynamic>;
-      final originalDocument = $id.document;
-      final originalJsonPointer = ValidationUtils.buildPointer([$id.jsonPointer, key]);
+      final originalDocument = $id!.document;
+      final originalJsonPointer = ValidationUtils.buildPointer([$id!.jsonPointer, key]);
 
       final isRef = _isRef(originalJson);
       final (resolvedJson, resolvedDocument, resolvedJsonPointer) = isRef

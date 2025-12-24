@@ -1,5 +1,5 @@
 import 'dart:collection';
-import '../doc_nodes/enums.dart';
+import '../doc_nodes/enums_doc_node.dart';
 import 'schema/schema.dart';
 import 'example.dart';
 import 'media_type.dart';

@@ -3,13 +3,13 @@ import '../validation/validation_utils.dart';
 import '../../validation_exception.dart';
 import '../doc_node.dart';
 import '../edge.dart';
-import 'schema.dart';
-import 'example.dart';
-import 'encoding.dart';
+import 'schema_doc_node.dart';
+import 'example_doc_node.dart';
+import 'encoding_doc_node.dart';
 import '../map_doc_node.dart';
 
 class MediaTypeDocNode extends DocNode with DocInternalNode {
-  MediaTypeDocNode(super.json, super.document, super.jsonPointer);
+  MediaTypeDocNode(super.json);
 
   late final SchemasMapDocNode? schema;
   late final dynamic example;
@@ -19,7 +19,7 @@ class MediaTypeDocNode extends DocNode with DocInternalNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateSchema(jsonPointer);
     _validateExamples(jsonPointer);
@@ -86,5 +86,5 @@ class MediaTypeDocNode extends DocNode with DocInternalNode {
 }
 
 class MediaTypesMapDocNode extends MapDocNode<MediaTypeDocNode> {
-  MediaTypesMapDocNode(super.json, super.document, super.jsonPointer);
+  MediaTypesMapDocNode(super.json);
 }

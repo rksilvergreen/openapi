@@ -2,12 +2,14 @@ import 'package:collection/collection.dart';
 import 'edge.dart';
 
 abstract class Node {
-  final NodeId $id;
+  NodeId? $id;
   // final Map<String, dynamic> json;
-  Node(String document, String jsonPointer) : $id = NodeId(document, jsonPointer);
+  // Node({String? document, String? jsonPointer});
 
   final List<Edge> $from = [];
   final List<Edge> $to = [];
+
+  void setId(String document, String jsonPointer) => $id = NodeId(document, jsonPointer);
 
   T? parent<T extends Node>(String? via, EdgeForm? form) =>
       $from

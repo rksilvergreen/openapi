@@ -1,12 +1,12 @@
 import '../validation/validation_utils.dart';
 import '../doc_node.dart';
 import '../edge.dart';
-import 'enums.dart';
-import 'header.dart';
+import 'enums_doc_node.dart';
+import 'header_doc_node.dart';
 import '../map_doc_node.dart';
 
 class EncodingDocNode extends DocNode with DocInternalNode {
-  EncodingDocNode(super.json, super.document, super.jsonPointer);
+  EncodingDocNode(super.json);
 
   late final String? contentType;
   late final HeadersMapDocNode? headers;
@@ -17,7 +17,7 @@ class EncodingDocNode extends DocNode with DocInternalNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateContentType(jsonPointer);
     _validateHeaders(jsonPointer);
@@ -87,5 +87,5 @@ class EncodingDocNode extends DocNode with DocInternalNode {
 }
 
 class EncodingsMapDocNode extends MapDocNode<EncodingDocNode> {
-  EncodingsMapDocNode(super.json, super.document, super.jsonPointer);
+  EncodingsMapDocNode(super.json);
 }

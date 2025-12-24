@@ -1,4 +1,4 @@
-import 'package:openapi_analyzer/v3_0_0/doc_nodes/schema.dart';
+import 'package:openapi_analyzer/v3_0_0/doc_nodes/schema_doc_node.dart';
 import '../typed_schema/number_typed_schema.dart';
 import 'effective_schema.dart';
 import '../../xml.dart';

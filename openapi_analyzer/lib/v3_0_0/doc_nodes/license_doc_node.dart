@@ -2,7 +2,7 @@ import '../validation/validation_utils.dart';
 import '../doc_node.dart';
 
 class LicenseDocNode extends DocNode with DocLeafNode {
-  LicenseDocNode(super.json, super.document, super.jsonPointer);
+  LicenseDocNode(super.json);
 
   late final String name;
   late final String? url;
@@ -10,7 +10,7 @@ class LicenseDocNode extends DocNode with DocLeafNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateName(jsonPointer);
     _validateUrl(jsonPointer);

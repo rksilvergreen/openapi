@@ -2,17 +2,17 @@ import '../openapi_graph.dart';
 import '../validation/validation_utils.dart';
 import '../doc_node.dart';
 import '../edge.dart';
-import 'info.dart';
-import 'server.dart';
-import 'path_item.dart';
-import 'components.dart';
-import 'security_requirement.dart';
-import 'tag.dart';
-import 'external_documentation.dart';
+import 'info_doc_node.dart';
+import 'server_doc_node.dart';
+import 'path_item_doc_node.dart';
+import 'components_doc_node.dart';
+import 'security_requirement_doc_node.dart';
+import 'tag_doc_node.dart';
+import 'external_documentation_doc_node.dart';
 import '../naming/naming_utils.dart';
 
 class OpenApiDocumentDocNode extends DocNode with DocInternalNode {
-  OpenApiDocumentDocNode(super.json, super.document, super.jsonPointer);
+  OpenApiDocumentDocNode(super.json);
 
   late final String openapi;
   late final InfoDocNode info;
@@ -26,7 +26,7 @@ class OpenApiDocumentDocNode extends DocNode with DocInternalNode {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateOpenapi(jsonPointer);
     _validateInfo(jsonPointer);
@@ -126,7 +126,7 @@ class OpenApiDocumentDocNode extends DocNode with DocInternalNode {
   @override
   String get $name {
     // Check if we already computed a name for this document
-    final cached = OpenApiGraph.i.nameRegistry.getCachedDocumentName($id.absolutePointer);
+    final cached = OpenApiGraph.i.nameRegistry.getCachedDocumentName($id!.absolutePointer);
     if (cached != null) return cached;
 
     // Compute the base name using the naming algorithm
@@ -134,7 +134,7 @@ class OpenApiDocumentDocNode extends DocNode with DocInternalNode {
 
     // Sanitize and register the name (handles collisions)
     final sanitized = NamingUtils.toValidDartIdentifier(baseName);
-    return OpenApiGraph.i.nameRegistry.registerDocumentName($id.absolutePointer, sanitized);
+    return OpenApiGraph.i.nameRegistry.registerDocumentName($id!.absolutePointer, sanitized);
   }
 
   String _computeBaseName() {
@@ -158,8 +158,8 @@ class OpenApiDocumentDocNode extends DocNode with DocInternalNode {
   }
 
   String? _deriveFromDocumentStem() {
-    // Get the document URI from $id.document
-    final documentUri = $id.document;
+    // Get the document URI from $id!.document
+    final documentUri = $id!.document;
     if (documentUri.isEmpty) return null;
 
     // Try to extract the file name or URL path stem
@@ -203,7 +203,7 @@ class OpenApiDocumentDocNode extends DocNode with DocInternalNode {
 
   String _generateHashFallback() {
     // Create a deterministic hash from the document URI
-    final identity = $id.document + openapi; // Include version for uniqueness
+    final identity = $id!.document + openapi; // Include version for uniqueness
     final codeUnits = identity.codeUnits;
     final hash = codeUnits.fold<int>(0, (prev, code) => (prev * 31 + code) & 0xFFFFFFFF);
     final shortHash = hash.toRadixString(16).padLeft(8, '0').substring(0, 6);

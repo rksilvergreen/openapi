@@ -2,13 +2,13 @@ import '../openapi_graph.dart';
 import '../validation/validation_utils.dart';
 import '../../validation_exception.dart';
 import '../referencable.dart';
-import 'server.dart';
+import 'server_doc_node.dart';
 import '../doc_node.dart';
 import '../edge.dart';
 import '../map_doc_node.dart';
 
 class LinkDocNode extends DocNode with DocInternalNode, Referencable {
-  LinkDocNode(super.json, super.document, super.jsonPointer);
+  LinkDocNode(super.json);
 
   late final String? operationRef;
   late final String? operationId;
@@ -20,7 +20,7 @@ class LinkDocNode extends DocNode with DocInternalNode, Referencable {
 
   @override
   void validateStructure() {
-    final jsonPointer = $id.jsonPointer;
+    final jsonPointer = $id!.jsonPointer;
 
     _validateOperationRef(jsonPointer);
     _validateOperationId(jsonPointer);
@@ -101,5 +101,5 @@ class LinkDocNode extends DocNode with DocInternalNode, Referencable {
 }
 
 class LinksMapDocNode extends MapDocNode<LinkDocNode> {
-  LinksMapDocNode(super.json, super.document, super.jsonPointer);
+  LinksMapDocNode(super.json);
 }
