@@ -587,6 +587,22 @@ class SchemasMapNode extends MapNode<SchemaNode, Schema> implements SchemasMap {
   SchemasMapNode(super.json, super.document, super.jsonPointer);
 }
 
-class SchemasListNode extends ListNode<SchemaNode, Schema> implements SchemasList {
+class SchemasListNode extends ListNode<SchemaNode> implements SchemasList<SchemaNode> {
   SchemasListNode(super.json, super.document, super.jsonPointer);
+}
+
+
+x(SchemasList schemasList) {}
+
+y( ) {
+  SchemasListNode? schemasListNode;
+  x(schemasListNode!);
+}
+
+class A {
+  covariant SchemasList<SchemaNode>? tag;
+}
+
+class B implements A {
+  SchemasListNode? tag;
 }

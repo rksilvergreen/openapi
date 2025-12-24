@@ -1,7 +1,8 @@
 import 'dart:collection';
+import 'package:openapi_analyzer/v3_0_0/openapi_object.dart';
 import 'path_item.dart';
 
-abstract class Callback {
+abstract class Callback extends OpenApiObject {
   PathsMap get expressions;
   Map<String, dynamic>? get extensions;
   String get $name;

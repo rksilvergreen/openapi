@@ -4,8 +4,7 @@ import 'node.dart';
 import 'edge.dart';
 
 abstract class MapNode<CHILD_NODE extends Node, MAP> extends Node
-    with InternalNode, MapMixin<String, MAP>
-    implements Map<String, MAP> {
+    with InternalNode, MapMixin<String, MAP>{
   MapNode(super.json, super.document, super.jsonPointer);
 
   late final Map<String, MAP> _childNodes;

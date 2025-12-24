@@ -27,13 +27,12 @@ import 'openapi_objects/oauth_flows.dart';
 import 'openapi_objects/external_documentation.dart';
 import 'openapi_objects/callback.dart';
 import 'openapi_objects/security_scheme.dart';
-import 'openapi_objects/schema/schemas_list.dart';
-import 'openapi_objects/schema/schema_map.dart';
 import 'edge.dart';
 import 'validation/validation_utils.dart';
 import 'openapi_graph.dart';
+import 'package:openapi_analyzer/v3_0_0/openapi_object.dart';
 
-abstract class Node {
+abstract class Node implements OpenApiObject {
   final NodeId $id;
   final Map<String, dynamic> json;
   Node(this.json, String document, String jsonPointer) : $id = NodeId(document, jsonPointer);

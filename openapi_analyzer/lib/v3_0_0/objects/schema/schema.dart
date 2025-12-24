@@ -1,9 +1,11 @@
 import 'dart:collection';
+import 'package:openapi_analyzer/v3_0_0/openapi_object.dart';
 import '../external_documentation.dart';
 import '../xml.dart';
 import '../discriminator.dart';
 import 'typed_schema/typed_schema.dart';
 import 'effective_schema/effective_schema.dart';
+import '../../src/openapi_objects/schema/schema.dart';
 
 /// JSON Schema type values for Schema Objects.
 enum SchemaType {
@@ -21,7 +23,7 @@ enum SchemaType {
   final String value;
 }
 
-abstract class Schema {
+abstract class Schema implements OpenApiObject {
   String? get title;
   String? get description;
   dynamic get default_;
@@ -62,10 +64,14 @@ abstract class Schema {
   TypedSchema get $typed;
   EffectiveSchema get $effective;
   String get $name;
+
+  factory Schema() {
+    return SchemaNode(json, document, jsonPointer);
+  }
 }
 
 abstract class SchemasMap implements MapBase<String, Schema> {
   Map<String, dynamic>? get extensions;
 }
 
-abstract class SchemasList implements ListBase<Schema> {}
+abstract class SchemasList<T extends Schema> extends ListObject<T> {}
