@@ -7,17 +7,19 @@ import 'header.dart';
 import 'security_scheme.dart';
 import 'link.dart';
 import 'schema/schema.dart';
+import '../node.dart';
 
+class Components extends Node {
+  final SchemasMap? schemas;
+  final ResponsesMap? responses;
+  final ParametersMap? parameters;
+  final ExamplesMap? examples;
+  final RequestBodiesMap? requestBodies;
+  final HeadersMap? headers;
+  final SecuritySchemesMap? securitySchemes;
+  final LinksMap? links;
+  final CallbacksMap? callbacks;
+  final Map<String, dynamic>? extensions;
 
-abstract class Components {
-  SchemasMap? get schemas;
-  ResponsesMap? get responses;
-  ParametersMap? get parameters;
-  ExamplesMap? get examples;
-  RequestBodiesMap? get requestBodies;
-  HeadersMap? get headers;
-  SecuritySchemesMap? get securitySchemes;
-  LinksMap? get links;
-  CallbacksMap? get callbacks;
-  Map<String, dynamic>? get extensions;
+  Components({this.schemas, this.responses, this.parameters, this.examples, this.requestBodies, this.headers, this.securitySchemes, this.links, this.callbacks, this.extensions});
 }

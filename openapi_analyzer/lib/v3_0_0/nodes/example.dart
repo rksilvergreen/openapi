@@ -1,13 +1,17 @@
-import 'dart:collection';
+import '../node.dart';
+import '../map_node.dart';
 
-abstract class Example {
-  String? get summary;
-  String? get description;
-  dynamic get value;
-  String? get externalValue;
-  Map<String, dynamic>? get extensions;
+class Example extends Node {
+  final String? summary;
+  final String? description;
+  final dynamic value;
+  final String? externalValue;
+  final Map<String, dynamic>? extensions;
+
+  Example({this.summary, this.description, this.value, this.externalValue, this.extensions});
 }
 
-abstract class ExamplesMap implements MapBase<String, Example> {
-  Map<String, dynamic>? get extensions;
+class ExamplesMap extends MapNode<Example> {
+  final Map<String, dynamic>? extensions;
+  ExamplesMap({this.extensions});
 }

@@ -1,13 +1,16 @@
 import 'contact.dart';
 import 'license.dart';
+import '../node.dart';
 
-abstract class Info {
-  String get title;
-  String? get description;
-  String? get termsOfService;
-  Contact? get contact;
-  License? get license;
-  String get version;
-  Map<String, dynamic>? get extensions;
+class Info extends Node {
+  final String title;
+  final String? description;
+  final String? termsOfService;
+  final Contact? contact;
+  final License? license;
+  final String version;
+  final Map<String, dynamic>? extensions;
+
+  Info({required this.title, this.description, this.termsOfService, this.contact, this.license, required this.version, this.extensions});
 }
 

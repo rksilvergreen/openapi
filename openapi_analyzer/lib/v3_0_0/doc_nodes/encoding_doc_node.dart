@@ -4,6 +4,7 @@ import '../edge.dart';
 import 'enums_doc_node.dart';
 import 'header_doc_node.dart';
 import '../map_doc_node.dart';
+import '../nodes/encoding.dart';
 
 class EncodingDocNode extends DocNode with DocInternalNode {
   EncodingDocNode(super.json);
@@ -83,6 +84,7 @@ class EncodingDocNode extends DocNode with DocInternalNode {
     explode = json['explode'];
     allowReserved = json['allowReserved'] ?? false;
     extensions = extractExtensions(json);
+    Encoding(contentType: contentType, headers: headers, style: style, explode: explode, allowReserved: allowReserved, extensions: extensions);
   }
 }
 

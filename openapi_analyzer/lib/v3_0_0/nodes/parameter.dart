@@ -1,29 +1,34 @@
-import 'dart:collection';
 import '../doc_nodes/enums_doc_node.dart';
 import 'schema/schema.dart';
 import 'example.dart';
 import 'media_type.dart';
+import '../node.dart';
+import '../list_node.dart';
+import '../map_node.dart';
 
-abstract class Parameter {
-  String get name;
-  ParameterLocation get in_;
-  String? get description;
-  bool get required_;
-  bool get deprecated;
-  bool get allowEmptyValue;
-  ParameterStyle? get style;
-  bool? get explode;
-  bool get allowReserved;
-  Schema? get schema;
-  dynamic get example;
-  ExamplesMap? get examples;
-  MediaTypesMap? get content;
-  Map<String, dynamic>? get extensions;
-  String get $name;
+class Parameter extends Node {
+  final String name;
+  final ParameterLocation in_;
+  final String? description;
+  final bool required_;
+  final bool deprecated;
+  final bool allowEmptyValue;
+  final ParameterStyle? style;
+  final bool? explode;
+  final bool allowReserved;
+  final Schema? schema;
+  final dynamic example;
+  final ExamplesMap? examples;
+  final MediaTypesMap? content;
+  final Map<String, dynamic>? extensions;
+  final String $name;
+
+  Parameter({required this.name, required this.in_, this.description, required this.required_, required this.deprecated, required this.allowEmptyValue, this.style, this.explode, required this.allowReserved, this.schema, this.example, this.examples, this.content, this.extensions, required this.$name});
 }
 
-abstract class ParametersList implements ListBase<Parameter> {}
+class ParametersList extends ListNode<Parameter> {}
 
-abstract class ParametersMap implements MapBase<String, Parameter> {
-  Map<String, dynamic>? get extensions;
+class ParametersMap extends MapNode<Parameter> {
+  final Map<String, dynamic>? extensions;
+  ParametersMap({this.extensions});
 }

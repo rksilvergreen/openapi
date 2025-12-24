@@ -1,9 +1,13 @@
-abstract class XML {
-  String? get name;
-  String? get namespace;
-  String? get prefix;
-  bool get attribute;
-  bool get wrapped;
-  Map<String, dynamic>? get extensions;
+import '../node.dart';
+
+class XML extends Node {
+  final String? name;
+  final String? namespace;
+  final String? prefix;
+  final bool attribute;
+  final bool wrapped;
+  final Map<String, dynamic>? extensions;
+
+  XML({this.name, this.namespace, this.prefix, required this.attribute, required this.wrapped, this.extensions});
 }
 

@@ -1,27 +1,44 @@
-import 'dart:collection';
 import '../doc_nodes/enums_doc_node.dart';
 import 'example.dart';
 import 'media_type.dart';
 import 'schema/schema.dart';
+import '../node.dart';
+import '../map_node.dart';
 
 /// Header Object follows the structure of the Parameter Object.
-abstract class Header {
-  String? get description;
-  bool get required_;
-  bool get deprecated;
-  bool get allowEmptyValue;
-  ParameterStyle? get style;
-  bool? get explode;
-  bool get allowReserved;
-  SchemasMap? get schema;
-  dynamic get example;
-  ExamplesMap? get examples;
-  MediaTypesMap? get content;
-  Map<String, dynamic>? get extensions;
-  String get $name;
+class Header extends Node {
+  final String? description;
+  final bool required_;
+  final bool deprecated;
+  final bool allowEmptyValue;
+  final ParameterStyle? style;
+  final bool? explode;
+  final bool allowReserved;
+  final SchemasMap? schema;
+  final dynamic example;
+  final ExamplesMap? examples;
+  final MediaTypesMap? content;
+  final Map<String, dynamic>? extensions;
+  final String $name;
+
+  Header({
+    this.description,
+    required this.required_,
+    required this.deprecated,
+    required this.allowEmptyValue,
+    this.style,
+    this.explode,
+    required this.allowReserved,
+    this.schema,
+    this.example,
+    this.examples,
+    this.content,
+    this.extensions,
+    required this.$name,
+  });
 }
 
-abstract class HeadersMap implements MapBase<String, Header> {
-  Map<String, dynamic>? get extensions;
+class HeadersMap extends MapNode<Header> {
+  final Map<String, dynamic>? extensions;
+  HeadersMap({this.extensions});
 }
-

@@ -1,14 +1,18 @@
-import 'dart:collection';
 import 'media_type.dart';
+import '../node.dart';
+import '../map_node.dart';
 
-abstract class RequestBody {
-  String? get description;
-  bool get required;
-  MediaTypesMap get content;
-  Map<String, dynamic>? get extensions;
-  String get $name;
+class RequestBody extends Node {
+  final String? description;
+  final bool required;
+  final MediaTypesMap content;
+  final Map<String, dynamic>? extensions;
+  final String $name;
+
+  RequestBody({this.description, required this.required, required this.content, this.extensions, required this.$name});
 }
 
-abstract class RequestBodiesMap implements MapBase<String, RequestBody> {
-  Map<String, dynamic>? get extensions;
+class RequestBodiesMap extends MapNode<RequestBody> {
+  final Map<String, dynamic>? extensions;
+  RequestBodiesMap({this.extensions});
 }

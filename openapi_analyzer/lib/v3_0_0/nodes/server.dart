@@ -1,23 +1,30 @@
-import 'dart:collection';
+import '../node.dart';
+import '../list_node.dart';
+import '../map_node.dart';
 
-abstract class Server {
-  String get url;
-  String? get description;
-  ServerVariablesMap? get variables;
-  Map<String, dynamic>? get extensions;
-  String get $name;
+class Server extends Node {
+  final String url;
+  final String? description;
+  final ServerVariablesMap? variables;
+  final Map<String, dynamic>? extensions;
+  final String $name;
+
+  Server({required this.url, this.description, this.variables, this.extensions, required this.$name});
 }
 
-abstract class ServerList implements ListBase<Server> {}
+class ServerList extends ListNode<Server> {}
 
-abstract class ServerVariable {
-  List<String>? get enum_;
-  String get default_;
-  String? get description;
-  Map<String, dynamic>? get extensions;
+class ServerVariable extends Node {
+  final List<String>? enum_;
+  final String default_;
+  final String? description;
+  final Map<String, dynamic>? extensions;
+
+  ServerVariable({this.enum_, required this.default_, this.description, this.extensions});
 }
 
-abstract class ServerVariablesMap implements MapBase<String, ServerVariable> {
-  Map<String, dynamic>? get extensions;
+class ServerVariablesMap extends MapNode<ServerVariable> {
+  final Map<String, dynamic>? extensions;
+  ServerVariablesMap({this.extensions});
 }
 

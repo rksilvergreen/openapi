@@ -1,12 +1,15 @@
-import 'dart:collection';
 import 'external_documentation.dart';
+import '../node.dart';
+import '../list_node.dart';
 
-abstract class Tag {
-  String get name;
-  String? get description;
-  ExternalDocumentation? get externalDocs;
-  Map<String, dynamic>? get extensions;
+class Tag extends Node {
+  final String name;
+  final String? description;
+  final ExternalDocumentation? externalDocs;
+  final Map<String, dynamic>? extensions;
+
+  Tag({required this.name, this.description, this.externalDocs, this.extensions});
 }
 
-abstract class TagsList implements ListBase<Tag> {}
+class TagsList extends ListNode<Tag> {}
 

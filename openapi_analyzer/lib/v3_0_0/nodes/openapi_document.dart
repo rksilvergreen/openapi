@@ -5,17 +5,20 @@ import 'components.dart';
 import 'security_requirement.dart';
 import 'tag.dart';
 import 'external_documentation.dart';
+import '../node.dart';
 
-abstract class OpenApiDocument {
-  String get openapi;
-  Info get info;
-  ServerList? get servers;
-  PathsMap get paths;
-  Components? get components;
-  SecurityRequirementsList? get security;
-  TagsList? get tags;
-  ExternalDocumentation? get externalDocs;
-  Map<String, dynamic>? get extensions;
-  String get $name;
+class OpenApiDocument extends Node {
+  final String openapi;
+  final Info info;
+  final ServerList? servers;
+  final PathsMap paths;
+  final Components? components;
+  final SecurityRequirementsList? security;
+  final TagsList? tags;
+  final ExternalDocumentation? externalDocs;
+  final Map<String, dynamic>? extensions;
+  final String $name;
+
+  OpenApiDocument({required this.openapi, required this.info, this.servers, required this.paths, this.components, this.security, this.tags, this.externalDocs, this.extensions, required this.$name});
 }
 

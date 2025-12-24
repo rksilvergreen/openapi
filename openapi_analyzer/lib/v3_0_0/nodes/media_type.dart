@@ -1,17 +1,21 @@
-import 'dart:collection';
 import 'schema/schema.dart';
 import 'example.dart';
 import 'encoding.dart';
+import '../node.dart';
+import '../map_node.dart';
 
-abstract class MediaType {
-  SchemasMap? get schema;
-  dynamic get example;
-  ExamplesMap? get examples;
-  EncodingsMap? get encoding;
-  Map<String, dynamic>? get extensions;
+class MediaType extends Node {
+  final SchemasMap? schema;
+  final dynamic example;
+  final ExamplesMap? examples;
+  final EncodingsMap? encoding;
+  final Map<String, dynamic>? extensions;
+
+  MediaType({this.schema, this.example, this.examples, this.encoding, this.extensions});
 }
 
-abstract class MediaTypesMap implements MapBase<String, MediaType> {
-  Map<String, dynamic>? get extensions;
+class MediaTypesMap extends MapNode<MediaType> {
+  final Map<String, dynamic>? extensions;
+  MediaTypesMap({this.extensions});
 }
 

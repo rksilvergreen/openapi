@@ -1,13 +1,9 @@
 import '../validation/validation_utils.dart';
 import '../doc_node.dart';
+import '../nodes/contact.dart';
 
 class ContactDocNode extends DocNode with DocLeafNode {
   ContactDocNode(super.json);
-
-  late final String? name;
-  late final String? url;
-  late final String? email;
-  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -43,9 +39,6 @@ class ContactDocNode extends DocNode with DocLeafNode {
 
   @override
   void createContent() {
-    name = json['name'];
-    url = json['url'];
-    email = json['email'];
-    extensions = extractExtensions(json);
+    Contact(name: json['name'], url: json['url'], email: json['email'], extensions: extractExtensions(json));
   }
 }

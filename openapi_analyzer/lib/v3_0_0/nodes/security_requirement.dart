@@ -1,7 +1,10 @@
-import 'dart:collection';
+import '../node.dart';
+import '../list_node.dart';
 
-abstract class SecurityRequirement {
-  Map<String, List<String>> get requirements;
+class SecurityRequirement extends Node {
+  final Map<String, List<String>> requirements;
+
+  SecurityRequirement({required this.requirements});
 }
 
-abstract class SecurityRequirementsList implements ListBase<SecurityRequirement> {}
+class SecurityRequirementsList extends ListNode<SecurityRequirement> {}
