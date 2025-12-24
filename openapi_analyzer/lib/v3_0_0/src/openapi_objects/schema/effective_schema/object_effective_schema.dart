@@ -1,10 +1,10 @@
-import 'package:openapi_analyzer/v3_0_0/src/openapi_objects/schema/schema.dart';
+import 'package:openapi_analyzer/v3_0_0/doc_nodes/schema.dart';
 import '../typed_schema/object_typed_schema.dart';
 import 'effective_schema.dart';
 import '../../xml.dart';
 import '../../external_documentation.dart';
-import 'package:openapi_analyzer/v3_0_0/objects/schema/effective_schema/object_effective_schema.dart';
-import 'package:openapi_analyzer/v3_0_0/objects/schema/schema.dart';
+import 'package:openapi_analyzer/v3_0_0/nodes/schema/effective_schema/object_effective_schema.dart';
+import 'package:openapi_analyzer/v3_0_0/nodes/schema/schema.dart';
 
 class ObjectEffectiveSchemaImpl extends SingleTypeEffectiveSchemaImpl<Map<String, dynamic>, ObjectEffectiveSchemaImpl>
     with ObjectEffectiveSchemaImplVariant

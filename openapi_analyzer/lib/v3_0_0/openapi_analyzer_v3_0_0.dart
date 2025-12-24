@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:openapi_analyzer/validation_exception.dart';
-import 'src/openapi_graph.dart';
+import 'openapi_graph.dart';
 
 /// OpenAPI 3.0.0 Validator - Entry point for validating OpenAPI 3.0.0 documents.
 /// 
