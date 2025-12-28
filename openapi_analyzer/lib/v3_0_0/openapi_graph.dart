@@ -22,7 +22,7 @@ class OpenApiGraph {
     i = this;
   }
 
-  late final OpenApiDocumentNode root;
+  late final Node root;
 
   OpenApiDocumentNode create({ValidationStrictness strictness = ValidationStrictness.moderate}) {
     // Initialize validation context
@@ -80,7 +80,26 @@ class OpenApiGraph {
   final Map<String, Node> nodes = {};
   final List<Edge> edges = [];
 
-  void addNode(Node node) => nodes[node.$id.absolutePointer] = node;
+  Node? getNode(String absolutePointer) => nodes[absolutePointer];
+
+  bool verifyNode(Node node) {
+    if (node.$id != null) {
+      final existingNode = getNode(node.$id!.absolutePointer);
+      if (existingNode != null) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  void addRoot(Node node) {}
+
+  void addNode({required Node parent, required Node node, required String via, required EdgeForm form}) {
+    verifyNode(parent);
+    // If it's inline
+    // If node is the root of its graph, add it and cascade the new document to its children. 
+  }
 
   void addEdge(Node from, Node to, String via, EdgeForm form) {
     final edge = Edge(from, to, via, form);
@@ -89,7 +108,7 @@ class OpenApiGraph {
     to.$from.add(edge);
   }
 
-  T getNode<T extends Node>(NodeId id) => nodes[id.absolutePointer]! as T;
+  // T getNode<T extends Node>(NodeId id) => nodes[id.absolutePointer]! as T;
 
   /// Converts an absolute document path to a relative path for use in NodeId.
   /// Returns just the filename for the main document, or a relative path for external documents.

@@ -5,16 +5,10 @@ import 'enums_doc_node.dart';
 import 'header_doc_node.dart';
 import '../map_doc_node.dart';
 import '../nodes/encoding.dart';
+import '../nodes/header.dart';
 
 class EncodingDocNode extends DocNode with DocInternalNode {
   EncodingDocNode(super.json);
-
-  late final String? contentType;
-  late final HeadersMapDocNode? headers;
-  late final ParameterStyle? style;
-  late final bool? explode;
-  late final bool allowReserved;
-  late final Map<String, dynamic>? extensions;
 
   @override
   void validateStructure() {
@@ -78,13 +72,14 @@ class EncodingDocNode extends DocNode with DocInternalNode {
 
   @override
   void createContent() {
-    contentType = json['contentType'];
-    headers = $to.to<HeadersMapDocNode>('headers');
-    style = json['style'] != null ? ParameterStyle.values.firstWhere((e) => e.value == json['style']) : null;
-    explode = json['explode'];
-    allowReserved = json['allowReserved'] ?? false;
-    extensions = extractExtensions(json);
-    Encoding(contentType: contentType, headers: headers, style: style, explode: explode, allowReserved: allowReserved, extensions: extensions);
+    Encoding(
+      contentType: json['contentType'],
+      headers: $to.to<HeadersMap>('headers'),
+      style: json['style'] != null ? ParameterStyle.values.firstWhere((e) => e.value == json['style']) : null,
+      explode: json['explode'],
+      allowReserved: json['allowReserved'] ?? false,
+      extensions: extractExtensions(json),
+    );
   }
 }
 

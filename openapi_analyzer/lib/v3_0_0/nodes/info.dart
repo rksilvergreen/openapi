@@ -11,6 +11,13 @@ class Info extends Node {
   final String version;
   final Map<String, dynamic>? extensions;
 
-  Info({required this.title, this.description, this.termsOfService, this.contact, this.license, required this.version, this.extensions});
+  Info({
+    required this.title,
+    this.description,
+    this.termsOfService,
+    this.contact,
+    this.license,
+    required this.version,
+    this.extensions,
+  });
 }
-

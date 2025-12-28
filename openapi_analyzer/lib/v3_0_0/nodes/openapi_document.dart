@@ -19,6 +19,16 @@ class OpenApiDocument extends Node {
   final Map<String, dynamic>? extensions;
   final String $name;
 
-  OpenApiDocument({required this.openapi, required this.info, this.servers, required this.paths, this.components, this.security, this.tags, this.externalDocs, this.extensions, required this.$name});
+  OpenApiDocument({
+    required this.openapi,
+    required this.info,
+    this.servers,
+    required this.paths,
+    this.components,
+    this.security,
+    this.tags,
+    this.externalDocs,
+    this.extensions,
+    required this.$name,
+  });
 }
-

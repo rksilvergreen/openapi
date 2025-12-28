@@ -4,7 +4,7 @@ import 'edge.dart';
 abstract class Node {
   NodeId? $id;
   // final Map<String, dynamic> json;
-  // Node({String? document, String? jsonPointer});
+  Node({String? document, String? jsonPointer});
 
   final List<Edge> $from = [];
   final List<Edge> $to = [];
@@ -27,6 +27,7 @@ abstract class Node {
     final edge = trueParentEdge<T>(via);
     return edge?.from as T?;
   }
+  
 
   /// Returns the edge to the "true parent".
   /// Returns the inline edge if there's exactly one, otherwise the referenced edge if there's exactly one.

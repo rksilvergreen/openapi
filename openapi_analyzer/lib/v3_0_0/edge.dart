@@ -1,7 +1,7 @@
 import 'node.dart';
 import 'package:collection/collection.dart';
 
-enum EdgeForm { inline, referenced }
+enum EdgeFormType { inline, referenced }
 
 class Edge {
   final Node from;
@@ -16,4 +16,9 @@ extension EdgeIterableExtension on Iterable<Edge> {
   T? to<T extends Node>(String via) => firstWhereOrNull((edge) => (edge.to is T) && (edge.via == via))!.to as T;
 
   T? from<T extends Node>(String via) => firstWhereOrNull((edge) => (edge.from is T) && (edge.via == via))!.from as T;
+}
+
+class EdgeForm {
+  EdgeFormType type;
+  
 }

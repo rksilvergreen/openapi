@@ -7,19 +7,19 @@ import '../map_node.dart';
 
 /// Header Object follows the structure of the Parameter Object.
 class Header extends Node {
-  final String? description;
-  final bool required_;
-  final bool deprecated;
-  final bool allowEmptyValue;
-  final ParameterStyle? style;
-  final bool? explode;
-  final bool allowReserved;
-  final SchemasMap? schema;
-  final dynamic example;
-  final ExamplesMap? examples;
-  final MediaTypesMap? content;
-  final Map<String, dynamic>? extensions;
-  final String $name;
+  String? description;
+  bool required_;
+  bool deprecated;
+  bool allowEmptyValue;
+  ParameterStyle? style;
+  bool? explode;
+  bool allowReserved;
+  SchemasMap? schema;
+  dynamic example;
+  ExamplesMap? examples;
+  MediaTypesMap? content;
+  Map<String, dynamic>? extensions;
+  String $name;
 
   Header({
     this.description,
@@ -36,6 +36,19 @@ class Header extends Node {
     this.extensions,
     required this.$name,
   });
+
+  factory Header.internalRef({required String jsonPointer, Header? node}) {
+
+  }
+
+  factory Header.externalRef({required String document, required String jsonPointer, Header? node}) {
+    // create edge from node Id to node Id. When graph is built, these (and all) connections will be validated.
+  }
+
+  // when we set a node property to null, or to some other node, the original edge is deleted.
+  // what happens if it was a parent edge?
+  // A node can have multiple parents. If a node has an incoming inline edge, that is the parent. If a node has no
+  // incoming inline edge, all its reference edges are parents.
 }
 
 class HeadersMap extends MapNode<Header> {

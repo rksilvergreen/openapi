@@ -4,13 +4,15 @@ import '../node.dart';
 import '../map_node.dart';
 
 class Encoding extends Node {
-  final String? contentType;
-  final HeadersMap? headers;
-  final ParameterStyle? style;
-  final bool? explode;
-  final bool allowReserved;
-  final Map<String, dynamic>? extensions;
+  String? contentType;
+  HeadersMap? headers;
+  ParameterStyle? style;
+  bool? explode;
+  bool allowReserved;
+  Map<String, dynamic>? extensions;
+
   Encoding({this.contentType, this.headers, this.style, this.explode, required this.allowReserved, this.extensions});
+
 }
 
 class EncodingsMap extends MapNode<Encoding> {
