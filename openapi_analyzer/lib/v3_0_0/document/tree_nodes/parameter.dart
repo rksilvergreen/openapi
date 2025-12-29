@@ -41,7 +41,6 @@ class Parameter extends TreeNode {
   final ExamplesMap? examples;
   final MediaTypesMap? content;
   final Map<String, dynamic>? extensions;
-  final String $name;
 
   Parameter({
     required this.name,
@@ -58,7 +57,6 @@ class Parameter extends TreeNode {
     this.examples,
     this.content,
     this.extensions,
-    required this.$name,
   });
 
   factory Parameter.fromJson(Map<String, dynamic> json) {
@@ -69,17 +67,21 @@ class Parameter extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable(createFactory: false)
+@JsonSerializable(createFactory: false, createToJson: false)
 class ParametersList extends ListTreeNode<Parameter> {
   ParametersList(List<Parameter> parameters) : super(parameters);
 
   factory ParametersList.fromJson(List<dynamic> json) {
     return ParametersList(json.map((i) => Parameter.fromJson(i)).toList());
   }
+
+  List<dynamic> toJson() {
+    return map((item) => _$ParameterToJson(item)).toList();
+  }
 }
 
 @CopyWith()
-@JsonSerializable(createFactory: false)
+@JsonSerializable(createFactory: false, createToJson: false)
 class ParametersMap extends MapTreeNode<Parameter> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
@@ -90,5 +92,16 @@ class ParametersMap extends MapTreeNode<Parameter> {
     final extensions = _extractExtensions(json);
     final map = _jsonWithoutExtensions(json);
     return ParametersMap(map.map((key, value) => MapEntry(key, Parameter.fromJson(value))), extensions: extensions);
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    for (final entry in entries) {
+      json[entry.key] = _$ParameterToJson(entry.value);
+    }
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
   }
 }

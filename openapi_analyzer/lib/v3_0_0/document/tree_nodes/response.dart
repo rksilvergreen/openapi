@@ -9,16 +9,8 @@ class Response extends TreeNode {
   final LinksMap? links;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
-  final String $name;
 
-  Response({
-    this.description,
-    this.headers,
-    this.content,
-    this.links,
-    this.extensions,
-    required this.$name,
-  });
+  Response({this.description, this.headers, this.content, this.links, this.extensions});
 
   factory Response.fromJson(Map<String, dynamic> json) {
     final extensions = _extractExtensions(json);
@@ -28,7 +20,7 @@ class Response extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable(createFactory: false)
+@JsonSerializable(createFactory: false, createToJson: false)
 class ResponsesMap extends MapTreeNode<Response> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
@@ -40,5 +32,15 @@ class ResponsesMap extends MapTreeNode<Response> {
     final map = _jsonWithoutExtensions(json);
     return ResponsesMap(map.map((key, value) => MapEntry(key, Response.fromJson(value))), extensions: extensions);
   }
-}
 
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    for (final entry in entries) {
+      json[entry.key] = _$ResponseToJson(entry.value);
+    }
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
+}

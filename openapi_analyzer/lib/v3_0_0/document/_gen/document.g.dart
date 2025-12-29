@@ -187,7 +187,7 @@ abstract class _$HeaderCWProxy {
 
   Header allowReserved(bool allowReserved);
 
-  Header schema(InvalidType schema);
+  Header schema(SchemasMap? schema);
 
   Header example(dynamic example);
 
@@ -211,7 +211,7 @@ abstract class _$HeaderCWProxy {
     ParameterStyle? style,
     bool? explode,
     bool allowReserved,
-    InvalidType schema,
+    SchemasMap? schema,
     dynamic example,
     ExamplesMap? examples,
     MediaTypesMap? content,
@@ -249,7 +249,7 @@ class _$HeaderCWProxyImpl implements _$HeaderCWProxy {
       this(allowReserved: allowReserved);
 
   @override
-  Header schema(InvalidType schema) => this(schema: schema);
+  Header schema(SchemasMap? schema) => this(schema: schema);
 
   @override
   Header example(dynamic example) => this(example: example);
@@ -317,7 +317,7 @@ class _$HeaderCWProxyImpl implements _$HeaderCWProxy {
       schema: schema == const $CopyWithPlaceholder()
           ? _value.schema
           // ignore: cast_nullable_to_non_nullable
-          : schema as InvalidType,
+          : schema as SchemasMap?,
       example: example == const $CopyWithPlaceholder()
           ? _value.example
           // ignore: cast_nullable_to_non_nullable
@@ -423,7 +423,7 @@ abstract class _$ParameterCWProxy {
 
   Parameter allowReserved(bool allowReserved);
 
-  Parameter schema(InvalidType schema);
+  Parameter schema(Schema? schema);
 
   Parameter example(dynamic example);
 
@@ -432,8 +432,6 @@ abstract class _$ParameterCWProxy {
   Parameter content(MediaTypesMap? content);
 
   Parameter extensions(Map<String, dynamic>? extensions);
-
-  Parameter $name(String $name);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Parameter(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
@@ -451,12 +449,11 @@ abstract class _$ParameterCWProxy {
     ParameterStyle? style,
     bool? explode,
     bool allowReserved,
-    InvalidType schema,
+    Schema? schema,
     dynamic example,
     ExamplesMap? examples,
     MediaTypesMap? content,
     Map<String, dynamic>? extensions,
-    String $name,
   });
 }
 
@@ -496,7 +493,7 @@ class _$ParameterCWProxyImpl implements _$ParameterCWProxy {
       this(allowReserved: allowReserved);
 
   @override
-  Parameter schema(InvalidType schema) => this(schema: schema);
+  Parameter schema(Schema? schema) => this(schema: schema);
 
   @override
   Parameter example(dynamic example) => this(example: example);
@@ -510,9 +507,6 @@ class _$ParameterCWProxyImpl implements _$ParameterCWProxy {
   @override
   Parameter extensions(Map<String, dynamic>? extensions) =>
       this(extensions: extensions);
-
-  @override
-  Parameter $name(String $name) => this($name: $name);
 
   @override
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Parameter(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
@@ -536,7 +530,6 @@ class _$ParameterCWProxyImpl implements _$ParameterCWProxy {
     Object? examples = const $CopyWithPlaceholder(),
     Object? content = const $CopyWithPlaceholder(),
     Object? extensions = const $CopyWithPlaceholder(),
-    Object? $name = const $CopyWithPlaceholder(),
   }) {
     return Parameter(
       name: name == const $CopyWithPlaceholder()
@@ -578,7 +571,7 @@ class _$ParameterCWProxyImpl implements _$ParameterCWProxy {
       schema: schema == const $CopyWithPlaceholder()
           ? _value.schema
           // ignore: cast_nullable_to_non_nullable
-          : schema as InvalidType,
+          : schema as Schema?,
       example: example == const $CopyWithPlaceholder()
           ? _value.example
           // ignore: cast_nullable_to_non_nullable
@@ -595,10 +588,6 @@ class _$ParameterCWProxyImpl implements _$ParameterCWProxy {
           ? _value.extensions
           // ignore: cast_nullable_to_non_nullable
           : extensions as Map<String, dynamic>?,
-      $name: $name == const $CopyWithPlaceholder()
-          ? _value.$name
-          // ignore: cast_nullable_to_non_nullable
-          : $name as String,
     );
   }
 }
@@ -730,7 +719,7 @@ abstract class _$OperationCWProxy {
 
   Operation servers(ServerList? servers);
 
-  Operation $name(String $name);
+  Operation extensions(Map<String, dynamic>? extensions);
 
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Operation(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
@@ -746,7 +735,7 @@ abstract class _$OperationCWProxy {
     CallbacksMap? callbacks,
     SecurityRequirementsList? security,
     ServerList? servers,
-    String $name,
+    Map<String, dynamic>? extensions,
   });
 }
 
@@ -782,7 +771,8 @@ class _$OperationCWProxyImpl implements _$OperationCWProxy {
   Operation servers(ServerList? servers) => this(servers: servers);
 
   @override
-  Operation $name(String $name) => this($name: $name);
+  Operation extensions(Map<String, dynamic>? extensions) =>
+      this(extensions: extensions);
 
   @override
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Operation(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
@@ -799,7 +789,7 @@ class _$OperationCWProxyImpl implements _$OperationCWProxy {
     Object? callbacks = const $CopyWithPlaceholder(),
     Object? security = const $CopyWithPlaceholder(),
     Object? servers = const $CopyWithPlaceholder(),
-    Object? $name = const $CopyWithPlaceholder(),
+    Object? extensions = const $CopyWithPlaceholder(),
   }) {
     return Operation(
       externalDocs: externalDocs == const $CopyWithPlaceholder()
@@ -830,10 +820,10 @@ class _$OperationCWProxyImpl implements _$OperationCWProxy {
           ? _value.servers
           // ignore: cast_nullable_to_non_nullable
           : servers as ServerList?,
-      $name: $name == const $CopyWithPlaceholder()
-          ? _value.$name
+      extensions: extensions == const $CopyWithPlaceholder()
+          ? _value.extensions
           // ignore: cast_nullable_to_non_nullable
-          : $name as String,
+          : extensions as Map<String, dynamic>?,
     );
   }
 }
@@ -963,7 +953,7 @@ extension $CallbacksMapCopyWith on CallbacksMap {
 }
 
 abstract class _$ComponentsCWProxy {
-  Components schemas(InvalidType schemas);
+  Components schemas(SchemasMap? schemas);
 
   Components responses(ResponsesMap? responses);
 
@@ -990,7 +980,7 @@ abstract class _$ComponentsCWProxy {
   /// Components(...).copyWith(id: 12, name: "My name")
   /// ````
   Components call({
-    InvalidType schemas,
+    SchemasMap? schemas,
     ResponsesMap? responses,
     ParametersMap? parameters,
     ExamplesMap? examples,
@@ -1010,7 +1000,7 @@ class _$ComponentsCWProxyImpl implements _$ComponentsCWProxy {
   final Components _value;
 
   @override
-  Components schemas(InvalidType schemas) => this(schemas: schemas);
+  Components schemas(SchemasMap? schemas) => this(schemas: schemas);
 
   @override
   Components responses(ResponsesMap? responses) => this(responses: responses);
@@ -1066,7 +1056,7 @@ class _$ComponentsCWProxyImpl implements _$ComponentsCWProxy {
       schemas: schemas == const $CopyWithPlaceholder()
           ? _value.schemas
           // ignore: cast_nullable_to_non_nullable
-          : schemas as InvalidType,
+          : schemas as SchemasMap?,
       responses: responses == const $CopyWithPlaceholder()
           ? _value.responses
           // ignore: cast_nullable_to_non_nullable
@@ -1853,7 +1843,7 @@ extension $LinksMapCopyWith on LinksMap {
 }
 
 abstract class _$MediaTypeCWProxy {
-  MediaType schema(InvalidType schema);
+  MediaType schema(SchemasMap? schema);
 
   MediaType example(dynamic example);
 
@@ -1870,7 +1860,7 @@ abstract class _$MediaTypeCWProxy {
   /// MediaType(...).copyWith(id: 12, name: "My name")
   /// ````
   MediaType call({
-    InvalidType schema,
+    SchemasMap? schema,
     dynamic example,
     ExamplesMap? examples,
     EncodingsMap? encoding,
@@ -1885,7 +1875,7 @@ class _$MediaTypeCWProxyImpl implements _$MediaTypeCWProxy {
   final MediaType _value;
 
   @override
-  MediaType schema(InvalidType schema) => this(schema: schema);
+  MediaType schema(SchemasMap? schema) => this(schema: schema);
 
   @override
   MediaType example(dynamic example) => this(example: example);
@@ -1918,7 +1908,7 @@ class _$MediaTypeCWProxyImpl implements _$MediaTypeCWProxy {
       schema: schema == const $CopyWithPlaceholder()
           ? _value.schema
           // ignore: cast_nullable_to_non_nullable
-          : schema as InvalidType,
+          : schema as SchemasMap?,
       example: example == const $CopyWithPlaceholder()
           ? _value.example
           // ignore: cast_nullable_to_non_nullable
@@ -2424,8 +2414,6 @@ abstract class _$RequestBodyCWProxy {
 
   RequestBody extensions(Map<String, dynamic>? extensions);
 
-  RequestBody $name(String $name);
-
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `RequestBody(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
   /// Usage
@@ -2437,7 +2425,6 @@ abstract class _$RequestBodyCWProxy {
     bool required,
     MediaTypesMap content,
     Map<String, dynamic>? extensions,
-    String $name,
   });
 }
 
@@ -2462,9 +2449,6 @@ class _$RequestBodyCWProxyImpl implements _$RequestBodyCWProxy {
       this(extensions: extensions);
 
   @override
-  RequestBody $name(String $name) => this($name: $name);
-
-  @override
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `RequestBody(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
   /// Usage
@@ -2476,7 +2460,6 @@ class _$RequestBodyCWProxyImpl implements _$RequestBodyCWProxy {
     Object? required = const $CopyWithPlaceholder(),
     Object? content = const $CopyWithPlaceholder(),
     Object? extensions = const $CopyWithPlaceholder(),
-    Object? $name = const $CopyWithPlaceholder(),
   }) {
     return RequestBody(
       description: description == const $CopyWithPlaceholder()
@@ -2495,10 +2478,6 @@ class _$RequestBodyCWProxyImpl implements _$RequestBodyCWProxy {
           ? _value.extensions
           // ignore: cast_nullable_to_non_nullable
           : extensions as Map<String, dynamic>?,
-      $name: $name == const $CopyWithPlaceholder()
-          ? _value.$name
-          // ignore: cast_nullable_to_non_nullable
-          : $name as String,
     );
   }
 }
@@ -2581,8 +2560,6 @@ abstract class _$ResponseCWProxy {
 
   Response extensions(Map<String, dynamic>? extensions);
 
-  Response $name(String $name);
-
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Response(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
   /// Usage
@@ -2595,7 +2572,6 @@ abstract class _$ResponseCWProxy {
     MediaTypesMap? content,
     LinksMap? links,
     Map<String, dynamic>? extensions,
-    String $name,
   });
 }
 
@@ -2622,9 +2598,6 @@ class _$ResponseCWProxyImpl implements _$ResponseCWProxy {
       this(extensions: extensions);
 
   @override
-  Response $name(String $name) => this($name: $name);
-
-  @override
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Response(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
   /// Usage
@@ -2637,7 +2610,6 @@ class _$ResponseCWProxyImpl implements _$ResponseCWProxy {
     Object? content = const $CopyWithPlaceholder(),
     Object? links = const $CopyWithPlaceholder(),
     Object? extensions = const $CopyWithPlaceholder(),
-    Object? $name = const $CopyWithPlaceholder(),
   }) {
     return Response(
       description: description == const $CopyWithPlaceholder()
@@ -2660,10 +2632,6 @@ class _$ResponseCWProxyImpl implements _$ResponseCWProxy {
           ? _value.extensions
           // ignore: cast_nullable_to_non_nullable
           : extensions as Map<String, dynamic>?,
-      $name: $name == const $CopyWithPlaceholder()
-          ? _value.$name
-          // ignore: cast_nullable_to_non_nullable
-          : $name as String,
     );
   }
 }
@@ -2852,8 +2820,6 @@ abstract class _$SecuritySchemeCWProxy {
 
   SecurityScheme extensions(Map<String, dynamic>? extensions);
 
-  SecurityScheme $name(String $name);
-
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SecurityScheme(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
   /// Usage
@@ -2870,7 +2836,6 @@ abstract class _$SecuritySchemeCWProxy {
     OAuthFlows? flows,
     String? openIdConnectUrl,
     Map<String, dynamic>? extensions,
-    String $name,
   });
 }
 
@@ -2912,9 +2877,6 @@ class _$SecuritySchemeCWProxyImpl implements _$SecuritySchemeCWProxy {
       this(extensions: extensions);
 
   @override
-  SecurityScheme $name(String $name) => this($name: $name);
-
-  @override
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SecurityScheme(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
   /// Usage
@@ -2931,7 +2893,6 @@ class _$SecuritySchemeCWProxyImpl implements _$SecuritySchemeCWProxy {
     Object? flows = const $CopyWithPlaceholder(),
     Object? openIdConnectUrl = const $CopyWithPlaceholder(),
     Object? extensions = const $CopyWithPlaceholder(),
-    Object? $name = const $CopyWithPlaceholder(),
   }) {
     return SecurityScheme(
       type: type == const $CopyWithPlaceholder()
@@ -2970,10 +2931,6 @@ class _$SecuritySchemeCWProxyImpl implements _$SecuritySchemeCWProxy {
           ? _value.extensions
           // ignore: cast_nullable_to_non_nullable
           : extensions as Map<String, dynamic>?,
-      $name: $name == const $CopyWithPlaceholder()
-          ? _value.$name
-          // ignore: cast_nullable_to_non_nullable
-          : $name as String,
     );
   }
 }
@@ -3058,8 +3015,6 @@ abstract class _$ServerCWProxy {
 
   Server extensions(Map<String, dynamic>? extensions);
 
-  Server $name(String $name);
-
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Server(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
   /// Usage
@@ -3071,7 +3026,6 @@ abstract class _$ServerCWProxy {
     String? description,
     ServerVariablesMap? variables,
     Map<String, dynamic>? extensions,
-    String $name,
   });
 }
 
@@ -3095,9 +3049,6 @@ class _$ServerCWProxyImpl implements _$ServerCWProxy {
       this(extensions: extensions);
 
   @override
-  Server $name(String $name) => this($name: $name);
-
-  @override
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Server(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
   /// Usage
@@ -3109,7 +3060,6 @@ class _$ServerCWProxyImpl implements _$ServerCWProxy {
     Object? description = const $CopyWithPlaceholder(),
     Object? variables = const $CopyWithPlaceholder(),
     Object? extensions = const $CopyWithPlaceholder(),
-    Object? $name = const $CopyWithPlaceholder(),
   }) {
     return Server(
       url: url == const $CopyWithPlaceholder()
@@ -3128,10 +3078,6 @@ class _$ServerCWProxyImpl implements _$ServerCWProxy {
           ? _value.extensions
           // ignore: cast_nullable_to_non_nullable
           : extensions as Map<String, dynamic>?,
-      $name: $name == const $CopyWithPlaceholder()
-          ? _value.$name
-          // ignore: cast_nullable_to_non_nullable
-          : $name as String,
     );
   }
 }
@@ -3581,8 +3527,6 @@ abstract class _$OpenApiDocumentCWProxy {
 
   OpenApiDocument extensions(Map<String, dynamic>? extensions);
 
-  OpenApiDocument $name(String $name);
-
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `OpenApiDocument(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
   /// Usage
@@ -3599,7 +3543,6 @@ abstract class _$OpenApiDocumentCWProxy {
     TagsList? tags,
     ExternalDocumentation? externalDocs,
     Map<String, dynamic>? extensions,
-    String $name,
   });
 }
 
@@ -3641,9 +3584,6 @@ class _$OpenApiDocumentCWProxyImpl implements _$OpenApiDocumentCWProxy {
       this(extensions: extensions);
 
   @override
-  OpenApiDocument $name(String $name) => this($name: $name);
-
-  @override
   /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `OpenApiDocument(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
   ///
   /// Usage
@@ -3660,7 +3600,6 @@ class _$OpenApiDocumentCWProxyImpl implements _$OpenApiDocumentCWProxy {
     Object? tags = const $CopyWithPlaceholder(),
     Object? externalDocs = const $CopyWithPlaceholder(),
     Object? extensions = const $CopyWithPlaceholder(),
-    Object? $name = const $CopyWithPlaceholder(),
   }) {
     return OpenApiDocument(
       openapi: openapi == const $CopyWithPlaceholder()
@@ -3699,10 +3638,6 @@ class _$OpenApiDocumentCWProxyImpl implements _$OpenApiDocumentCWProxy {
           ? _value.extensions
           // ignore: cast_nullable_to_non_nullable
           : extensions as Map<String, dynamic>?,
-      $name: $name == const $CopyWithPlaceholder()
-          ? _value.$name
-          // ignore: cast_nullable_to_non_nullable
-          : $name as String,
     );
   }
 }
@@ -3712,3 +3647,1750 @@ extension $OpenApiDocumentCopyWith on OpenApiDocument {
   // ignore: library_private_types_in_public_api
   _$OpenApiDocumentCWProxy get copyWith => _$OpenApiDocumentCWProxyImpl(this);
 }
+
+abstract class _$SchemaCWProxy {
+  Schema title(String? title);
+
+  Schema description(String? description);
+
+  Schema default_(dynamic default_);
+
+  Schema type(SchemaType? type);
+
+  Schema format(String? format);
+
+  Schema multipleOf(num? multipleOf);
+
+  Schema maximum(num? maximum);
+
+  Schema exclusiveMaximum(num? exclusiveMaximum);
+
+  Schema minimum(num? minimum);
+
+  Schema exclusiveMinimum(num? exclusiveMinimum);
+
+  Schema maxLength(int? maxLength);
+
+  Schema minLength(int? minLength);
+
+  Schema pattern(String? pattern);
+
+  Schema maxItems(int? maxItems);
+
+  Schema minItems(int? minItems);
+
+  Schema uniqueItems(bool uniqueItems);
+
+  Schema items(Schema? items);
+
+  Schema maxProperties(int? maxProperties);
+
+  Schema minProperties(int? minProperties);
+
+  Schema required_(List<String>? required_);
+
+  Schema properties(SchemasMap? properties);
+
+  Schema additionalPropertiesAllowed(bool? additionalPropertiesAllowed);
+
+  Schema additionalProperties(Schema? additionalProperties);
+
+  Schema allOf(SchemasList? allOf);
+
+  Schema oneOf(SchemasList? oneOf);
+
+  Schema anyOf(SchemasList? anyOf);
+
+  Schema enum_(List<dynamic>? enum_);
+
+  Schema nullable(bool nullable);
+
+  Schema discriminator(Discriminator? discriminator);
+
+  Schema readOnly(bool readOnly);
+
+  Schema writeOnly(bool writeOnly);
+
+  Schema xml(XML? xml);
+
+  Schema externalDocs(ExternalDocumentation? externalDocs);
+
+  Schema example(dynamic example);
+
+  Schema deprecated(bool deprecated);
+
+  Schema extensions(Map<String, dynamic>? extensions);
+
+  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Schema(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
+  ///
+  /// Usage
+  /// ```dart
+  /// Schema(...).copyWith(id: 12, name: "My name")
+  /// ````
+  Schema call({
+    String? title,
+    String? description,
+    dynamic default_,
+    SchemaType? type,
+    String? format,
+    num? multipleOf,
+    num? maximum,
+    num? exclusiveMaximum,
+    num? minimum,
+    num? exclusiveMinimum,
+    int? maxLength,
+    int? minLength,
+    String? pattern,
+    int? maxItems,
+    int? minItems,
+    bool uniqueItems,
+    Schema? items,
+    int? maxProperties,
+    int? minProperties,
+    List<String>? required_,
+    SchemasMap? properties,
+    bool? additionalPropertiesAllowed,
+    Schema? additionalProperties,
+    SchemasList? allOf,
+    SchemasList? oneOf,
+    SchemasList? anyOf,
+    List<dynamic>? enum_,
+    bool nullable,
+    Discriminator? discriminator,
+    bool readOnly,
+    bool writeOnly,
+    XML? xml,
+    ExternalDocumentation? externalDocs,
+    dynamic example,
+    bool deprecated,
+    Map<String, dynamic>? extensions,
+  });
+}
+
+/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfSchema.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfSchema.copyWith.fieldName(...)`
+class _$SchemaCWProxyImpl implements _$SchemaCWProxy {
+  const _$SchemaCWProxyImpl(this._value);
+
+  final Schema _value;
+
+  @override
+  Schema title(String? title) => this(title: title);
+
+  @override
+  Schema description(String? description) => this(description: description);
+
+  @override
+  Schema default_(dynamic default_) => this(default_: default_);
+
+  @override
+  Schema type(SchemaType? type) => this(type: type);
+
+  @override
+  Schema format(String? format) => this(format: format);
+
+  @override
+  Schema multipleOf(num? multipleOf) => this(multipleOf: multipleOf);
+
+  @override
+  Schema maximum(num? maximum) => this(maximum: maximum);
+
+  @override
+  Schema exclusiveMaximum(num? exclusiveMaximum) =>
+      this(exclusiveMaximum: exclusiveMaximum);
+
+  @override
+  Schema minimum(num? minimum) => this(minimum: minimum);
+
+  @override
+  Schema exclusiveMinimum(num? exclusiveMinimum) =>
+      this(exclusiveMinimum: exclusiveMinimum);
+
+  @override
+  Schema maxLength(int? maxLength) => this(maxLength: maxLength);
+
+  @override
+  Schema minLength(int? minLength) => this(minLength: minLength);
+
+  @override
+  Schema pattern(String? pattern) => this(pattern: pattern);
+
+  @override
+  Schema maxItems(int? maxItems) => this(maxItems: maxItems);
+
+  @override
+  Schema minItems(int? minItems) => this(minItems: minItems);
+
+  @override
+  Schema uniqueItems(bool uniqueItems) => this(uniqueItems: uniqueItems);
+
+  @override
+  Schema items(Schema? items) => this(items: items);
+
+  @override
+  Schema maxProperties(int? maxProperties) =>
+      this(maxProperties: maxProperties);
+
+  @override
+  Schema minProperties(int? minProperties) =>
+      this(minProperties: minProperties);
+
+  @override
+  Schema required_(List<String>? required_) => this(required_: required_);
+
+  @override
+  Schema properties(SchemasMap? properties) => this(properties: properties);
+
+  @override
+  Schema additionalPropertiesAllowed(bool? additionalPropertiesAllowed) =>
+      this(additionalPropertiesAllowed: additionalPropertiesAllowed);
+
+  @override
+  Schema additionalProperties(Schema? additionalProperties) =>
+      this(additionalProperties: additionalProperties);
+
+  @override
+  Schema allOf(SchemasList? allOf) => this(allOf: allOf);
+
+  @override
+  Schema oneOf(SchemasList? oneOf) => this(oneOf: oneOf);
+
+  @override
+  Schema anyOf(SchemasList? anyOf) => this(anyOf: anyOf);
+
+  @override
+  Schema enum_(List<dynamic>? enum_) => this(enum_: enum_);
+
+  @override
+  Schema nullable(bool nullable) => this(nullable: nullable);
+
+  @override
+  Schema discriminator(Discriminator? discriminator) =>
+      this(discriminator: discriminator);
+
+  @override
+  Schema readOnly(bool readOnly) => this(readOnly: readOnly);
+
+  @override
+  Schema writeOnly(bool writeOnly) => this(writeOnly: writeOnly);
+
+  @override
+  Schema xml(XML? xml) => this(xml: xml);
+
+  @override
+  Schema externalDocs(ExternalDocumentation? externalDocs) =>
+      this(externalDocs: externalDocs);
+
+  @override
+  Schema example(dynamic example) => this(example: example);
+
+  @override
+  Schema deprecated(bool deprecated) => this(deprecated: deprecated);
+
+  @override
+  Schema extensions(Map<String, dynamic>? extensions) =>
+      this(extensions: extensions);
+
+  @override
+  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Schema(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
+  ///
+  /// Usage
+  /// ```dart
+  /// Schema(...).copyWith(id: 12, name: "My name")
+  /// ````
+  Schema call({
+    Object? title = const $CopyWithPlaceholder(),
+    Object? description = const $CopyWithPlaceholder(),
+    Object? default_ = const $CopyWithPlaceholder(),
+    Object? type = const $CopyWithPlaceholder(),
+    Object? format = const $CopyWithPlaceholder(),
+    Object? multipleOf = const $CopyWithPlaceholder(),
+    Object? maximum = const $CopyWithPlaceholder(),
+    Object? exclusiveMaximum = const $CopyWithPlaceholder(),
+    Object? minimum = const $CopyWithPlaceholder(),
+    Object? exclusiveMinimum = const $CopyWithPlaceholder(),
+    Object? maxLength = const $CopyWithPlaceholder(),
+    Object? minLength = const $CopyWithPlaceholder(),
+    Object? pattern = const $CopyWithPlaceholder(),
+    Object? maxItems = const $CopyWithPlaceholder(),
+    Object? minItems = const $CopyWithPlaceholder(),
+    Object? uniqueItems = const $CopyWithPlaceholder(),
+    Object? items = const $CopyWithPlaceholder(),
+    Object? maxProperties = const $CopyWithPlaceholder(),
+    Object? minProperties = const $CopyWithPlaceholder(),
+    Object? required_ = const $CopyWithPlaceholder(),
+    Object? properties = const $CopyWithPlaceholder(),
+    Object? additionalPropertiesAllowed = const $CopyWithPlaceholder(),
+    Object? additionalProperties = const $CopyWithPlaceholder(),
+    Object? allOf = const $CopyWithPlaceholder(),
+    Object? oneOf = const $CopyWithPlaceholder(),
+    Object? anyOf = const $CopyWithPlaceholder(),
+    Object? enum_ = const $CopyWithPlaceholder(),
+    Object? nullable = const $CopyWithPlaceholder(),
+    Object? discriminator = const $CopyWithPlaceholder(),
+    Object? readOnly = const $CopyWithPlaceholder(),
+    Object? writeOnly = const $CopyWithPlaceholder(),
+    Object? xml = const $CopyWithPlaceholder(),
+    Object? externalDocs = const $CopyWithPlaceholder(),
+    Object? example = const $CopyWithPlaceholder(),
+    Object? deprecated = const $CopyWithPlaceholder(),
+    Object? extensions = const $CopyWithPlaceholder(),
+  }) {
+    return Schema(
+      title: title == const $CopyWithPlaceholder()
+          ? _value.title
+          // ignore: cast_nullable_to_non_nullable
+          : title as String?,
+      description: description == const $CopyWithPlaceholder()
+          ? _value.description
+          // ignore: cast_nullable_to_non_nullable
+          : description as String?,
+      default_: default_ == const $CopyWithPlaceholder()
+          ? _value.default_
+          // ignore: cast_nullable_to_non_nullable
+          : default_ as dynamic,
+      type: type == const $CopyWithPlaceholder()
+          ? _value.type
+          // ignore: cast_nullable_to_non_nullable
+          : type as SchemaType?,
+      format: format == const $CopyWithPlaceholder()
+          ? _value.format
+          // ignore: cast_nullable_to_non_nullable
+          : format as String?,
+      multipleOf: multipleOf == const $CopyWithPlaceholder()
+          ? _value.multipleOf
+          // ignore: cast_nullable_to_non_nullable
+          : multipleOf as num?,
+      maximum: maximum == const $CopyWithPlaceholder()
+          ? _value.maximum
+          // ignore: cast_nullable_to_non_nullable
+          : maximum as num?,
+      exclusiveMaximum: exclusiveMaximum == const $CopyWithPlaceholder()
+          ? _value.exclusiveMaximum
+          // ignore: cast_nullable_to_non_nullable
+          : exclusiveMaximum as num?,
+      minimum: minimum == const $CopyWithPlaceholder()
+          ? _value.minimum
+          // ignore: cast_nullable_to_non_nullable
+          : minimum as num?,
+      exclusiveMinimum: exclusiveMinimum == const $CopyWithPlaceholder()
+          ? _value.exclusiveMinimum
+          // ignore: cast_nullable_to_non_nullable
+          : exclusiveMinimum as num?,
+      maxLength: maxLength == const $CopyWithPlaceholder()
+          ? _value.maxLength
+          // ignore: cast_nullable_to_non_nullable
+          : maxLength as int?,
+      minLength: minLength == const $CopyWithPlaceholder()
+          ? _value.minLength
+          // ignore: cast_nullable_to_non_nullable
+          : minLength as int?,
+      pattern: pattern == const $CopyWithPlaceholder()
+          ? _value.pattern
+          // ignore: cast_nullable_to_non_nullable
+          : pattern as String?,
+      maxItems: maxItems == const $CopyWithPlaceholder()
+          ? _value.maxItems
+          // ignore: cast_nullable_to_non_nullable
+          : maxItems as int?,
+      minItems: minItems == const $CopyWithPlaceholder()
+          ? _value.minItems
+          // ignore: cast_nullable_to_non_nullable
+          : minItems as int?,
+      uniqueItems: uniqueItems == const $CopyWithPlaceholder()
+          ? _value.uniqueItems
+          // ignore: cast_nullable_to_non_nullable
+          : uniqueItems as bool,
+      items: items == const $CopyWithPlaceholder()
+          ? _value.items
+          // ignore: cast_nullable_to_non_nullable
+          : items as Schema?,
+      maxProperties: maxProperties == const $CopyWithPlaceholder()
+          ? _value.maxProperties
+          // ignore: cast_nullable_to_non_nullable
+          : maxProperties as int?,
+      minProperties: minProperties == const $CopyWithPlaceholder()
+          ? _value.minProperties
+          // ignore: cast_nullable_to_non_nullable
+          : minProperties as int?,
+      required_: required_ == const $CopyWithPlaceholder()
+          ? _value.required_
+          // ignore: cast_nullable_to_non_nullable
+          : required_ as List<String>?,
+      properties: properties == const $CopyWithPlaceholder()
+          ? _value.properties
+          // ignore: cast_nullable_to_non_nullable
+          : properties as SchemasMap?,
+      additionalPropertiesAllowed:
+          additionalPropertiesAllowed == const $CopyWithPlaceholder()
+          ? _value.additionalPropertiesAllowed
+          // ignore: cast_nullable_to_non_nullable
+          : additionalPropertiesAllowed as bool?,
+      additionalProperties: additionalProperties == const $CopyWithPlaceholder()
+          ? _value.additionalProperties
+          // ignore: cast_nullable_to_non_nullable
+          : additionalProperties as Schema?,
+      allOf: allOf == const $CopyWithPlaceholder()
+          ? _value.allOf
+          // ignore: cast_nullable_to_non_nullable
+          : allOf as SchemasList?,
+      oneOf: oneOf == const $CopyWithPlaceholder()
+          ? _value.oneOf
+          // ignore: cast_nullable_to_non_nullable
+          : oneOf as SchemasList?,
+      anyOf: anyOf == const $CopyWithPlaceholder()
+          ? _value.anyOf
+          // ignore: cast_nullable_to_non_nullable
+          : anyOf as SchemasList?,
+      enum_: enum_ == const $CopyWithPlaceholder()
+          ? _value.enum_
+          // ignore: cast_nullable_to_non_nullable
+          : enum_ as List<dynamic>?,
+      nullable: nullable == const $CopyWithPlaceholder()
+          ? _value.nullable
+          // ignore: cast_nullable_to_non_nullable
+          : nullable as bool,
+      discriminator: discriminator == const $CopyWithPlaceholder()
+          ? _value.discriminator
+          // ignore: cast_nullable_to_non_nullable
+          : discriminator as Discriminator?,
+      readOnly: readOnly == const $CopyWithPlaceholder()
+          ? _value.readOnly
+          // ignore: cast_nullable_to_non_nullable
+          : readOnly as bool,
+      writeOnly: writeOnly == const $CopyWithPlaceholder()
+          ? _value.writeOnly
+          // ignore: cast_nullable_to_non_nullable
+          : writeOnly as bool,
+      xml: xml == const $CopyWithPlaceholder()
+          ? _value.xml
+          // ignore: cast_nullable_to_non_nullable
+          : xml as XML?,
+      externalDocs: externalDocs == const $CopyWithPlaceholder()
+          ? _value.externalDocs
+          // ignore: cast_nullable_to_non_nullable
+          : externalDocs as ExternalDocumentation?,
+      example: example == const $CopyWithPlaceholder()
+          ? _value.example
+          // ignore: cast_nullable_to_non_nullable
+          : example as dynamic,
+      deprecated: deprecated == const $CopyWithPlaceholder()
+          ? _value.deprecated
+          // ignore: cast_nullable_to_non_nullable
+          : deprecated as bool,
+      extensions: extensions == const $CopyWithPlaceholder()
+          ? _value.extensions
+          // ignore: cast_nullable_to_non_nullable
+          : extensions as Map<String, dynamic>?,
+    );
+  }
+}
+
+extension $SchemaCopyWith on Schema {
+  /// Returns a callable class that can be used as follows: `instanceOfSchema.copyWith(...)` or like so:`instanceOfSchema.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$SchemaCWProxy get copyWith => _$SchemaCWProxyImpl(this);
+}
+
+abstract class _$SchemasMapCWProxy {
+  SchemasMap schemas(Map<String, Schema> schemas);
+
+  SchemasMap extensions(Map<String, dynamic>? extensions);
+
+  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SchemasMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
+  ///
+  /// Usage
+  /// ```dart
+  /// SchemasMap(...).copyWith(id: 12, name: "My name")
+  /// ````
+  SchemasMap call({
+    Map<String, Schema> schemas,
+    Map<String, dynamic>? extensions,
+  });
+}
+
+/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfSchemasMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfSchemasMap.copyWith.fieldName(...)`
+class _$SchemasMapCWProxyImpl implements _$SchemasMapCWProxy {
+  const _$SchemasMapCWProxyImpl(this._value);
+
+  final SchemasMap _value;
+
+  @override
+  SchemasMap schemas(Map<String, Schema> schemas) => this(schemas: schemas);
+
+  @override
+  SchemasMap extensions(Map<String, dynamic>? extensions) =>
+      this(extensions: extensions);
+
+  @override
+  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SchemasMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
+  ///
+  /// Usage
+  /// ```dart
+  /// SchemasMap(...).copyWith(id: 12, name: "My name")
+  /// ````
+  SchemasMap call({
+    Object? schemas = const $CopyWithPlaceholder(),
+    Object? extensions = const $CopyWithPlaceholder(),
+  }) {
+    return SchemasMap(
+      schemas == const $CopyWithPlaceholder()
+          ? _value.schemas
+          // ignore: cast_nullable_to_non_nullable
+          : schemas as Map<String, Schema>,
+      extensions: extensions == const $CopyWithPlaceholder()
+          ? _value.extensions
+          // ignore: cast_nullable_to_non_nullable
+          : extensions as Map<String, dynamic>?,
+    );
+  }
+}
+
+extension $SchemasMapCopyWith on SchemasMap {
+  /// Returns a callable class that can be used as follows: `instanceOfSchemasMap.copyWith(...)` or like so:`instanceOfSchemasMap.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$SchemasMapCWProxy get copyWith => _$SchemasMapCWProxyImpl(this);
+}
+
+abstract class _$SchemasListCWProxy {
+  SchemasList schemas(List<Schema> schemas);
+
+  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SchemasList(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
+  ///
+  /// Usage
+  /// ```dart
+  /// SchemasList(...).copyWith(id: 12, name: "My name")
+  /// ````
+  SchemasList call({List<Schema> schemas});
+}
+
+/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfSchemasList.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfSchemasList.copyWith.fieldName(...)`
+class _$SchemasListCWProxyImpl implements _$SchemasListCWProxy {
+  const _$SchemasListCWProxyImpl(this._value);
+
+  final SchemasList _value;
+
+  @override
+  SchemasList schemas(List<Schema> schemas) => this(schemas: schemas);
+
+  @override
+  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SchemasList(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
+  ///
+  /// Usage
+  /// ```dart
+  /// SchemasList(...).copyWith(id: 12, name: "My name")
+  /// ````
+  SchemasList call({Object? schemas = const $CopyWithPlaceholder()}) {
+    return SchemasList(
+      schemas == const $CopyWithPlaceholder()
+          ? _value.schemas
+          // ignore: cast_nullable_to_non_nullable
+          : schemas as List<Schema>,
+    );
+  }
+}
+
+extension $SchemasListCopyWith on SchemasList {
+  /// Returns a callable class that can be used as follows: `instanceOfSchemasList.copyWith(...)` or like so:`instanceOfSchemasList.copyWith.fieldName(...)`.
+  // ignore: library_private_types_in_public_api
+  _$SchemasListCWProxy get copyWith => _$SchemasListCWProxyImpl(this);
+}
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Encoding _$EncodingFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Encoding', json, ($checkedConvert) {
+      $checkKeys(
+        json,
+        allowedKeys: const [
+          'contentType',
+          'headers',
+          'style',
+          'explode',
+          'allowReserved',
+        ],
+      );
+      final val = Encoding(
+        contentType: $checkedConvert('contentType', (v) => v as String?),
+        headers: $checkedConvert(
+          'headers',
+          (v) =>
+              v == null ? null : HeadersMap.fromJson(v as Map<String, dynamic>),
+        ),
+        style: $checkedConvert(
+          'style',
+          (v) => $enumDecodeNullable(_$ParameterStyleEnumMap, v),
+        ),
+        explode: $checkedConvert('explode', (v) => v as bool?),
+        allowReserved: $checkedConvert('allowReserved', (v) => v as bool),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$EncodingToJson(Encoding instance) => <String, dynamic>{
+  'contentType': ?instance.contentType,
+  'headers': ?instance.headers?.toJson(),
+  'style': ?_$ParameterStyleEnumMap[instance.style],
+  'explode': ?instance.explode,
+  'allowReserved': instance.allowReserved,
+};
+
+const _$ParameterStyleEnumMap = {
+  ParameterStyle.matrix: 'matrix',
+  ParameterStyle.label: 'label',
+  ParameterStyle.form: 'form',
+  ParameterStyle.simple: 'simple',
+  ParameterStyle.spaceDelimited: 'spaceDelimited',
+  ParameterStyle.pipeDelimited: 'pipeDelimited',
+  ParameterStyle.deepObject: 'deepObject',
+};
+
+Header _$HeaderFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate('Header', json, ($checkedConvert) {
+  $checkKeys(
+    json,
+    allowedKeys: const [
+      'description',
+      'required_',
+      'deprecated',
+      'allowEmptyValue',
+      'style',
+      'explode',
+      'allowReserved',
+      'schema',
+      'example',
+      'examples',
+      'content',
+    ],
+  );
+  final val = Header(
+    description: $checkedConvert('description', (v) => v as String?),
+    required_: $checkedConvert('required_', (v) => v as bool),
+    deprecated: $checkedConvert('deprecated', (v) => v as bool),
+    allowEmptyValue: $checkedConvert('allowEmptyValue', (v) => v as bool),
+    style: $checkedConvert(
+      'style',
+      (v) => $enumDecodeNullable(_$ParameterStyleEnumMap, v),
+    ),
+    explode: $checkedConvert('explode', (v) => v as bool?),
+    allowReserved: $checkedConvert('allowReserved', (v) => v as bool),
+    schema: $checkedConvert(
+      'schema',
+      (v) => v == null ? null : SchemasMap.fromJson(v as Map<String, dynamic>),
+    ),
+    example: $checkedConvert('example', (v) => v),
+    examples: $checkedConvert(
+      'examples',
+      (v) => v == null ? null : ExamplesMap.fromJson(v as Map<String, dynamic>),
+    ),
+    content: $checkedConvert(
+      'content',
+      (v) =>
+          v == null ? null : MediaTypesMap.fromJson(v as Map<String, dynamic>),
+    ),
+  );
+  return val;
+});
+
+Map<String, dynamic> _$HeaderToJson(Header instance) => <String, dynamic>{
+  'description': ?instance.description,
+  'required_': instance.required_,
+  'deprecated': instance.deprecated,
+  'allowEmptyValue': instance.allowEmptyValue,
+  'style': ?_$ParameterStyleEnumMap[instance.style],
+  'explode': ?instance.explode,
+  'allowReserved': instance.allowReserved,
+  'schema': ?instance.schema?.toJson(),
+  'example': ?instance.example,
+  'examples': ?instance.examples?.toJson(),
+  'content': ?instance.content?.toJson(),
+};
+
+Parameter _$ParameterFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate('Parameter', json, ($checkedConvert) {
+  $checkKeys(
+    json,
+    allowedKeys: const [
+      'name',
+      'in_',
+      'description',
+      'required_',
+      'deprecated',
+      'allowEmptyValue',
+      'style',
+      'explode',
+      'allowReserved',
+      'schema',
+      'example',
+      'examples',
+      'content',
+      'extensions',
+    ],
+  );
+  final val = Parameter(
+    name: $checkedConvert('name', (v) => v as String),
+    in_: $checkedConvert(
+      'in_',
+      (v) => $enumDecode(_$ParameterLocationEnumMap, v),
+    ),
+    description: $checkedConvert('description', (v) => v as String?),
+    required_: $checkedConvert('required_', (v) => v as bool),
+    deprecated: $checkedConvert('deprecated', (v) => v as bool),
+    allowEmptyValue: $checkedConvert('allowEmptyValue', (v) => v as bool),
+    style: $checkedConvert(
+      'style',
+      (v) => $enumDecodeNullable(_$ParameterStyleEnumMap, v),
+    ),
+    explode: $checkedConvert('explode', (v) => v as bool?),
+    allowReserved: $checkedConvert('allowReserved', (v) => v as bool),
+    schema: $checkedConvert(
+      'schema',
+      (v) => v == null ? null : Schema.fromJson(v as Map<String, dynamic>),
+    ),
+    example: $checkedConvert('example', (v) => v),
+    examples: $checkedConvert(
+      'examples',
+      (v) => v == null ? null : ExamplesMap.fromJson(v as Map<String, dynamic>),
+    ),
+    content: $checkedConvert(
+      'content',
+      (v) =>
+          v == null ? null : MediaTypesMap.fromJson(v as Map<String, dynamic>),
+    ),
+    extensions: $checkedConvert(
+      'extensions',
+      (v) => v as Map<String, dynamic>?,
+    ),
+  );
+  return val;
+});
+
+Map<String, dynamic> _$ParameterToJson(Parameter instance) => <String, dynamic>{
+  'name': instance.name,
+  'in_': _$ParameterLocationEnumMap[instance.in_]!,
+  'description': ?instance.description,
+  'required_': instance.required_,
+  'deprecated': instance.deprecated,
+  'allowEmptyValue': instance.allowEmptyValue,
+  'style': ?_$ParameterStyleEnumMap[instance.style],
+  'explode': ?instance.explode,
+  'allowReserved': instance.allowReserved,
+  'schema': ?instance.schema?.toJson(),
+  'example': ?instance.example,
+  'examples': ?instance.examples?.toJson(),
+  'content': ?instance.content?.toJson(),
+  'extensions': ?instance.extensions,
+};
+
+const _$ParameterLocationEnumMap = {
+  ParameterLocation.query: 'query',
+  ParameterLocation.header: 'header',
+  ParameterLocation.path: 'path',
+  ParameterLocation.cookie: 'cookie',
+};
+
+Operation _$OperationFromJson(Map<String, dynamic> json) => $checkedCreate(
+  'Operation',
+  json,
+  ($checkedConvert) {
+    $checkKeys(
+      json,
+      allowedKeys: const [
+        'externalDocs',
+        'parameters',
+        'requestBody',
+        'responses',
+        'callbacks',
+        'security',
+        'servers',
+      ],
+    );
+    final val = Operation(
+      externalDocs: $checkedConvert(
+        'externalDocs',
+        (v) => v == null
+            ? null
+            : ExternalDocumentation.fromJson(v as Map<String, dynamic>),
+      ),
+      parameters: $checkedConvert(
+        'parameters',
+        (v) => v == null ? null : ParametersList.fromJson(v as List<dynamic>),
+      ),
+      requestBody: $checkedConvert(
+        'requestBody',
+        (v) =>
+            v == null ? null : RequestBody.fromJson(v as Map<String, dynamic>),
+      ),
+      responses: $checkedConvert(
+        'responses',
+        (v) => ResponsesMap.fromJson(v as Map<String, dynamic>),
+      ),
+      callbacks: $checkedConvert(
+        'callbacks',
+        (v) =>
+            v == null ? null : CallbacksMap.fromJson(v as Map<String, dynamic>),
+      ),
+      security: $checkedConvert(
+        'security',
+        (v) => v == null
+            ? null
+            : SecurityRequirementsList.fromJson(v as List<dynamic>),
+      ),
+      servers: $checkedConvert(
+        'servers',
+        (v) => v == null ? null : ServerList.fromJson(v as List<dynamic>),
+      ),
+    );
+    return val;
+  },
+);
+
+Map<String, dynamic> _$OperationToJson(Operation instance) => <String, dynamic>{
+  'externalDocs': ?instance.externalDocs?.toJson(),
+  'parameters': ?instance.parameters?.toJson(),
+  'requestBody': ?instance.requestBody?.toJson(),
+  'responses': instance.responses.toJson(),
+  'callbacks': ?instance.callbacks?.toJson(),
+  'security': ?instance.security?.toJson(),
+  'servers': ?instance.servers?.toJson(),
+};
+
+Callback _$CallbackFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Callback', json, ($checkedConvert) {
+      $checkKeys(json, allowedKeys: const ['expressions']);
+      final val = Callback(
+        expressions: $checkedConvert(
+          'expressions',
+          (v) => PathsMap.fromJson(v as Map<String, dynamic>),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$CallbackToJson(Callback instance) => <String, dynamic>{
+  'expressions': instance.expressions.toJson(),
+};
+
+Components _$ComponentsFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate('Components', json, ($checkedConvert) {
+  $checkKeys(
+    json,
+    allowedKeys: const [
+      'schemas',
+      'responses',
+      'parameters',
+      'examples',
+      'requestBodies',
+      'headers',
+      'securitySchemes',
+      'links',
+      'callbacks',
+    ],
+  );
+  final val = Components(
+    schemas: $checkedConvert(
+      'schemas',
+      (v) => v == null ? null : SchemasMap.fromJson(v as Map<String, dynamic>),
+    ),
+    responses: $checkedConvert(
+      'responses',
+      (v) =>
+          v == null ? null : ResponsesMap.fromJson(v as Map<String, dynamic>),
+    ),
+    parameters: $checkedConvert(
+      'parameters',
+      (v) =>
+          v == null ? null : ParametersMap.fromJson(v as Map<String, dynamic>),
+    ),
+    examples: $checkedConvert(
+      'examples',
+      (v) => v == null ? null : ExamplesMap.fromJson(v as Map<String, dynamic>),
+    ),
+    requestBodies: $checkedConvert(
+      'requestBodies',
+      (v) => v == null
+          ? null
+          : RequestBodiesMap.fromJson(v as Map<String, dynamic>),
+    ),
+    headers: $checkedConvert(
+      'headers',
+      (v) => v == null ? null : HeadersMap.fromJson(v as Map<String, dynamic>),
+    ),
+    securitySchemes: $checkedConvert(
+      'securitySchemes',
+      (v) => v == null
+          ? null
+          : SecuritySchemesMap.fromJson(v as Map<String, dynamic>),
+    ),
+    links: $checkedConvert(
+      'links',
+      (v) => v == null ? null : LinksMap.fromJson(v as Map<String, dynamic>),
+    ),
+    callbacks: $checkedConvert(
+      'callbacks',
+      (v) =>
+          v == null ? null : CallbacksMap.fromJson(v as Map<String, dynamic>),
+    ),
+  );
+  return val;
+});
+
+Map<String, dynamic> _$ComponentsToJson(Components instance) =>
+    <String, dynamic>{
+      'schemas': ?instance.schemas?.toJson(),
+      'responses': ?instance.responses?.toJson(),
+      'parameters': ?instance.parameters?.toJson(),
+      'examples': ?instance.examples?.toJson(),
+      'requestBodies': ?instance.requestBodies?.toJson(),
+      'headers': ?instance.headers?.toJson(),
+      'securitySchemes': ?instance.securitySchemes?.toJson(),
+      'links': ?instance.links?.toJson(),
+      'callbacks': ?instance.callbacks?.toJson(),
+    };
+
+Contact _$ContactFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Contact', json, ($checkedConvert) {
+      $checkKeys(json, allowedKeys: const ['name', 'url', 'email']);
+      final val = Contact(
+        name: $checkedConvert('name', (v) => v as String?),
+        url: $checkedConvert('url', (v) => v as String?),
+        email: $checkedConvert('email', (v) => v as String?),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$ContactToJson(Contact instance) => <String, dynamic>{
+  'name': ?instance.name,
+  'url': ?instance.url,
+  'email': ?instance.email,
+};
+
+Discriminator _$DiscriminatorFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Discriminator', json, ($checkedConvert) {
+      $checkKeys(json, allowedKeys: const ['propertyName', 'mapping']);
+      final val = Discriminator(
+        propertyName: $checkedConvert('propertyName', (v) => v as String),
+        mapping: $checkedConvert(
+          'mapping',
+          (v) => (v as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$DiscriminatorToJson(Discriminator instance) =>
+    <String, dynamic>{
+      'propertyName': instance.propertyName,
+      'mapping': ?instance.mapping,
+    };
+
+Example _$ExampleFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Example', json, ($checkedConvert) {
+      $checkKeys(
+        json,
+        allowedKeys: const ['summary', 'description', 'value', 'externalValue'],
+      );
+      final val = Example(
+        summary: $checkedConvert('summary', (v) => v as String?),
+        description: $checkedConvert('description', (v) => v as String?),
+        value: $checkedConvert('value', (v) => v),
+        externalValue: $checkedConvert('externalValue', (v) => v as String?),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$ExampleToJson(Example instance) => <String, dynamic>{
+  'summary': ?instance.summary,
+  'description': ?instance.description,
+  'value': ?instance.value,
+  'externalValue': ?instance.externalValue,
+};
+
+ExternalDocumentation _$ExternalDocumentationFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate('ExternalDocumentation', json, ($checkedConvert) {
+  $checkKeys(json, allowedKeys: const ['description', 'url']);
+  final val = ExternalDocumentation(
+    description: $checkedConvert('description', (v) => v as String?),
+    url: $checkedConvert('url', (v) => v as String),
+  );
+  return val;
+});
+
+Map<String, dynamic> _$ExternalDocumentationToJson(
+  ExternalDocumentation instance,
+) => <String, dynamic>{
+  'description': ?instance.description,
+  'url': instance.url,
+};
+
+Info _$InfoFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Info', json, ($checkedConvert) {
+      $checkKeys(
+        json,
+        allowedKeys: const [
+          'title',
+          'description',
+          'termsOfService',
+          'contact',
+          'license',
+          'version',
+        ],
+      );
+      final val = Info(
+        title: $checkedConvert('title', (v) => v as String),
+        description: $checkedConvert('description', (v) => v as String?),
+        termsOfService: $checkedConvert('termsOfService', (v) => v as String?),
+        contact: $checkedConvert(
+          'contact',
+          (v) => v == null ? null : Contact.fromJson(v as Map<String, dynamic>),
+        ),
+        license: $checkedConvert(
+          'license',
+          (v) => v == null ? null : License.fromJson(v as Map<String, dynamic>),
+        ),
+        version: $checkedConvert('version', (v) => v as String),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$InfoToJson(Info instance) => <String, dynamic>{
+  'title': instance.title,
+  'description': ?instance.description,
+  'termsOfService': ?instance.termsOfService,
+  'contact': ?instance.contact?.toJson(),
+  'license': ?instance.license?.toJson(),
+  'version': instance.version,
+};
+
+License _$LicenseFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('License', json, ($checkedConvert) {
+      $checkKeys(json, allowedKeys: const ['name', 'url']);
+      final val = License(
+        name: $checkedConvert('name', (v) => v as String),
+        url: $checkedConvert('url', (v) => v as String?),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$LicenseToJson(License instance) => <String, dynamic>{
+  'name': instance.name,
+  'url': ?instance.url,
+};
+
+Link _$LinkFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Link', json, ($checkedConvert) {
+      $checkKeys(
+        json,
+        allowedKeys: const [
+          'operationRef',
+          'operationId',
+          'parameters',
+          'requestBody',
+          'description',
+          'server',
+        ],
+      );
+      final val = Link(
+        operationRef: $checkedConvert('operationRef', (v) => v as String?),
+        operationId: $checkedConvert('operationId', (v) => v as String?),
+        parameters: $checkedConvert(
+          'parameters',
+          (v) => v as Map<String, dynamic>?,
+        ),
+        requestBody: $checkedConvert('requestBody', (v) => v),
+        description: $checkedConvert('description', (v) => v as String?),
+        server: $checkedConvert(
+          'server',
+          (v) => v == null ? null : Server.fromJson(v as Map<String, dynamic>),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$LinkToJson(Link instance) => <String, dynamic>{
+  'operationRef': ?instance.operationRef,
+  'operationId': ?instance.operationId,
+  'parameters': ?instance.parameters,
+  'requestBody': ?instance.requestBody,
+  'description': ?instance.description,
+  'server': ?instance.server?.toJson(),
+};
+
+MediaType _$MediaTypeFromJson(Map<String, dynamic> json) => $checkedCreate(
+  'MediaType',
+  json,
+  ($checkedConvert) {
+    $checkKeys(
+      json,
+      allowedKeys: const ['schema', 'example', 'examples', 'encoding'],
+    );
+    final val = MediaType(
+      schema: $checkedConvert(
+        'schema',
+        (v) =>
+            v == null ? null : SchemasMap.fromJson(v as Map<String, dynamic>),
+      ),
+      example: $checkedConvert('example', (v) => v),
+      examples: $checkedConvert(
+        'examples',
+        (v) =>
+            v == null ? null : ExamplesMap.fromJson(v as Map<String, dynamic>),
+      ),
+      encoding: $checkedConvert(
+        'encoding',
+        (v) =>
+            v == null ? null : EncodingsMap.fromJson(v as Map<String, dynamic>),
+      ),
+    );
+    return val;
+  },
+);
+
+Map<String, dynamic> _$MediaTypeToJson(MediaType instance) => <String, dynamic>{
+  'schema': ?instance.schema?.toJson(),
+  'example': ?instance.example,
+  'examples': ?instance.examples?.toJson(),
+  'encoding': ?instance.encoding?.toJson(),
+};
+
+OAuthFlow _$OAuthFlowFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate('OAuthFlow', json, ($checkedConvert) {
+  $checkKeys(
+    json,
+    allowedKeys: const ['authorizationUrl', 'tokenUrl', 'refreshUrl', 'scopes'],
+  );
+  final val = OAuthFlow(
+    authorizationUrl: $checkedConvert('authorizationUrl', (v) => v as String?),
+    tokenUrl: $checkedConvert('tokenUrl', (v) => v as String?),
+    refreshUrl: $checkedConvert('refreshUrl', (v) => v as String?),
+    scopes: $checkedConvert(
+      'scopes',
+      (v) => Map<String, String>.from(v as Map),
+    ),
+  );
+  return val;
+});
+
+Map<String, dynamic> _$OAuthFlowToJson(OAuthFlow instance) => <String, dynamic>{
+  'authorizationUrl': ?instance.authorizationUrl,
+  'tokenUrl': ?instance.tokenUrl,
+  'refreshUrl': ?instance.refreshUrl,
+  'scopes': instance.scopes,
+};
+
+OAuthFlows _$OAuthFlowsFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('OAuthFlows', json, ($checkedConvert) {
+      $checkKeys(
+        json,
+        allowedKeys: const [
+          'implicit',
+          'password',
+          'clientCredentials',
+          'authorizationCode',
+        ],
+      );
+      final val = OAuthFlows(
+        implicit: $checkedConvert(
+          'implicit',
+          (v) =>
+              v == null ? null : OAuthFlow.fromJson(v as Map<String, dynamic>),
+        ),
+        password: $checkedConvert(
+          'password',
+          (v) =>
+              v == null ? null : OAuthFlow.fromJson(v as Map<String, dynamic>),
+        ),
+        clientCredentials: $checkedConvert(
+          'clientCredentials',
+          (v) =>
+              v == null ? null : OAuthFlow.fromJson(v as Map<String, dynamic>),
+        ),
+        authorizationCode: $checkedConvert(
+          'authorizationCode',
+          (v) =>
+              v == null ? null : OAuthFlow.fromJson(v as Map<String, dynamic>),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$OAuthFlowsToJson(OAuthFlows instance) =>
+    <String, dynamic>{
+      'implicit': ?instance.implicit?.toJson(),
+      'password': ?instance.password?.toJson(),
+      'clientCredentials': ?instance.clientCredentials?.toJson(),
+      'authorizationCode': ?instance.authorizationCode?.toJson(),
+    };
+
+PathItem _$PathItemFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('PathItem', json, ($checkedConvert) {
+      $checkKeys(
+        json,
+        allowedKeys: const [
+          'get_',
+          'put',
+          'post',
+          'delete',
+          'options',
+          'head',
+          'patch',
+          'trace',
+          'servers',
+          'parameters',
+        ],
+      );
+      final val = PathItem(
+        get_: $checkedConvert(
+          'get_',
+          (v) =>
+              v == null ? null : Operation.fromJson(v as Map<String, dynamic>),
+        ),
+        put: $checkedConvert(
+          'put',
+          (v) =>
+              v == null ? null : Operation.fromJson(v as Map<String, dynamic>),
+        ),
+        post: $checkedConvert(
+          'post',
+          (v) =>
+              v == null ? null : Operation.fromJson(v as Map<String, dynamic>),
+        ),
+        delete: $checkedConvert(
+          'delete',
+          (v) =>
+              v == null ? null : Operation.fromJson(v as Map<String, dynamic>),
+        ),
+        options: $checkedConvert(
+          'options',
+          (v) =>
+              v == null ? null : Operation.fromJson(v as Map<String, dynamic>),
+        ),
+        head: $checkedConvert(
+          'head',
+          (v) =>
+              v == null ? null : Operation.fromJson(v as Map<String, dynamic>),
+        ),
+        patch: $checkedConvert(
+          'patch',
+          (v) =>
+              v == null ? null : Operation.fromJson(v as Map<String, dynamic>),
+        ),
+        trace: $checkedConvert(
+          'trace',
+          (v) =>
+              v == null ? null : Operation.fromJson(v as Map<String, dynamic>),
+        ),
+        servers: $checkedConvert(
+          'servers',
+          (v) => v == null ? null : ServerList.fromJson(v as List<dynamic>),
+        ),
+        parameters: $checkedConvert(
+          'parameters',
+          (v) => v == null ? null : ParametersList.fromJson(v as List<dynamic>),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$PathItemToJson(PathItem instance) => <String, dynamic>{
+  'get_': ?instance.get_?.toJson(),
+  'put': ?instance.put?.toJson(),
+  'post': ?instance.post?.toJson(),
+  'delete': ?instance.delete?.toJson(),
+  'options': ?instance.options?.toJson(),
+  'head': ?instance.head?.toJson(),
+  'patch': ?instance.patch?.toJson(),
+  'trace': ?instance.trace?.toJson(),
+  'servers': ?instance.servers?.toJson(),
+  'parameters': ?instance.parameters?.toJson(),
+};
+
+RequestBody _$RequestBodyFromJson(Map<String, dynamic> json) => $checkedCreate(
+  'RequestBody',
+  json,
+  ($checkedConvert) {
+    $checkKeys(json, allowedKeys: const ['description', 'required', 'content']);
+    final val = RequestBody(
+      description: $checkedConvert('description', (v) => v as String?),
+      required: $checkedConvert('required', (v) => v as bool),
+      content: $checkedConvert(
+        'content',
+        (v) => MediaTypesMap.fromJson(v as Map<String, dynamic>),
+      ),
+    );
+    return val;
+  },
+);
+
+Map<String, dynamic> _$RequestBodyToJson(RequestBody instance) =>
+    <String, dynamic>{
+      'description': ?instance.description,
+      'required': instance.required,
+      'content': instance.content.toJson(),
+    };
+
+Response _$ResponseFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Response', json, ($checkedConvert) {
+      $checkKeys(
+        json,
+        allowedKeys: const ['description', 'headers', 'content', 'links'],
+      );
+      final val = Response(
+        description: $checkedConvert('description', (v) => v as String?),
+        headers: $checkedConvert(
+          'headers',
+          (v) =>
+              v == null ? null : HeadersMap.fromJson(v as Map<String, dynamic>),
+        ),
+        content: $checkedConvert(
+          'content',
+          (v) => v == null
+              ? null
+              : MediaTypesMap.fromJson(v as Map<String, dynamic>),
+        ),
+        links: $checkedConvert(
+          'links',
+          (v) =>
+              v == null ? null : LinksMap.fromJson(v as Map<String, dynamic>),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$ResponseToJson(Response instance) => <String, dynamic>{
+  'description': ?instance.description,
+  'headers': ?instance.headers?.toJson(),
+  'content': ?instance.content?.toJson(),
+  'links': ?instance.links?.toJson(),
+};
+
+SecurityRequirement _$SecurityRequirementFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('SecurityRequirement', json, ($checkedConvert) {
+      $checkKeys(json, allowedKeys: const ['requirements']);
+      final val = SecurityRequirement(
+        requirements: $checkedConvert(
+          'requirements',
+          (v) => (v as Map<String, dynamic>).map(
+            (k, e) => MapEntry(
+              k,
+              (e as List<dynamic>).map((e) => e as String).toList(),
+            ),
+          ),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$SecurityRequirementToJson(
+  SecurityRequirement instance,
+) => <String, dynamic>{'requirements': instance.requirements};
+
+SecurityScheme _$SecuritySchemeFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('SecurityScheme', json, ($checkedConvert) {
+      $checkKeys(
+        json,
+        allowedKeys: const [
+          'type',
+          'description',
+          'name',
+          'in_',
+          'scheme',
+          'bearerFormat',
+          'flows',
+          'openIdConnectUrl',
+        ],
+      );
+      final val = SecurityScheme(
+        type: $checkedConvert(
+          'type',
+          (v) => $enumDecode(_$SecuritySchemeTypeEnumMap, v),
+        ),
+        description: $checkedConvert('description', (v) => v as String?),
+        name: $checkedConvert('name', (v) => v as String?),
+        in_: $checkedConvert(
+          'in_',
+          (v) => $enumDecodeNullable(_$SecuritySchemeInEnumMap, v),
+        ),
+        scheme: $checkedConvert('scheme', (v) => v as String?),
+        bearerFormat: $checkedConvert('bearerFormat', (v) => v as String?),
+        flows: $checkedConvert(
+          'flows',
+          (v) =>
+              v == null ? null : OAuthFlows.fromJson(v as Map<String, dynamic>),
+        ),
+        openIdConnectUrl: $checkedConvert(
+          'openIdConnectUrl',
+          (v) => v as String?,
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$SecuritySchemeToJson(SecurityScheme instance) =>
+    <String, dynamic>{
+      'type': _$SecuritySchemeTypeEnumMap[instance.type]!,
+      'description': ?instance.description,
+      'name': ?instance.name,
+      'in_': ?_$SecuritySchemeInEnumMap[instance.in_],
+      'scheme': ?instance.scheme,
+      'bearerFormat': ?instance.bearerFormat,
+      'flows': ?instance.flows?.toJson(),
+      'openIdConnectUrl': ?instance.openIdConnectUrl,
+    };
+
+const _$SecuritySchemeTypeEnumMap = {
+  SecuritySchemeType.apiKey: 'apiKey',
+  SecuritySchemeType.http: 'http',
+  SecuritySchemeType.oauth2: 'oauth2',
+  SecuritySchemeType.openIdConnect: 'openIdConnect',
+};
+
+const _$SecuritySchemeInEnumMap = {
+  SecuritySchemeIn.query: 'query',
+  SecuritySchemeIn.header: 'header',
+  SecuritySchemeIn.cookie: 'cookie',
+};
+
+Server _$ServerFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Server', json, ($checkedConvert) {
+      $checkKeys(json, allowedKeys: const ['url', 'description', 'variables']);
+      final val = Server(
+        url: $checkedConvert('url', (v) => v as String),
+        description: $checkedConvert('description', (v) => v as String?),
+        variables: $checkedConvert(
+          'variables',
+          (v) => v == null
+              ? null
+              : ServerVariablesMap.fromJson(v as Map<String, dynamic>),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$ServerToJson(Server instance) => <String, dynamic>{
+  'url': instance.url,
+  'description': ?instance.description,
+  'variables': ?instance.variables?.toJson(),
+};
+
+ServerVariable _$ServerVariableFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('ServerVariable', json, ($checkedConvert) {
+      $checkKeys(json, allowedKeys: const ['enum_', 'default_', 'description']);
+      final val = ServerVariable(
+        enum_: $checkedConvert(
+          'enum_',
+          (v) => (v as List<dynamic>?)?.map((e) => e as String).toList(),
+        ),
+        default_: $checkedConvert('default_', (v) => v as String),
+        description: $checkedConvert('description', (v) => v as String?),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$ServerVariableToJson(ServerVariable instance) =>
+    <String, dynamic>{
+      'enum_': ?instance.enum_,
+      'default_': instance.default_,
+      'description': ?instance.description,
+    };
+
+Tag _$TagFromJson(Map<String, dynamic> json) => $checkedCreate('Tag', json, (
+  $checkedConvert,
+) {
+  $checkKeys(json, allowedKeys: const ['name', 'description', 'externalDocs']);
+  final val = Tag(
+    name: $checkedConvert('name', (v) => v as String),
+    description: $checkedConvert('description', (v) => v as String?),
+    externalDocs: $checkedConvert(
+      'externalDocs',
+      (v) => v == null
+          ? null
+          : ExternalDocumentation.fromJson(v as Map<String, dynamic>),
+    ),
+  );
+  return val;
+});
+
+Map<String, dynamic> _$TagToJson(Tag instance) => <String, dynamic>{
+  'name': instance.name,
+  'description': ?instance.description,
+  'externalDocs': ?instance.externalDocs?.toJson(),
+};
+
+XML _$XMLFromJson(Map<String, dynamic> json) => $checkedCreate('XML', json, (
+  $checkedConvert,
+) {
+  $checkKeys(
+    json,
+    allowedKeys: const ['name', 'namespace', 'prefix', 'attribute', 'wrapped'],
+  );
+  final val = XML(
+    name: $checkedConvert('name', (v) => v as String?),
+    namespace: $checkedConvert('namespace', (v) => v as String?),
+    prefix: $checkedConvert('prefix', (v) => v as String?),
+    attribute: $checkedConvert('attribute', (v) => v as bool),
+    wrapped: $checkedConvert('wrapped', (v) => v as bool),
+  );
+  return val;
+});
+
+Map<String, dynamic> _$XMLToJson(XML instance) => <String, dynamic>{
+  'name': ?instance.name,
+  'namespace': ?instance.namespace,
+  'prefix': ?instance.prefix,
+  'attribute': instance.attribute,
+  'wrapped': instance.wrapped,
+};
+
+OpenApiDocument _$OpenApiDocumentFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('OpenApiDocument', json, ($checkedConvert) {
+      $checkKeys(
+        json,
+        allowedKeys: const [
+          'openapi',
+          'info',
+          'servers',
+          'paths',
+          'components',
+          'security',
+          'tags',
+          'externalDocs',
+        ],
+      );
+      final val = OpenApiDocument(
+        openapi: $checkedConvert('openapi', (v) => v as String),
+        info: $checkedConvert(
+          'info',
+          (v) => Info.fromJson(v as Map<String, dynamic>),
+        ),
+        servers: $checkedConvert(
+          'servers',
+          (v) => v == null ? null : ServerList.fromJson(v as List<dynamic>),
+        ),
+        paths: $checkedConvert(
+          'paths',
+          (v) => PathsMap.fromJson(v as Map<String, dynamic>),
+        ),
+        components: $checkedConvert(
+          'components',
+          (v) =>
+              v == null ? null : Components.fromJson(v as Map<String, dynamic>),
+        ),
+        security: $checkedConvert(
+          'security',
+          (v) => v == null
+              ? null
+              : SecurityRequirementsList.fromJson(v as List<dynamic>),
+        ),
+        tags: $checkedConvert(
+          'tags',
+          (v) => v == null ? null : TagsList.fromJson(v as List<dynamic>),
+        ),
+        externalDocs: $checkedConvert(
+          'externalDocs',
+          (v) => v == null
+              ? null
+              : ExternalDocumentation.fromJson(v as Map<String, dynamic>),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$OpenApiDocumentToJson(OpenApiDocument instance) =>
+    <String, dynamic>{
+      'openapi': instance.openapi,
+      'info': instance.info.toJson(),
+      'servers': ?instance.servers?.toJson(),
+      'paths': instance.paths.toJson(),
+      'components': ?instance.components?.toJson(),
+      'security': ?instance.security?.toJson(),
+      'tags': ?instance.tags?.toJson(),
+      'externalDocs': ?instance.externalDocs?.toJson(),
+    };
+
+Schema _$SchemaFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Schema', json, ($checkedConvert) {
+      $checkKeys(
+        json,
+        allowedKeys: const [
+          'title',
+          'description',
+          'default_',
+          'type',
+          'format',
+          'multipleOf',
+          'maximum',
+          'exclusiveMaximum',
+          'minimum',
+          'exclusiveMinimum',
+          'maxLength',
+          'minLength',
+          'pattern',
+          'maxItems',
+          'minItems',
+          'uniqueItems',
+          'items',
+          'maxProperties',
+          'minProperties',
+          'required_',
+          'properties',
+          'additionalPropertiesAllowed',
+          'additionalProperties',
+          'allOf',
+          'oneOf',
+          'anyOf',
+          'enum_',
+          'nullable',
+          'discriminator',
+          'readOnly',
+          'writeOnly',
+          'xml',
+          'externalDocs',
+          'example',
+          'deprecated',
+        ],
+      );
+      final val = Schema(
+        title: $checkedConvert('title', (v) => v as String?),
+        description: $checkedConvert('description', (v) => v as String?),
+        default_: $checkedConvert('default_', (v) => v),
+        type: $checkedConvert(
+          'type',
+          (v) => $enumDecodeNullable(_$SchemaTypeEnumMap, v),
+        ),
+        format: $checkedConvert('format', (v) => v as String?),
+        multipleOf: $checkedConvert('multipleOf', (v) => v as num?),
+        maximum: $checkedConvert('maximum', (v) => v as num?),
+        exclusiveMaximum: $checkedConvert('exclusiveMaximum', (v) => v as num?),
+        minimum: $checkedConvert('minimum', (v) => v as num?),
+        exclusiveMinimum: $checkedConvert('exclusiveMinimum', (v) => v as num?),
+        maxLength: $checkedConvert('maxLength', (v) => (v as num?)?.toInt()),
+        minLength: $checkedConvert('minLength', (v) => (v as num?)?.toInt()),
+        pattern: $checkedConvert('pattern', (v) => v as String?),
+        maxItems: $checkedConvert('maxItems', (v) => (v as num?)?.toInt()),
+        minItems: $checkedConvert('minItems', (v) => (v as num?)?.toInt()),
+        uniqueItems: $checkedConvert('uniqueItems', (v) => v as bool),
+        items: $checkedConvert(
+          'items',
+          (v) => v == null ? null : Schema.fromJson(v as Map<String, dynamic>),
+        ),
+        maxProperties: $checkedConvert(
+          'maxProperties',
+          (v) => (v as num?)?.toInt(),
+        ),
+        minProperties: $checkedConvert(
+          'minProperties',
+          (v) => (v as num?)?.toInt(),
+        ),
+        required_: $checkedConvert(
+          'required_',
+          (v) => (v as List<dynamic>?)?.map((e) => e as String).toList(),
+        ),
+        properties: $checkedConvert(
+          'properties',
+          (v) =>
+              v == null ? null : SchemasMap.fromJson(v as Map<String, dynamic>),
+        ),
+        additionalPropertiesAllowed: $checkedConvert(
+          'additionalPropertiesAllowed',
+          (v) => v as bool?,
+        ),
+        additionalProperties: $checkedConvert(
+          'additionalProperties',
+          (v) => v == null ? null : Schema.fromJson(v as Map<String, dynamic>),
+        ),
+        allOf: $checkedConvert(
+          'allOf',
+          (v) => v == null ? null : SchemasList.fromJson(v as List<dynamic>),
+        ),
+        oneOf: $checkedConvert(
+          'oneOf',
+          (v) => v == null ? null : SchemasList.fromJson(v as List<dynamic>),
+        ),
+        anyOf: $checkedConvert(
+          'anyOf',
+          (v) => v == null ? null : SchemasList.fromJson(v as List<dynamic>),
+        ),
+        enum_: $checkedConvert('enum_', (v) => v as List<dynamic>?),
+        nullable: $checkedConvert('nullable', (v) => v as bool),
+        discriminator: $checkedConvert(
+          'discriminator',
+          (v) => v == null
+              ? null
+              : Discriminator.fromJson(v as Map<String, dynamic>),
+        ),
+        readOnly: $checkedConvert('readOnly', (v) => v as bool),
+        writeOnly: $checkedConvert('writeOnly', (v) => v as bool),
+        xml: $checkedConvert(
+          'xml',
+          (v) => v == null ? null : XML.fromJson(v as Map<String, dynamic>),
+        ),
+        externalDocs: $checkedConvert(
+          'externalDocs',
+          (v) => v == null
+              ? null
+              : ExternalDocumentation.fromJson(v as Map<String, dynamic>),
+        ),
+        example: $checkedConvert('example', (v) => v),
+        deprecated: $checkedConvert('deprecated', (v) => v as bool),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$SchemaToJson(Schema instance) => <String, dynamic>{
+  'title': ?instance.title,
+  'description': ?instance.description,
+  'default_': ?instance.default_,
+  'type': ?_$SchemaTypeEnumMap[instance.type],
+  'format': ?instance.format,
+  'multipleOf': ?instance.multipleOf,
+  'maximum': ?instance.maximum,
+  'exclusiveMaximum': ?instance.exclusiveMaximum,
+  'minimum': ?instance.minimum,
+  'exclusiveMinimum': ?instance.exclusiveMinimum,
+  'maxLength': ?instance.maxLength,
+  'minLength': ?instance.minLength,
+  'pattern': ?instance.pattern,
+  'maxItems': ?instance.maxItems,
+  'minItems': ?instance.minItems,
+  'uniqueItems': instance.uniqueItems,
+  'items': ?instance.items?.toJson(),
+  'maxProperties': ?instance.maxProperties,
+  'minProperties': ?instance.minProperties,
+  'required_': ?instance.required_,
+  'properties': ?instance.properties?.toJson(),
+  'additionalPropertiesAllowed': ?instance.additionalPropertiesAllowed,
+  'additionalProperties': ?instance.additionalProperties?.toJson(),
+  'allOf': ?instance.allOf?.toJson(),
+  'oneOf': ?instance.oneOf?.toJson(),
+  'anyOf': ?instance.anyOf?.toJson(),
+  'enum_': ?instance.enum_,
+  'nullable': instance.nullable,
+  'discriminator': ?instance.discriminator?.toJson(),
+  'readOnly': instance.readOnly,
+  'writeOnly': instance.writeOnly,
+  'xml': ?instance.xml?.toJson(),
+  'externalDocs': ?instance.externalDocs?.toJson(),
+  'example': ?instance.example,
+  'deprecated': instance.deprecated,
+};
+
+const _$SchemaTypeEnumMap = {
+  SchemaType.string: 'string',
+  SchemaType.number: 'number',
+  SchemaType.integer: 'integer',
+  SchemaType.boolean: 'boolean',
+  SchemaType.array: 'array',
+  SchemaType.object: 'object',
+  SchemaType.null_: 'null_',
+  SchemaType.unknown: 'unknown',
+  SchemaType.multiType: 'multiType',
+};

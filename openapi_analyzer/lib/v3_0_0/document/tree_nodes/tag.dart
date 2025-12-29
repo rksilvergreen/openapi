@@ -24,12 +24,16 @@ class Tag extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable(createFactory: false)
+@JsonSerializable(createFactory: false, createToJson: false)
 class TagsList extends ListTreeNode<Tag> {
   TagsList(List<Tag> tags) : super(tags);
 
   factory TagsList.fromJson(List<dynamic> json) {
     return TagsList(json.map((i) => Tag.fromJson(i)).toList());
+  }
+
+  List<dynamic> toJson() {
+    return map((item) => _$TagToJson(item)).toList();
   }
 }
 

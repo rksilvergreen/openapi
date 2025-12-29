@@ -20,7 +20,7 @@ class MediaType extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable(createFactory: false)
+@JsonSerializable(createFactory: false, createToJson: false)
 class MediaTypesMap extends MapTreeNode<MediaType> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
@@ -31,5 +31,16 @@ class MediaTypesMap extends MapTreeNode<MediaType> {
     final extensions = _extractExtensions(json);
     final map = _jsonWithoutExtensions(json);
     return MediaTypesMap(map.map((key, value) => MapEntry(key, MediaType.fromJson(value))), extensions: extensions);
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    for (final entry in entries) {
+      json[entry.key] = _$MediaTypeToJson(entry.value);
+    }
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
   }
 }

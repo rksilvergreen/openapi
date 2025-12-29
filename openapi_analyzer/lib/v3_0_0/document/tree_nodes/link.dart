@@ -30,7 +30,7 @@ class Link extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable(createFactory: false)
+@JsonSerializable(createFactory: false, createToJson: false)
 class LinksMap extends MapTreeNode<Link> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
@@ -41,6 +41,17 @@ class LinksMap extends MapTreeNode<Link> {
     final extensions = _extractExtensions(json);
     final map = _jsonWithoutExtensions(json);
     return LinksMap(map.map((key, value) => MapEntry(key, Link.fromJson(value))), extensions: extensions);
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    for (final entry in entries) {
+      json[entry.key] = _$LinkToJson(entry.value);
+    }
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
   }
 }
 

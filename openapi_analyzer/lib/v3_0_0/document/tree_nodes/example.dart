@@ -26,7 +26,7 @@ class Example extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable(createFactory: false)
+@JsonSerializable(createFactory: false, createToJson: false)
 class ExamplesMap extends MapTreeNode<Example> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
@@ -37,6 +37,17 @@ class ExamplesMap extends MapTreeNode<Example> {
     final extensions = _extractExtensions(json);
     final map = _jsonWithoutExtensions(json);
     return ExamplesMap(map.map((key, value) => MapEntry(key, Example.fromJson(value))), extensions: extensions);
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    for (final entry in entries) {
+      json[entry.key] = _$ExampleToJson(entry.value);
+    }
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
   }
 }
 

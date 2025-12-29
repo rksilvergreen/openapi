@@ -13,7 +13,6 @@ class OpenApiDocument extends TreeNode {
   final ExternalDocumentation? externalDocs;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
-  final String $name;
 
   OpenApiDocument({
     required this.openapi,
@@ -25,7 +24,6 @@ class OpenApiDocument extends TreeNode {
     this.tags,
     this.externalDocs,
     this.extensions,
-    required this.$name,
   });
 
   factory OpenApiDocument.fromJson(Map<String, dynamic> json) {

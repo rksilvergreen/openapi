@@ -33,6 +33,7 @@ part 'tree_nodes/server.dart';
 part 'tree_nodes/tag.dart';
 part 'tree_nodes/xml.dart';
 part 'tree_nodes/openapi_document.dart';
+part 'tree_nodes/schema.dart';
 part '_gen/document.g.dart';
 
 class Document {

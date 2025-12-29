@@ -40,7 +40,7 @@ class Header extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable(createFactory: false)
+@JsonSerializable(createFactory: false, createToJson: false)
 class HeadersMap extends MapTreeNode<Header> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
@@ -51,5 +51,16 @@ class HeadersMap extends MapTreeNode<Header> {
     final extensions = _extractExtensions(json);
     final map = _jsonWithoutExtensions(json);
     return HeadersMap(map.map((key, value) => MapEntry(key, Header.fromJson(value))), extensions: extensions);
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    for (final entry in entries) {
+      json[entry.key] = _$HeaderToJson(entry.value);
+    }
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
   }
 }

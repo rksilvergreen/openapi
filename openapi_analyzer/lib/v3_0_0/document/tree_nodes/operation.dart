@@ -10,7 +10,8 @@ class Operation extends TreeNode {
   final CallbacksMap? callbacks;
   final SecurityRequirementsList? security;
   final ServerList? servers;
-  final String $name;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final Map<String, dynamic>? extensions;
 
   Operation({
     this.externalDocs,
@@ -20,7 +21,7 @@ class Operation extends TreeNode {
     this.callbacks,
     this.security,
     this.servers,
-    required this.$name,
+    this.extensions,
   });
 
   factory Operation.fromJson(Map<String, dynamic> json) {

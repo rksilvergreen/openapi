@@ -32,7 +32,6 @@ class SecurityScheme extends TreeNode {
   final String? openIdConnectUrl;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
-  final String $name;
 
   SecurityScheme({
     required this.type,
@@ -44,7 +43,6 @@ class SecurityScheme extends TreeNode {
     this.flows,
     this.openIdConnectUrl,
     this.extensions,
-    required this.$name,
   });
 
   factory SecurityScheme.fromJson(Map<String, dynamic> json) {
@@ -55,7 +53,7 @@ class SecurityScheme extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable(createFactory: false)
+@JsonSerializable(createFactory: false, createToJson: false)
 class SecuritySchemesMap extends MapTreeNode<SecurityScheme> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
@@ -65,7 +63,20 @@ class SecuritySchemesMap extends MapTreeNode<SecurityScheme> {
   factory SecuritySchemesMap.fromJson(Map<String, dynamic> json) {
     final extensions = _extractExtensions(json);
     final map = _jsonWithoutExtensions(json);
-    return SecuritySchemesMap(map.map((key, value) => MapEntry(key, SecurityScheme.fromJson(value))), extensions: extensions);
+    return SecuritySchemesMap(
+      map.map((key, value) => MapEntry(key, SecurityScheme.fromJson(value))),
+      extensions: extensions,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    for (final entry in entries) {
+      json[entry.key] = _$SecuritySchemeToJson(entry.value);
+    }
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
   }
 }
-
