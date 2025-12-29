@@ -17,7 +17,7 @@ class Encoding extends TreeNode {
     required this.style,
     required this.explode,
     required this.allowReserved,
-    required this.extensions,
+    this.extensions,
   });
 
   factory Encoding.fromJson(Map<String, dynamic> json) {

@@ -33,7 +33,7 @@ part 'tree_nodes/server.dart';
 part 'tree_nodes/tag.dart';
 part 'tree_nodes/xml.dart';
 part 'tree_nodes/openapi_document.dart';
-part 'gen/document.g.dart';
+part '_gen/document.g.dart';
 
 class Document {
   final String id;
