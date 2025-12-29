@@ -17,7 +17,7 @@ import 'header_doc_node.dart';
 import 'path_item_doc_node.dart';
 import '../edge.dart';
 import '../map_doc_node.dart';
-import '../list_doc_node.dart';
+import '../document/list_doc_node.dart';
 import 'package:openapi_analyzer/v3_0_0/nodes/schema/schema.dart';
 
 class SchemaDocNode extends DocNode with Referencable, DocInternalNode {

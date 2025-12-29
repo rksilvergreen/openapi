@@ -1,4 +1,18 @@
-import 'tree.dart';
+import 'dart:collection';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
+import 'package:uuid/uuid.dart';
+
+part 'json_helpers.dart';
+part 'edge.dart';
+part 'tree.dart';
+part 'tree_node.dart';
+part 'map_tree_node.dart';
+part 'list_tree_node.dart';
+part 'tree_nodes/encoding.dart';
+part 'tree_nodes/header.dart';
+part 'tree_nodes/parameter.dart';
+part 'tree_nodes/operation.dart';
 
 class Document {
   final String id;

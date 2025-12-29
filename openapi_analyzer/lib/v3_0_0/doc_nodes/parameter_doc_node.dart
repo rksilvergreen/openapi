@@ -11,7 +11,7 @@ import 'media_type_doc_node.dart';
 import '../naming/naming_utils.dart';
 import 'operation_doc_node.dart';
 import 'path_item_doc_node.dart';
-import '../list_doc_node.dart';
+import '../document/list_doc_node.dart';
 import '../map_doc_node.dart';
 
 class ParameterDocNode extends DocNode with DocInternalNode, Referencable {

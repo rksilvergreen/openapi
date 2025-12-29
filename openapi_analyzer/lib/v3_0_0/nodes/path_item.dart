@@ -1,4 +1,4 @@
-import 'operation.dart';
+import '../document/tree_nodes/operation.dart';
 import 'server.dart';
 import 'parameter.dart';
 import '../node.dart';

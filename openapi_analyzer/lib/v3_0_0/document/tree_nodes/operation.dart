@@ -1,0 +1,31 @@
+part of '../document.dart';
+
+@CopyWith()
+@JsonSerializable()
+class Operation extends TreeNode {
+  final ExternalDocumentation? externalDocs;
+  final ParametersList? parameters;
+  final RequestBody? requestBody;
+  final ResponsesMap responses;
+  final CallbacksMap? callbacks;
+  final SecurityRequirementsList? security;
+  final ServerList? servers;
+  final String $name;
+
+  Operation({
+    this.externalDocs,
+    this.parameters,
+    this.requestBody,
+    required this.responses,
+    this.callbacks,
+    this.security,
+    this.servers,
+    required this.$name,
+  });
+
+  factory Operation.fromJson(Map<String, dynamic> json) {
+    final extensions = _extractExtensions(json);
+    final operation = _$OperationFromJson(_jsonWithoutExtensions(json));
+    return operation.copyWith(extensions: extensions);
+  }
+}

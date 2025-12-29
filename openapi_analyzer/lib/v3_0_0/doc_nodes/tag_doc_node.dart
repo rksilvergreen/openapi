@@ -2,7 +2,7 @@ import '../validation/validation_utils.dart';
 import 'external_documentation_doc_node.dart';
 import '../doc_node.dart';
 import '../edge.dart';
-import '../list_doc_node.dart';
+import '../document/list_doc_node.dart';
 
 class TagDocNode extends DocNode with DocInternalNode {
   TagDocNode(super.json);

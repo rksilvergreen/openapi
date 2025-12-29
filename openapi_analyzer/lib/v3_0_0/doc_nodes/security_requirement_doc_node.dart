@@ -2,7 +2,7 @@ import '../openapi_graph.dart';
 import '../validation/validation_utils.dart';
 import '../../validation_exception.dart';
 import '../doc_node.dart';
-import '../list_doc_node.dart';
+import '../document/list_doc_node.dart';
 
 class SecurityRequirementDocNode extends DocNode with DocLeafNode {
   SecurityRequirementDocNode(super.json);

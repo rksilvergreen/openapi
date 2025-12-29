@@ -1,10 +1,9 @@
-import 'tree_node.dart';
-import 'package:collection/collection.dart';
+part of 'document.dart';
 
 class Edge {
-  final TreeNode parent;
-  final TreeNode child;
-  final String via;
+  TreeNode parent;
+  TreeNode child;
+  String via;
 
   Edge(this.parent, this.child, this.via);
 }

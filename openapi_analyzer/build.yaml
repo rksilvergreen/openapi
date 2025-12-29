@@ -19,4 +19,4 @@ targets:
       copy_with_extension_gen:
         options:
           generate_for:
-            - lib/src/models/**
+            - lib/v3_0_0/document/tree_nodes/document.dart
