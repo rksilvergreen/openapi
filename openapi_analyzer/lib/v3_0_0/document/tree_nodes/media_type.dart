@@ -20,7 +20,7 @@ class MediaType extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable()
+@JsonSerializable(createFactory: false)
 class MediaTypesMap extends MapTreeNode<MediaType> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;

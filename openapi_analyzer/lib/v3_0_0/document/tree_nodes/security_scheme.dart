@@ -55,7 +55,7 @@ class SecurityScheme extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable()
+@JsonSerializable(createFactory: false)
 class SecuritySchemesMap extends MapTreeNode<SecurityScheme> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;

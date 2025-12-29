@@ -30,7 +30,7 @@ class Link extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable()
+@JsonSerializable(createFactory: false)
 class LinksMap extends MapTreeNode<Link> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;

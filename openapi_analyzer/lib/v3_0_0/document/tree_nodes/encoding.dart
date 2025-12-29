@@ -28,7 +28,7 @@ class Encoding extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable()
+@JsonSerializable(createFactory: false)
 class EncodingsMap extends MapTreeNode<Encoding> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;

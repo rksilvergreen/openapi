@@ -24,7 +24,7 @@ class Tag extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable()
+@JsonSerializable(createFactory: false)
 class TagsList extends ListTreeNode<Tag> {
   TagsList(List<Tag> tags) : super(tags);
 

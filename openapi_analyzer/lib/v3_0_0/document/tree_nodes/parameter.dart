@@ -69,7 +69,7 @@ class Parameter extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable()
+@JsonSerializable(createFactory: false)
 class ParametersList extends ListTreeNode<Parameter> {
   ParametersList(List<Parameter> parameters) : super(parameters);
 
@@ -79,7 +79,7 @@ class ParametersList extends ListTreeNode<Parameter> {
 }
 
 @CopyWith()
-@JsonSerializable()
+@JsonSerializable(createFactory: false)
 class ParametersMap extends MapTreeNode<Parameter> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;

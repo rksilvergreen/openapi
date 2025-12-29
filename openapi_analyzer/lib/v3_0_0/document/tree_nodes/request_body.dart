@@ -26,7 +26,7 @@ class RequestBody extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable()
+@JsonSerializable(createFactory: false)
 class RequestBodiesMap extends MapTreeNode<RequestBody> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;

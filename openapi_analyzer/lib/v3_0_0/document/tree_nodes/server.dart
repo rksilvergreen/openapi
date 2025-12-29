@@ -26,7 +26,7 @@ class Server extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable()
+@JsonSerializable(createFactory: false)
 class ServerList extends ListTreeNode<Server> {
   ServerList(List<Server> servers) : super(servers);
 
@@ -59,7 +59,7 @@ class ServerVariable extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable()
+@JsonSerializable(createFactory: false)
 class ServerVariablesMap extends MapTreeNode<ServerVariable> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;

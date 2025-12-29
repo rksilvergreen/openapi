@@ -13,7 +13,7 @@ class SecurityRequirement extends TreeNode {
 }
 
 @CopyWith()
-@JsonSerializable()
+@JsonSerializable(createFactory: false)
 class SecurityRequirementsList extends ListTreeNode<SecurityRequirement> {
   SecurityRequirementsList(List<SecurityRequirement> requirements) : super(requirements);
 
