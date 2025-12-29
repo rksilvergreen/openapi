@@ -13,6 +13,27 @@ part 'tree_nodes/encoding.dart';
 part 'tree_nodes/header.dart';
 part 'tree_nodes/parameter.dart';
 part 'tree_nodes/operation.dart';
+part 'tree_nodes/callback.dart';
+part 'tree_nodes/components.dart';
+part 'tree_nodes/contact.dart';
+part 'tree_nodes/discriminator.dart';
+part 'tree_nodes/example.dart';
+part 'tree_nodes/external_documentation.dart';
+part 'tree_nodes/info.dart';
+part 'tree_nodes/license.dart';
+part 'tree_nodes/link.dart';
+part 'tree_nodes/media_type.dart';
+part 'tree_nodes/oauth_flow.dart';
+part 'tree_nodes/path_item.dart';
+part 'tree_nodes/request_body.dart';
+part 'tree_nodes/response.dart';
+part 'tree_nodes/security_requirement.dart';
+part 'tree_nodes/security_scheme.dart';
+part 'tree_nodes/server.dart';
+part 'tree_nodes/tag.dart';
+part 'tree_nodes/xml.dart';
+part 'tree_nodes/openapi_document.dart';
+part 'gen/document.g.dart';
 
 class Document {
   final String id;
