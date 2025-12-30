@@ -10,9 +10,12 @@ class SecurityRequirement extends TreeNode {
   factory SecurityRequirement.fromJson(Map<String, dynamic> json) {
     return _$SecurityRequirementFromJson(json);
   }
+
+  Map<String, dynamic> toJson() {
+    return _$SecurityRequirementToJson(this);
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class SecurityRequirementsList extends ListTreeNode<SecurityRequirement> {
   SecurityRequirementsList(List<SecurityRequirement> requirements) : super(requirements);

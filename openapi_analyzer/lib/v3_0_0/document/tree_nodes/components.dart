@@ -33,5 +33,13 @@ class Components extends TreeNode {
     final components = _$ComponentsFromJson(_jsonWithoutExtensions(json));
     return components.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$ComponentsToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 

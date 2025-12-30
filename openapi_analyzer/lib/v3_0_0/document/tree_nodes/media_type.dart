@@ -17,9 +17,16 @@ class MediaType extends TreeNode {
     final mediaType = _$MediaTypeFromJson(_jsonWithoutExtensions(json));
     return mediaType.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$MediaTypeToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class MediaTypesMap extends MapTreeNode<MediaType> {
   @JsonKey(includeFromJson: false, includeToJson: false)

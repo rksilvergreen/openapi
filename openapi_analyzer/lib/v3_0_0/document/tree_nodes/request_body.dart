@@ -9,21 +9,23 @@ class RequestBody extends TreeNode {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? extensions;
 
-  RequestBody({
-    this.description,
-    required this.required,
-    required this.content,
-    this.extensions,
-  });
+  RequestBody({this.description, required this.required, required this.content, this.extensions});
 
   factory RequestBody.fromJson(Map<String, dynamic> json) {
     final extensions = _extractExtensions(json);
     final requestBody = _$RequestBodyFromJson(_jsonWithoutExtensions(json));
     return requestBody.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$RequestBodyToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class RequestBodiesMap extends MapTreeNode<RequestBody> {
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -34,7 +36,10 @@ class RequestBodiesMap extends MapTreeNode<RequestBody> {
   factory RequestBodiesMap.fromJson(Map<String, dynamic> json) {
     final extensions = _extractExtensions(json);
     final map = _jsonWithoutExtensions(json);
-    return RequestBodiesMap(map.map((key, value) => MapEntry(key, RequestBody.fromJson(value))), extensions: extensions);
+    return RequestBodiesMap(
+      map.map((key, value) => MapEntry(key, RequestBody.fromJson(value))),
+      extensions: extensions,
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -48,4 +53,3 @@ class RequestBodiesMap extends MapTreeNode<RequestBody> {
     return json;
   }
 }
-

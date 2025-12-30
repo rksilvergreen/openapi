@@ -23,9 +23,16 @@ class Example extends TreeNode {
     final example = _$ExampleFromJson(_jsonWithoutExtensions(json));
     return example.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$ExampleToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class ExamplesMap extends MapTreeNode<Example> {
   @JsonKey(includeFromJson: false, includeToJson: false)

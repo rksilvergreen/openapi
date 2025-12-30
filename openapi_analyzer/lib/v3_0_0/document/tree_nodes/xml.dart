@@ -25,5 +25,13 @@ class XML extends TreeNode {
     final xml = _$XMLFromJson(_jsonWithoutExtensions(json));
     return xml.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$XMLToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 

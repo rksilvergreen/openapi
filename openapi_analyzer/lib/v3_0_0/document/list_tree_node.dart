@@ -1,26 +1,26 @@
 part of 'document.dart';
 
 abstract class ListTreeNode<CHILD_NODE extends TreeNode> extends TreeNode with ListMixin<CHILD_NODE> {
-  late final List<CHILD_NODE> _childNodes;
+  late final List<CHILD_NODE> _nodes;
 
-  ListTreeNode(List<CHILD_NODE> childNodes) : _childNodes = childNodes;
+  ListTreeNode(this._nodes);
 
   @override
-  int get length => _childNodes.length;
+  int get length => _nodes.length;
 
   @override
   set length(int newLength) {
-    _childNodes.length = newLength;
+    _nodes.length = newLength;
   }
 
   @override
-  CHILD_NODE operator [](int index) => _childNodes[index];
+  CHILD_NODE operator [](int index) => _nodes[index];
 
   @override
   void operator []=(int index, CHILD_NODE value) {
-    _childNodes[index] = value;
+    _nodes[index] = value;
   }
 
   @override
-  List<CHILD_NODE> toList({bool growable = true}) => _childNodes.toList(growable: growable);
+  List<CHILD_NODE> toList({bool growable = true}) => _nodes.toList(growable: growable);
 }

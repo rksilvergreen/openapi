@@ -19,5 +19,13 @@ class Discriminator extends TreeNode {
     final discriminator = _$DiscriminatorFromJson(_jsonWithoutExtensions(json));
     return discriminator.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$DiscriminatorToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 

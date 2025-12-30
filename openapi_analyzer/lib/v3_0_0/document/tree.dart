@@ -23,8 +23,8 @@ class Tree {
   TreeNode? getNode(String jsonPointer) => nodes[jsonPointer];
 
   bool verifyNode(TreeNode node) {
-    if (node.$id != null && node.$id!.document == id) {
-      final existingNode = getNode(node.$id!.jsonPointer);
+    if (node._$id != null && node._$id!.document == id) {
+      final existingNode = getNode(node._$id!.jsonPointer);
       if (existingNode != null) {
         return true;
       }
@@ -40,8 +40,7 @@ class Tree {
     }
     if (parent == null && via == null) {
       _setRoot(node);
-    }
-    else {
+    } else {
       _addNode(parent: parent!, node: node, via: via!);
     }
     if (node is Encoding) {
@@ -63,15 +62,15 @@ class Tree {
   void _addNode({required TreeNode parent, required TreeNode node, required String via}) {
     if (!verifyNode(parent)) {
       throw Exception(
-        'Can\'t add node [${node.runtimeType}] [${node.$id?.jsonPointer}] because parent [${parent.runtimeType}] [${parent.$id?.jsonPointer}] is not found in tree [$id]',
+        'Can\'t add node [${node.runtimeType}] [${node._$id?.jsonPointer}] because parent [${parent.runtimeType}] [${parent._$id?.jsonPointer}] is not found in tree [_$id]',
       );
     }
     if (verifyNode(node)) {
       throw Exception(
-        'Can\'t add node [${node.runtimeType}] [${node.$id?.jsonPointer}] because it already exists in tree [${node.$id?.tree.id}]',
+        'Can\'t add node [${node.runtimeType}] [${node._$id?.jsonPointer}] because it already exists in tree [${node._$id?.tree.id}]',
       );
     }
-    final jsonPointer = buildPointer([parent.$id!.jsonPointer, via]);
+    final jsonPointer = buildPointer([parent._$id!.jsonPointer, via]);
     node.setId(this, jsonPointer);
     nodes[jsonPointer] = node;
     final edge = Edge(parent, node, via);
@@ -80,91 +79,91 @@ class Tree {
     node.$parent = edge;
   }
 
-  TreeNode removeNode({required TreeNode node}) {
-    if (!verifyNode(node)) {
-      throw Exception(
-        'Can\'t remove node [${node.runtimeType}] [${node.$id?.jsonPointer}] because it is not found in tree [$id]',
-      );
-    }
-    // remove parent edge
-    if (node.$parent != null) {
-      final edge = node.$parent!;
-      // remove parent reference from node
-      node.$parent = null;
-      // remove edge from parent's children
-      final parent = edge.parent;
-      parent.$children.remove(edge);
-      // remove edge from edges list
-      edges.remove(edge);
-    }
+  // TreeNode removeNode({required TreeNode node}) {
+  //   if (!verifyNode(node)) {
+  //     throw Exception(
+  //       'Can\'t remove node [${node.runtimeType}] [${node._$id?.jsonPointer}] because it is not found in tree [_$id]',
+  //     );
+  //   }
+  //   // remove parent edge
+  //   if (node.$parent != null) {
+  //     final edge = node.$parent!;
+  //     // remove parent reference from node
+  //     node.$parent = null;
+  //     // remove edge from parent's children
+  //     final parent = edge.parent;
+  //     parent.$children.remove(edge);
+  //     // remove edge from edges list
+  //     edges.remove(edge);
+  //   }
 
-    // remove all child edges
-    if (node.$children.isNotEmpty) {
-      for (final edge in node.$children) {
-        // remove parent reference from child
-        final child = edge.child;
-        child.$parent = null;
-        // remove edge from node's children
-        node.$children.remove(edge);
-        // remove edge from edges list
-        edges.remove(edge);
-      }
-    }
-    // remove node from nodes map
-    nodes.remove(node.$id!.jsonPointer);
-    // remove node id
-    node.$id = null;
-    return node;
-  }
+  //   // remove all child edges
+  //   if (node.$children.isNotEmpty) {
+  //     for (final edge in node.$children) {
+  //       // remove parent reference from child
+  //       final child = edge.child;
+  //       child.$parent = null;
+  //       // remove edge from node's children
+  //       node.$children.remove(edge);
+  //       // remove edge from edges list
+  //       edges.remove(edge);
+  //     }
+  //   }
+  //   // remove node from nodes map
+  //   nodes.remove(node._$id!.jsonPointer);
+  //   // remove node id
+  //   node._$id = null;
+  //   return node;
+  // }
 
-  TreeNode replaceNode({required TreeNode oldNode, required TreeNode newNode}) {
-    if (!verifyNode(oldNode)) {
-      throw Exception(
-        'Can\'t replace node [${oldNode.runtimeType}] [${oldNode.$id?.jsonPointer}] because it is not found in tree [$id]',
-      );
-    }
-    if (verifyNode(newNode)) {
-      throw Exception(
-        'Can\'t replace node [${oldNode.runtimeType}] [${oldNode.$id?.jsonPointer}] with node [${newNode.runtimeType}] [${newNode.$id?.jsonPointer}] because it already exists in tree [$id]',
-      );
-    }
-    String jsonPointer = oldNode.$id!.jsonPointer;
-    Edge? parentEdge = oldNode.$parent;
-    List<Edge> childEdges = oldNode.$children;
-    // update parent reference
-    parentEdge?.child = newNode;
-    // update child references
-    for (final edge in childEdges) {
-      edge.parent = newNode;
-    }
-    // update new node id
-    newNode.setId(this, jsonPointer);
-    // update new node parent edge
-    newNode.$parent = parentEdge;
-    // update new node child edges
-    newNode.$children.addAll(childEdges);
-    // update nodes map
-    nodes[jsonPointer] = newNode;
+  // TreeNode replaceNode({required TreeNode oldNode, required TreeNode newNode}) {
+  //   if (!verifyNode(oldNode)) {
+  //     throw Exception(
+  //       'Can\'t replace node [${oldNode.runtimeType}] [${oldNode._$id?.jsonPointer}] because it is not found in tree [_$id]',
+  //     );
+  //   }
+  //   if (verifyNode(newNode)) {
+  //     throw Exception(
+  //       'Can\'t replace node [${oldNode.runtimeType}] [${oldNode._$id?.jsonPointer}] with node [${newNode.runtimeType}] [${newNode._$id?.jsonPointer}] because it already exists in tree [_$id]',
+  //     );
+  //   }
+  //   String jsonPointer = oldNode._$id!.jsonPointer;
+  //   Edge? parentEdge = oldNode.$parent;
+  //   List<Edge> childEdges = oldNode.$children;
+  //   // update parent reference
+  //   parentEdge?.child = newNode;
+  //   // update child references
+  //   for (final edge in childEdges) {
+  //     edge.parent = newNode;
+  //   }
+  //   // update new node id
+  //   newNode.setId(this, jsonPointer);
+  //   // update new node parent edge
+  //   newNode.$parent = parentEdge;
+  //   // update new node child edges
+  //   newNode.$children.addAll(childEdges);
+  //   // update nodes map
+  //   nodes[jsonPointer] = newNode;
 
-    // remove old node parent edge
-    oldNode.$parent = null;
-    // remove old node child edges
-    oldNode.$children.clear();
-    // remove old node id
-    oldNode.$id = null;
-    return oldNode;
-  }
+  //   // remove old node parent edge
+  //   oldNode.$parent = null;
+  //   // remove old node child edges
+  //   oldNode.$children.clear();
+  //   // remove old node id
+  //   oldNode._$id = null;
+  //   return oldNode;
+  // }
 
   void addSubTree({required Tree subtree, required TreeNode parent, required String via}) {
     if (!verifyNode(parent)) {
-      throw Exception('Can\'t add subtree because parent [${parent.$id?.jsonPointer}] is not found in tree [$id]');
+      throw Exception('Can\'t add subtree because parent [${parent._$id?.jsonPointer}] is not found in tree [_$id]');
     }
     if (subtree.root == null) {
       throw Exception('Can\'t add subtree because it has no root');
     }
 
     final subtreeRoot = subtree.root!;
-    final rootJsonPointer = buildPointer([parent.$id!.jsonPointer, via]);
+    final rootJsonPointer = buildPointer([parent._$id!.jsonPointer, via]);
 
     // Update all node IDs in the subtree to point to this tree and update jsonPointers
     _updateNodeIds(subtreeRoot, this, rootJsonPointer);
@@ -181,7 +180,7 @@ class Tree {
 
   Tree removeSubTree({required TreeNode subTreeRoot}) {
     if (!verifyNode(subTreeRoot)) {
-      throw Exception('Can\'t remove node [${subTreeRoot.$id?.jsonPointer}] because it is not found in tree [$id]');
+      throw Exception('Can\'t remove node [${subTreeRoot._$id?.jsonPointer}] because it is not found in tree [_$id]');
     }
 
     // Remove the parent edge if it exists
@@ -204,7 +203,7 @@ class Tree {
     void tearOffRecursive(TreeNode n) {
       subtreeNodes.add(n);
       // Remove node from current tree's nodes map
-      nodes.remove(n.$id!.jsonPointer);
+      nodes.remove(n._$id!.jsonPointer);
       for (final edge in n.$children) {
         subtreeEdges.add(edge);
         // Remove edge from current tree's edges list

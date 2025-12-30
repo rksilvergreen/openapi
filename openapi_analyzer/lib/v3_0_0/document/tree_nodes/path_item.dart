@@ -35,9 +35,16 @@ class PathItem extends TreeNode {
     final pathItem = _$PathItemFromJson(_jsonWithoutExtensions(json));
     return pathItem.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$PathItemToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class PathsMap extends MapTreeNode<PathItem> {
   @JsonKey(includeFromJson: false, includeToJson: false)

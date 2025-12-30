@@ -64,9 +64,16 @@ class Parameter extends TreeNode {
     final parameter = _$ParameterFromJson(_jsonWithoutExtensions(json));
     return parameter.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$ParameterToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class ParametersList extends ListTreeNode<Parameter> {
   ParametersList(List<Parameter> parameters) : super(parameters);
@@ -80,7 +87,6 @@ class ParametersList extends ListTreeNode<Parameter> {
   }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class ParametersMap extends MapTreeNode<Parameter> {
   @JsonKey(includeFromJson: false, includeToJson: false)

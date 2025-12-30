@@ -37,9 +37,16 @@ class Header extends TreeNode {
     final header = _$HeaderFromJson(_jsonWithoutExtensions(json));
     return header.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$HeaderToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class HeadersMap extends MapTreeNode<Header> {
   @JsonKey(includeFromJson: false, includeToJson: false)

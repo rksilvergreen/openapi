@@ -23,6 +23,14 @@ class OAuthFlow extends TreeNode {
     final oauthFlow = _$OAuthFlowFromJson(_jsonWithoutExtensions(json));
     return oauthFlow.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$OAuthFlowToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
 @CopyWith()
@@ -47,6 +55,14 @@ class OAuthFlows extends TreeNode {
     final extensions = _extractExtensions(json);
     final oauthFlows = _$OAuthFlowsFromJson(_jsonWithoutExtensions(json));
     return oauthFlows.copyWith(extensions: extensions);
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = _$OAuthFlowsToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
   }
 }
 

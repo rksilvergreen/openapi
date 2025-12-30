@@ -21,9 +21,16 @@ class Tag extends TreeNode {
     final tag = _$TagFromJson(_jsonWithoutExtensions(json));
     return tag.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$TagToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class TagsList extends ListTreeNode<Tag> {
   TagsList(List<Tag> tags) : super(tags);

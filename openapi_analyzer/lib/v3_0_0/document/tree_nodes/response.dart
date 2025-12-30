@@ -17,9 +17,16 @@ class Response extends TreeNode {
     final response = _$ResponseFromJson(_jsonWithoutExtensions(json));
     return response.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$ResponseToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class ResponsesMap extends MapTreeNode<Response> {
   @JsonKey(includeFromJson: false, includeToJson: false)

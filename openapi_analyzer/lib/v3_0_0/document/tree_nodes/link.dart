@@ -27,9 +27,16 @@ class Link extends TreeNode {
     final link = _$LinkFromJson(_jsonWithoutExtensions(json));
     return link.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$LinkToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class LinksMap extends MapTreeNode<Link> {
   @JsonKey(includeFromJson: false, includeToJson: false)

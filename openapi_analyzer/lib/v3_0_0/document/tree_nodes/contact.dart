@@ -16,4 +16,12 @@ class Contact extends TreeNode {
     final contact = _$ContactFromJson(_jsonWithoutExtensions(json));
     return contact.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$ContactToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }

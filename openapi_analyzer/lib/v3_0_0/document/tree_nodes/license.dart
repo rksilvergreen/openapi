@@ -19,5 +19,13 @@ class License extends TreeNode {
     final license = _$LicenseFromJson(_jsonWithoutExtensions(json));
     return license.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$LicenseToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 

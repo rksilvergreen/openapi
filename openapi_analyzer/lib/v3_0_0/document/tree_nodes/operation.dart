@@ -29,4 +29,12 @@ class Operation extends TreeNode {
     final operation = _$OperationFromJson(_jsonWithoutExtensions(json));
     return operation.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$OperationToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }

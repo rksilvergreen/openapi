@@ -50,9 +50,16 @@ class SecurityScheme extends TreeNode {
     final securityScheme = _$SecuritySchemeFromJson(_jsonWithoutExtensions(json));
     return securityScheme.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$SecuritySchemeToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class SecuritySchemesMap extends MapTreeNode<SecurityScheme> {
   @JsonKey(includeFromJson: false, includeToJson: false)

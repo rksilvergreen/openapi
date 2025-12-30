@@ -5,6 +5,10 @@ targets:
         options:
           build_extensions:
             "{{dir}}/{{file}}.dart": ["{{dir}}/_gen/{{file}}.g.dart"]
+      freezed:
+        options:
+          build_extensions:
+            "{{dir}}/{{file}}.dart": ["{{dir}}/_gen/{{file}}.freezed.dart"]
       json_serializable:
         options:
           any_map: false

@@ -101,9 +101,16 @@ class Schema extends TreeNode {
     final schema = _$SchemaFromJson(_jsonWithoutExtensions(json));
     return schema.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$SchemaToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class SchemasMap extends MapTreeNode<Schema> {
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -129,7 +136,6 @@ class SchemasMap extends MapTreeNode<Schema> {
   }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class SchemasList extends ListTreeNode<Schema> {
   SchemasList(List<Schema> schemas) : super(schemas);

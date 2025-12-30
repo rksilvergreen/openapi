@@ -19,5 +19,13 @@ class ExternalDocumentation extends TreeNode {
     final externalDocs = _$ExternalDocumentationFromJson(_jsonWithoutExtensions(json));
     return externalDocs.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$ExternalDocumentationToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 

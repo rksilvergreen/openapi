@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:copy_with_extension/copy_with_extension.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
 
 part 'json_helpers.dart';
@@ -54,7 +55,7 @@ class Document {
 
   Tree removeTree({String? newId}) {
     if (this.tree == null) {
-      throw Exception('Tree not found in document [$id]');
+      throw Exception('Tree not found in document [_$id]');
     }
     final tree = this.tree!;
     this.tree = null;

@@ -16,9 +16,16 @@ class Server extends TreeNode {
     final server = _$ServerFromJson(_jsonWithoutExtensions(json));
     return server.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$ServerToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class ServerList extends ListTreeNode<Server> {
   ServerList(List<Server> servers) : super(servers);
@@ -48,9 +55,16 @@ class ServerVariable extends TreeNode {
     final serverVariable = _$ServerVariableFromJson(_jsonWithoutExtensions(json));
     return serverVariable.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$ServerVariableToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class ServerVariablesMap extends MapTreeNode<ServerVariable> {
   @JsonKey(includeFromJson: false, includeToJson: false)

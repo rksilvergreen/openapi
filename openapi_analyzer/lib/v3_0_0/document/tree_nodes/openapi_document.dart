@@ -31,5 +31,13 @@ class OpenApiDocument extends TreeNode {
     final document = _$OpenApiDocumentFromJson(_jsonWithoutExtensions(json));
     return document.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$OpenApiDocumentToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 

@@ -7,19 +7,7 @@ part of '../document.dart';
 // **************************************************************************
 
 abstract class _$EncodingCWProxy {
-  Encoding contentType(String? contentType);
-
-  Encoding headers(HeadersMap? headers);
-
-  Encoding style(ParameterStyle? style);
-
-  Encoding explode(bool? explode);
-
-  Encoding allowReserved(bool allowReserved);
-
-  Encoding extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Encoding(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
+  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored.
   ///
   /// Usage
   /// ```dart
@@ -35,34 +23,14 @@ abstract class _$EncodingCWProxy {
   });
 }
 
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfEncoding.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfEncoding.copyWith.fieldName(...)`
+/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfEncoding.copyWith(...)`.
 class _$EncodingCWProxyImpl implements _$EncodingCWProxy {
   const _$EncodingCWProxyImpl(this._value);
 
   final Encoding _value;
 
   @override
-  Encoding contentType(String? contentType) => this(contentType: contentType);
-
-  @override
-  Encoding headers(HeadersMap? headers) => this(headers: headers);
-
-  @override
-  Encoding style(ParameterStyle? style) => this(style: style);
-
-  @override
-  Encoding explode(bool? explode) => this(explode: explode);
-
-  @override
-  Encoding allowReserved(bool allowReserved) =>
-      this(allowReserved: allowReserved);
-
-  @override
-  Encoding extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `Encoding(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
+  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored.
   ///
   /// Usage
   /// ```dart
@@ -106,70 +74,9 @@ class _$EncodingCWProxyImpl implements _$EncodingCWProxy {
 }
 
 extension $EncodingCopyWith on Encoding {
-  /// Returns a callable class that can be used as follows: `instanceOfEncoding.copyWith(...)` or like so:`instanceOfEncoding.copyWith.fieldName(...)`.
+  /// Returns a callable class that can be used as follows: `instanceOfEncoding.copyWith(...)`.
   // ignore: library_private_types_in_public_api
   _$EncodingCWProxy get copyWith => _$EncodingCWProxyImpl(this);
-}
-
-abstract class _$EncodingsMapCWProxy {
-  EncodingsMap encodings(Map<String, Encoding> encodings);
-
-  EncodingsMap extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `EncodingsMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// EncodingsMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  EncodingsMap call({
-    Map<String, Encoding> encodings,
-    Map<String, dynamic>? extensions,
-  });
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfEncodingsMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfEncodingsMap.copyWith.fieldName(...)`
-class _$EncodingsMapCWProxyImpl implements _$EncodingsMapCWProxy {
-  const _$EncodingsMapCWProxyImpl(this._value);
-
-  final EncodingsMap _value;
-
-  @override
-  EncodingsMap encodings(Map<String, Encoding> encodings) =>
-      this(encodings: encodings);
-
-  @override
-  EncodingsMap extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `EncodingsMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// EncodingsMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  EncodingsMap call({
-    Object? encodings = const $CopyWithPlaceholder(),
-    Object? extensions = const $CopyWithPlaceholder(),
-  }) {
-    return EncodingsMap(
-      encodings == const $CopyWithPlaceholder()
-          ? _value.encodings
-          // ignore: cast_nullable_to_non_nullable
-          : encodings as Map<String, Encoding>,
-      extensions: extensions == const $CopyWithPlaceholder()
-          ? _value.extensions
-          // ignore: cast_nullable_to_non_nullable
-          : extensions as Map<String, dynamic>?,
-    );
-  }
-}
-
-extension $EncodingsMapCopyWith on EncodingsMap {
-  /// Returns a callable class that can be used as follows: `instanceOfEncodingsMap.copyWith(...)` or like so:`instanceOfEncodingsMap.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$EncodingsMapCWProxy get copyWith => _$EncodingsMapCWProxyImpl(this);
 }
 
 abstract class _$HeaderCWProxy {
@@ -342,66 +249,6 @@ extension $HeaderCopyWith on Header {
   /// Returns a callable class that can be used as follows: `instanceOfHeader.copyWith(...)` or like so:`instanceOfHeader.copyWith.fieldName(...)`.
   // ignore: library_private_types_in_public_api
   _$HeaderCWProxy get copyWith => _$HeaderCWProxyImpl(this);
-}
-
-abstract class _$HeadersMapCWProxy {
-  HeadersMap headers(Map<String, Header> headers);
-
-  HeadersMap extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `HeadersMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// HeadersMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  HeadersMap call({
-    Map<String, Header> headers,
-    Map<String, dynamic>? extensions,
-  });
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfHeadersMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfHeadersMap.copyWith.fieldName(...)`
-class _$HeadersMapCWProxyImpl implements _$HeadersMapCWProxy {
-  const _$HeadersMapCWProxyImpl(this._value);
-
-  final HeadersMap _value;
-
-  @override
-  HeadersMap headers(Map<String, Header> headers) => this(headers: headers);
-
-  @override
-  HeadersMap extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `HeadersMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// HeadersMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  HeadersMap call({
-    Object? headers = const $CopyWithPlaceholder(),
-    Object? extensions = const $CopyWithPlaceholder(),
-  }) {
-    return HeadersMap(
-      headers == const $CopyWithPlaceholder()
-          ? _value.headers
-          // ignore: cast_nullable_to_non_nullable
-          : headers as Map<String, Header>,
-      extensions: extensions == const $CopyWithPlaceholder()
-          ? _value.extensions
-          // ignore: cast_nullable_to_non_nullable
-          : extensions as Map<String, dynamic>?,
-    );
-  }
-}
-
-extension $HeadersMapCopyWith on HeadersMap {
-  /// Returns a callable class that can be used as follows: `instanceOfHeadersMap.copyWith(...)` or like so:`instanceOfHeadersMap.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$HeadersMapCWProxy get copyWith => _$HeadersMapCWProxyImpl(this);
 }
 
 abstract class _$ParameterCWProxy {
@@ -598,112 +445,6 @@ extension $ParameterCopyWith on Parameter {
   _$ParameterCWProxy get copyWith => _$ParameterCWProxyImpl(this);
 }
 
-abstract class _$ParametersListCWProxy {
-  ParametersList parameters(List<Parameter> parameters);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `ParametersList(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// ParametersList(...).copyWith(id: 12, name: "My name")
-  /// ````
-  ParametersList call({List<Parameter> parameters});
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfParametersList.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfParametersList.copyWith.fieldName(...)`
-class _$ParametersListCWProxyImpl implements _$ParametersListCWProxy {
-  const _$ParametersListCWProxyImpl(this._value);
-
-  final ParametersList _value;
-
-  @override
-  ParametersList parameters(List<Parameter> parameters) =>
-      this(parameters: parameters);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `ParametersList(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// ParametersList(...).copyWith(id: 12, name: "My name")
-  /// ````
-  ParametersList call({Object? parameters = const $CopyWithPlaceholder()}) {
-    return ParametersList(
-      parameters == const $CopyWithPlaceholder()
-          ? _value.parameters
-          // ignore: cast_nullable_to_non_nullable
-          : parameters as List<Parameter>,
-    );
-  }
-}
-
-extension $ParametersListCopyWith on ParametersList {
-  /// Returns a callable class that can be used as follows: `instanceOfParametersList.copyWith(...)` or like so:`instanceOfParametersList.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$ParametersListCWProxy get copyWith => _$ParametersListCWProxyImpl(this);
-}
-
-abstract class _$ParametersMapCWProxy {
-  ParametersMap parameters(Map<String, Parameter> parameters);
-
-  ParametersMap extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `ParametersMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// ParametersMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  ParametersMap call({
-    Map<String, Parameter> parameters,
-    Map<String, dynamic>? extensions,
-  });
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfParametersMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfParametersMap.copyWith.fieldName(...)`
-class _$ParametersMapCWProxyImpl implements _$ParametersMapCWProxy {
-  const _$ParametersMapCWProxyImpl(this._value);
-
-  final ParametersMap _value;
-
-  @override
-  ParametersMap parameters(Map<String, Parameter> parameters) =>
-      this(parameters: parameters);
-
-  @override
-  ParametersMap extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `ParametersMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// ParametersMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  ParametersMap call({
-    Object? parameters = const $CopyWithPlaceholder(),
-    Object? extensions = const $CopyWithPlaceholder(),
-  }) {
-    return ParametersMap(
-      parameters == const $CopyWithPlaceholder()
-          ? _value.parameters
-          // ignore: cast_nullable_to_non_nullable
-          : parameters as Map<String, Parameter>,
-      extensions: extensions == const $CopyWithPlaceholder()
-          ? _value.extensions
-          // ignore: cast_nullable_to_non_nullable
-          : extensions as Map<String, dynamic>?,
-    );
-  }
-}
-
-extension $ParametersMapCopyWith on ParametersMap {
-  /// Returns a callable class that can be used as follows: `instanceOfParametersMap.copyWith(...)` or like so:`instanceOfParametersMap.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$ParametersMapCWProxy get copyWith => _$ParametersMapCWProxyImpl(this);
-}
-
 abstract class _$OperationCWProxy {
   Operation externalDocs(ExternalDocumentation? externalDocs);
 
@@ -889,67 +630,6 @@ extension $CallbackCopyWith on Callback {
   /// Returns a callable class that can be used as follows: `instanceOfCallback.copyWith(...)` or like so:`instanceOfCallback.copyWith.fieldName(...)`.
   // ignore: library_private_types_in_public_api
   _$CallbackCWProxy get copyWith => _$CallbackCWProxyImpl(this);
-}
-
-abstract class _$CallbacksMapCWProxy {
-  CallbacksMap callbacks(Map<String, Callback> callbacks);
-
-  CallbacksMap extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `CallbacksMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// CallbacksMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  CallbacksMap call({
-    Map<String, Callback> callbacks,
-    Map<String, dynamic>? extensions,
-  });
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfCallbacksMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfCallbacksMap.copyWith.fieldName(...)`
-class _$CallbacksMapCWProxyImpl implements _$CallbacksMapCWProxy {
-  const _$CallbacksMapCWProxyImpl(this._value);
-
-  final CallbacksMap _value;
-
-  @override
-  CallbacksMap callbacks(Map<String, Callback> callbacks) =>
-      this(callbacks: callbacks);
-
-  @override
-  CallbacksMap extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `CallbacksMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// CallbacksMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  CallbacksMap call({
-    Object? callbacks = const $CopyWithPlaceholder(),
-    Object? extensions = const $CopyWithPlaceholder(),
-  }) {
-    return CallbacksMap(
-      callbacks == const $CopyWithPlaceholder()
-          ? _value.callbacks
-          // ignore: cast_nullable_to_non_nullable
-          : callbacks as Map<String, Callback>,
-      extensions: extensions == const $CopyWithPlaceholder()
-          ? _value.extensions
-          // ignore: cast_nullable_to_non_nullable
-          : extensions as Map<String, dynamic>?,
-    );
-  }
-}
-
-extension $CallbacksMapCopyWith on CallbacksMap {
-  /// Returns a callable class that can be used as follows: `instanceOfCallbacksMap.copyWith(...)` or like so:`instanceOfCallbacksMap.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$CallbacksMapCWProxy get copyWith => _$CallbacksMapCWProxyImpl(this);
 }
 
 abstract class _$ComponentsCWProxy {
@@ -1351,67 +1031,6 @@ extension $ExampleCopyWith on Example {
   _$ExampleCWProxy get copyWith => _$ExampleCWProxyImpl(this);
 }
 
-abstract class _$ExamplesMapCWProxy {
-  ExamplesMap examples(Map<String, Example> examples);
-
-  ExamplesMap extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `ExamplesMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// ExamplesMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  ExamplesMap call({
-    Map<String, Example> examples,
-    Map<String, dynamic>? extensions,
-  });
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfExamplesMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfExamplesMap.copyWith.fieldName(...)`
-class _$ExamplesMapCWProxyImpl implements _$ExamplesMapCWProxy {
-  const _$ExamplesMapCWProxyImpl(this._value);
-
-  final ExamplesMap _value;
-
-  @override
-  ExamplesMap examples(Map<String, Example> examples) =>
-      this(examples: examples);
-
-  @override
-  ExamplesMap extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `ExamplesMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// ExamplesMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  ExamplesMap call({
-    Object? examples = const $CopyWithPlaceholder(),
-    Object? extensions = const $CopyWithPlaceholder(),
-  }) {
-    return ExamplesMap(
-      examples == const $CopyWithPlaceholder()
-          ? _value.examples
-          // ignore: cast_nullable_to_non_nullable
-          : examples as Map<String, Example>,
-      extensions: extensions == const $CopyWithPlaceholder()
-          ? _value.extensions
-          // ignore: cast_nullable_to_non_nullable
-          : extensions as Map<String, dynamic>?,
-    );
-  }
-}
-
-extension $ExamplesMapCopyWith on ExamplesMap {
-  /// Returns a callable class that can be used as follows: `instanceOfExamplesMap.copyWith(...)` or like so:`instanceOfExamplesMap.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$ExamplesMapCWProxy get copyWith => _$ExamplesMapCWProxyImpl(this);
-}
-
 abstract class _$ExternalDocumentationCWProxy {
   ExternalDocumentation description(String? description);
 
@@ -1785,63 +1404,6 @@ extension $LinkCopyWith on Link {
   _$LinkCWProxy get copyWith => _$LinkCWProxyImpl(this);
 }
 
-abstract class _$LinksMapCWProxy {
-  LinksMap links(Map<String, Link> links);
-
-  LinksMap extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `LinksMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// LinksMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  LinksMap call({Map<String, Link> links, Map<String, dynamic>? extensions});
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfLinksMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfLinksMap.copyWith.fieldName(...)`
-class _$LinksMapCWProxyImpl implements _$LinksMapCWProxy {
-  const _$LinksMapCWProxyImpl(this._value);
-
-  final LinksMap _value;
-
-  @override
-  LinksMap links(Map<String, Link> links) => this(links: links);
-
-  @override
-  LinksMap extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `LinksMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// LinksMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  LinksMap call({
-    Object? links = const $CopyWithPlaceholder(),
-    Object? extensions = const $CopyWithPlaceholder(),
-  }) {
-    return LinksMap(
-      links == const $CopyWithPlaceholder()
-          ? _value.links
-          // ignore: cast_nullable_to_non_nullable
-          : links as Map<String, Link>,
-      extensions: extensions == const $CopyWithPlaceholder()
-          ? _value.extensions
-          // ignore: cast_nullable_to_non_nullable
-          : extensions as Map<String, dynamic>?,
-    );
-  }
-}
-
-extension $LinksMapCopyWith on LinksMap {
-  /// Returns a callable class that can be used as follows: `instanceOfLinksMap.copyWith(...)` or like so:`instanceOfLinksMap.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$LinksMapCWProxy get copyWith => _$LinksMapCWProxyImpl(this);
-}
-
 abstract class _$MediaTypeCWProxy {
   MediaType schema(SchemasMap? schema);
 
@@ -1933,67 +1495,6 @@ extension $MediaTypeCopyWith on MediaType {
   /// Returns a callable class that can be used as follows: `instanceOfMediaType.copyWith(...)` or like so:`instanceOfMediaType.copyWith.fieldName(...)`.
   // ignore: library_private_types_in_public_api
   _$MediaTypeCWProxy get copyWith => _$MediaTypeCWProxyImpl(this);
-}
-
-abstract class _$MediaTypesMapCWProxy {
-  MediaTypesMap mediaTypes(Map<String, MediaType> mediaTypes);
-
-  MediaTypesMap extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `MediaTypesMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// MediaTypesMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  MediaTypesMap call({
-    Map<String, MediaType> mediaTypes,
-    Map<String, dynamic>? extensions,
-  });
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfMediaTypesMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfMediaTypesMap.copyWith.fieldName(...)`
-class _$MediaTypesMapCWProxyImpl implements _$MediaTypesMapCWProxy {
-  const _$MediaTypesMapCWProxyImpl(this._value);
-
-  final MediaTypesMap _value;
-
-  @override
-  MediaTypesMap mediaTypes(Map<String, MediaType> mediaTypes) =>
-      this(mediaTypes: mediaTypes);
-
-  @override
-  MediaTypesMap extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `MediaTypesMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// MediaTypesMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  MediaTypesMap call({
-    Object? mediaTypes = const $CopyWithPlaceholder(),
-    Object? extensions = const $CopyWithPlaceholder(),
-  }) {
-    return MediaTypesMap(
-      mediaTypes == const $CopyWithPlaceholder()
-          ? _value.mediaTypes
-          // ignore: cast_nullable_to_non_nullable
-          : mediaTypes as Map<String, MediaType>,
-      extensions: extensions == const $CopyWithPlaceholder()
-          ? _value.extensions
-          // ignore: cast_nullable_to_non_nullable
-          : extensions as Map<String, dynamic>?,
-    );
-  }
-}
-
-extension $MediaTypesMapCopyWith on MediaTypesMap {
-  /// Returns a callable class that can be used as follows: `instanceOfMediaTypesMap.copyWith(...)` or like so:`instanceOfMediaTypesMap.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$MediaTypesMapCWProxy get copyWith => _$MediaTypesMapCWProxyImpl(this);
 }
 
 abstract class _$OAuthFlowCWProxy {
@@ -2345,66 +1846,6 @@ extension $PathItemCopyWith on PathItem {
   _$PathItemCWProxy get copyWith => _$PathItemCWProxyImpl(this);
 }
 
-abstract class _$PathsMapCWProxy {
-  PathsMap paths(Map<String, PathItem> paths);
-
-  PathsMap extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `PathsMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// PathsMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  PathsMap call({
-    Map<String, PathItem> paths,
-    Map<String, dynamic>? extensions,
-  });
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfPathsMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfPathsMap.copyWith.fieldName(...)`
-class _$PathsMapCWProxyImpl implements _$PathsMapCWProxy {
-  const _$PathsMapCWProxyImpl(this._value);
-
-  final PathsMap _value;
-
-  @override
-  PathsMap paths(Map<String, PathItem> paths) => this(paths: paths);
-
-  @override
-  PathsMap extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `PathsMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// PathsMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  PathsMap call({
-    Object? paths = const $CopyWithPlaceholder(),
-    Object? extensions = const $CopyWithPlaceholder(),
-  }) {
-    return PathsMap(
-      paths == const $CopyWithPlaceholder()
-          ? _value.paths
-          // ignore: cast_nullable_to_non_nullable
-          : paths as Map<String, PathItem>,
-      extensions: extensions == const $CopyWithPlaceholder()
-          ? _value.extensions
-          // ignore: cast_nullable_to_non_nullable
-          : extensions as Map<String, dynamic>?,
-    );
-  }
-}
-
-extension $PathsMapCopyWith on PathsMap {
-  /// Returns a callable class that can be used as follows: `instanceOfPathsMap.copyWith(...)` or like so:`instanceOfPathsMap.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$PathsMapCWProxy get copyWith => _$PathsMapCWProxyImpl(this);
-}
-
 abstract class _$RequestBodyCWProxy {
   RequestBody description(String? description);
 
@@ -2486,67 +1927,6 @@ extension $RequestBodyCopyWith on RequestBody {
   /// Returns a callable class that can be used as follows: `instanceOfRequestBody.copyWith(...)` or like so:`instanceOfRequestBody.copyWith.fieldName(...)`.
   // ignore: library_private_types_in_public_api
   _$RequestBodyCWProxy get copyWith => _$RequestBodyCWProxyImpl(this);
-}
-
-abstract class _$RequestBodiesMapCWProxy {
-  RequestBodiesMap requestBodies(Map<String, RequestBody> requestBodies);
-
-  RequestBodiesMap extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `RequestBodiesMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// RequestBodiesMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  RequestBodiesMap call({
-    Map<String, RequestBody> requestBodies,
-    Map<String, dynamic>? extensions,
-  });
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfRequestBodiesMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfRequestBodiesMap.copyWith.fieldName(...)`
-class _$RequestBodiesMapCWProxyImpl implements _$RequestBodiesMapCWProxy {
-  const _$RequestBodiesMapCWProxyImpl(this._value);
-
-  final RequestBodiesMap _value;
-
-  @override
-  RequestBodiesMap requestBodies(Map<String, RequestBody> requestBodies) =>
-      this(requestBodies: requestBodies);
-
-  @override
-  RequestBodiesMap extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `RequestBodiesMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// RequestBodiesMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  RequestBodiesMap call({
-    Object? requestBodies = const $CopyWithPlaceholder(),
-    Object? extensions = const $CopyWithPlaceholder(),
-  }) {
-    return RequestBodiesMap(
-      requestBodies == const $CopyWithPlaceholder()
-          ? _value.requestBodies
-          // ignore: cast_nullable_to_non_nullable
-          : requestBodies as Map<String, RequestBody>,
-      extensions: extensions == const $CopyWithPlaceholder()
-          ? _value.extensions
-          // ignore: cast_nullable_to_non_nullable
-          : extensions as Map<String, dynamic>?,
-    );
-  }
-}
-
-extension $RequestBodiesMapCopyWith on RequestBodiesMap {
-  /// Returns a callable class that can be used as follows: `instanceOfRequestBodiesMap.copyWith(...)` or like so:`instanceOfRequestBodiesMap.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$RequestBodiesMapCWProxy get copyWith => _$RequestBodiesMapCWProxyImpl(this);
 }
 
 abstract class _$ResponseCWProxy {
@@ -2642,67 +2022,6 @@ extension $ResponseCopyWith on Response {
   _$ResponseCWProxy get copyWith => _$ResponseCWProxyImpl(this);
 }
 
-abstract class _$ResponsesMapCWProxy {
-  ResponsesMap responses(Map<String, Response> responses);
-
-  ResponsesMap extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `ResponsesMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// ResponsesMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  ResponsesMap call({
-    Map<String, Response> responses,
-    Map<String, dynamic>? extensions,
-  });
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfResponsesMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfResponsesMap.copyWith.fieldName(...)`
-class _$ResponsesMapCWProxyImpl implements _$ResponsesMapCWProxy {
-  const _$ResponsesMapCWProxyImpl(this._value);
-
-  final ResponsesMap _value;
-
-  @override
-  ResponsesMap responses(Map<String, Response> responses) =>
-      this(responses: responses);
-
-  @override
-  ResponsesMap extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `ResponsesMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// ResponsesMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  ResponsesMap call({
-    Object? responses = const $CopyWithPlaceholder(),
-    Object? extensions = const $CopyWithPlaceholder(),
-  }) {
-    return ResponsesMap(
-      responses == const $CopyWithPlaceholder()
-          ? _value.responses
-          // ignore: cast_nullable_to_non_nullable
-          : responses as Map<String, Response>,
-      extensions: extensions == const $CopyWithPlaceholder()
-          ? _value.extensions
-          // ignore: cast_nullable_to_non_nullable
-          : extensions as Map<String, dynamic>?,
-    );
-  }
-}
-
-extension $ResponsesMapCopyWith on ResponsesMap {
-  /// Returns a callable class that can be used as follows: `instanceOfResponsesMap.copyWith(...)` or like so:`instanceOfResponsesMap.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$ResponsesMapCWProxy get copyWith => _$ResponsesMapCWProxyImpl(this);
-}
-
 abstract class _$SecurityRequirementCWProxy {
   SecurityRequirement requirements(Map<String, List<String>> requirements);
 
@@ -2749,56 +2068,6 @@ extension $SecurityRequirementCopyWith on SecurityRequirement {
   // ignore: library_private_types_in_public_api
   _$SecurityRequirementCWProxy get copyWith =>
       _$SecurityRequirementCWProxyImpl(this);
-}
-
-abstract class _$SecurityRequirementsListCWProxy {
-  SecurityRequirementsList requirements(List<SecurityRequirement> requirements);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SecurityRequirementsList(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// SecurityRequirementsList(...).copyWith(id: 12, name: "My name")
-  /// ````
-  SecurityRequirementsList call({List<SecurityRequirement> requirements});
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfSecurityRequirementsList.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfSecurityRequirementsList.copyWith.fieldName(...)`
-class _$SecurityRequirementsListCWProxyImpl
-    implements _$SecurityRequirementsListCWProxy {
-  const _$SecurityRequirementsListCWProxyImpl(this._value);
-
-  final SecurityRequirementsList _value;
-
-  @override
-  SecurityRequirementsList requirements(
-    List<SecurityRequirement> requirements,
-  ) => this(requirements: requirements);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SecurityRequirementsList(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// SecurityRequirementsList(...).copyWith(id: 12, name: "My name")
-  /// ````
-  SecurityRequirementsList call({
-    Object? requirements = const $CopyWithPlaceholder(),
-  }) {
-    return SecurityRequirementsList(
-      requirements == const $CopyWithPlaceholder()
-          ? _value.requirements
-          // ignore: cast_nullable_to_non_nullable
-          : requirements as List<SecurityRequirement>,
-    );
-  }
-}
-
-extension $SecurityRequirementsListCopyWith on SecurityRequirementsList {
-  /// Returns a callable class that can be used as follows: `instanceOfSecurityRequirementsList.copyWith(...)` or like so:`instanceOfSecurityRequirementsList.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$SecurityRequirementsListCWProxy get copyWith =>
-      _$SecurityRequirementsListCWProxyImpl(this);
 }
 
 abstract class _$SecuritySchemeCWProxy {
@@ -2941,71 +2210,6 @@ extension $SecuritySchemeCopyWith on SecurityScheme {
   _$SecuritySchemeCWProxy get copyWith => _$SecuritySchemeCWProxyImpl(this);
 }
 
-abstract class _$SecuritySchemesMapCWProxy {
-  SecuritySchemesMap securitySchemes(
-    Map<String, SecurityScheme> securitySchemes,
-  );
-
-  SecuritySchemesMap extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SecuritySchemesMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// SecuritySchemesMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  SecuritySchemesMap call({
-    Map<String, SecurityScheme> securitySchemes,
-    Map<String, dynamic>? extensions,
-  });
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfSecuritySchemesMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfSecuritySchemesMap.copyWith.fieldName(...)`
-class _$SecuritySchemesMapCWProxyImpl implements _$SecuritySchemesMapCWProxy {
-  const _$SecuritySchemesMapCWProxyImpl(this._value);
-
-  final SecuritySchemesMap _value;
-
-  @override
-  SecuritySchemesMap securitySchemes(
-    Map<String, SecurityScheme> securitySchemes,
-  ) => this(securitySchemes: securitySchemes);
-
-  @override
-  SecuritySchemesMap extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SecuritySchemesMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// SecuritySchemesMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  SecuritySchemesMap call({
-    Object? securitySchemes = const $CopyWithPlaceholder(),
-    Object? extensions = const $CopyWithPlaceholder(),
-  }) {
-    return SecuritySchemesMap(
-      securitySchemes == const $CopyWithPlaceholder()
-          ? _value.securitySchemes
-          // ignore: cast_nullable_to_non_nullable
-          : securitySchemes as Map<String, SecurityScheme>,
-      extensions: extensions == const $CopyWithPlaceholder()
-          ? _value.extensions
-          // ignore: cast_nullable_to_non_nullable
-          : extensions as Map<String, dynamic>?,
-    );
-  }
-}
-
-extension $SecuritySchemesMapCopyWith on SecuritySchemesMap {
-  /// Returns a callable class that can be used as follows: `instanceOfSecuritySchemesMap.copyWith(...)` or like so:`instanceOfSecuritySchemesMap.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$SecuritySchemesMapCWProxy get copyWith =>
-      _$SecuritySchemesMapCWProxyImpl(this);
-}
-
 abstract class _$ServerCWProxy {
   Server url(String url);
 
@@ -3086,50 +2290,6 @@ extension $ServerCopyWith on Server {
   /// Returns a callable class that can be used as follows: `instanceOfServer.copyWith(...)` or like so:`instanceOfServer.copyWith.fieldName(...)`.
   // ignore: library_private_types_in_public_api
   _$ServerCWProxy get copyWith => _$ServerCWProxyImpl(this);
-}
-
-abstract class _$ServerListCWProxy {
-  ServerList servers(List<Server> servers);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `ServerList(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// ServerList(...).copyWith(id: 12, name: "My name")
-  /// ````
-  ServerList call({List<Server> servers});
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfServerList.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfServerList.copyWith.fieldName(...)`
-class _$ServerListCWProxyImpl implements _$ServerListCWProxy {
-  const _$ServerListCWProxyImpl(this._value);
-
-  final ServerList _value;
-
-  @override
-  ServerList servers(List<Server> servers) => this(servers: servers);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `ServerList(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// ServerList(...).copyWith(id: 12, name: "My name")
-  /// ````
-  ServerList call({Object? servers = const $CopyWithPlaceholder()}) {
-    return ServerList(
-      servers == const $CopyWithPlaceholder()
-          ? _value.servers
-          // ignore: cast_nullable_to_non_nullable
-          : servers as List<Server>,
-    );
-  }
-}
-
-extension $ServerListCopyWith on ServerList {
-  /// Returns a callable class that can be used as follows: `instanceOfServerList.copyWith(...)` or like so:`instanceOfServerList.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$ServerListCWProxy get copyWith => _$ServerListCWProxyImpl(this);
 }
 
 abstract class _$ServerVariableCWProxy {
@@ -3215,68 +2375,6 @@ extension $ServerVariableCopyWith on ServerVariable {
   _$ServerVariableCWProxy get copyWith => _$ServerVariableCWProxyImpl(this);
 }
 
-abstract class _$ServerVariablesMapCWProxy {
-  ServerVariablesMap variables(Map<String, ServerVariable> variables);
-
-  ServerVariablesMap extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `ServerVariablesMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// ServerVariablesMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  ServerVariablesMap call({
-    Map<String, ServerVariable> variables,
-    Map<String, dynamic>? extensions,
-  });
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfServerVariablesMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfServerVariablesMap.copyWith.fieldName(...)`
-class _$ServerVariablesMapCWProxyImpl implements _$ServerVariablesMapCWProxy {
-  const _$ServerVariablesMapCWProxyImpl(this._value);
-
-  final ServerVariablesMap _value;
-
-  @override
-  ServerVariablesMap variables(Map<String, ServerVariable> variables) =>
-      this(variables: variables);
-
-  @override
-  ServerVariablesMap extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `ServerVariablesMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// ServerVariablesMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  ServerVariablesMap call({
-    Object? variables = const $CopyWithPlaceholder(),
-    Object? extensions = const $CopyWithPlaceholder(),
-  }) {
-    return ServerVariablesMap(
-      variables == const $CopyWithPlaceholder()
-          ? _value.variables
-          // ignore: cast_nullable_to_non_nullable
-          : variables as Map<String, ServerVariable>,
-      extensions: extensions == const $CopyWithPlaceholder()
-          ? _value.extensions
-          // ignore: cast_nullable_to_non_nullable
-          : extensions as Map<String, dynamic>?,
-    );
-  }
-}
-
-extension $ServerVariablesMapCopyWith on ServerVariablesMap {
-  /// Returns a callable class that can be used as follows: `instanceOfServerVariablesMap.copyWith(...)` or like so:`instanceOfServerVariablesMap.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$ServerVariablesMapCWProxy get copyWith =>
-      _$ServerVariablesMapCWProxyImpl(this);
-}
-
 abstract class _$TagCWProxy {
   Tag name(String name);
 
@@ -3358,50 +2456,6 @@ extension $TagCopyWith on Tag {
   /// Returns a callable class that can be used as follows: `instanceOfTag.copyWith(...)` or like so:`instanceOfTag.copyWith.fieldName(...)`.
   // ignore: library_private_types_in_public_api
   _$TagCWProxy get copyWith => _$TagCWProxyImpl(this);
-}
-
-abstract class _$TagsListCWProxy {
-  TagsList tags(List<Tag> tags);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `TagsList(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// TagsList(...).copyWith(id: 12, name: "My name")
-  /// ````
-  TagsList call({List<Tag> tags});
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfTagsList.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfTagsList.copyWith.fieldName(...)`
-class _$TagsListCWProxyImpl implements _$TagsListCWProxy {
-  const _$TagsListCWProxyImpl(this._value);
-
-  final TagsList _value;
-
-  @override
-  TagsList tags(List<Tag> tags) => this(tags: tags);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `TagsList(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// TagsList(...).copyWith(id: 12, name: "My name")
-  /// ````
-  TagsList call({Object? tags = const $CopyWithPlaceholder()}) {
-    return TagsList(
-      tags == const $CopyWithPlaceholder()
-          ? _value.tags
-          // ignore: cast_nullable_to_non_nullable
-          : tags as List<Tag>,
-    );
-  }
-}
-
-extension $TagsListCopyWith on TagsList {
-  /// Returns a callable class that can be used as follows: `instanceOfTagsList.copyWith(...)` or like so:`instanceOfTagsList.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$TagsListCWProxy get copyWith => _$TagsListCWProxyImpl(this);
 }
 
 abstract class _$XMLCWProxy {
@@ -4089,110 +3143,6 @@ extension $SchemaCopyWith on Schema {
   /// Returns a callable class that can be used as follows: `instanceOfSchema.copyWith(...)` or like so:`instanceOfSchema.copyWith.fieldName(...)`.
   // ignore: library_private_types_in_public_api
   _$SchemaCWProxy get copyWith => _$SchemaCWProxyImpl(this);
-}
-
-abstract class _$SchemasMapCWProxy {
-  SchemasMap schemas(Map<String, Schema> schemas);
-
-  SchemasMap extensions(Map<String, dynamic>? extensions);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SchemasMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// SchemasMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  SchemasMap call({
-    Map<String, Schema> schemas,
-    Map<String, dynamic>? extensions,
-  });
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfSchemasMap.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfSchemasMap.copyWith.fieldName(...)`
-class _$SchemasMapCWProxyImpl implements _$SchemasMapCWProxy {
-  const _$SchemasMapCWProxyImpl(this._value);
-
-  final SchemasMap _value;
-
-  @override
-  SchemasMap schemas(Map<String, Schema> schemas) => this(schemas: schemas);
-
-  @override
-  SchemasMap extensions(Map<String, dynamic>? extensions) =>
-      this(extensions: extensions);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SchemasMap(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// SchemasMap(...).copyWith(id: 12, name: "My name")
-  /// ````
-  SchemasMap call({
-    Object? schemas = const $CopyWithPlaceholder(),
-    Object? extensions = const $CopyWithPlaceholder(),
-  }) {
-    return SchemasMap(
-      schemas == const $CopyWithPlaceholder()
-          ? _value.schemas
-          // ignore: cast_nullable_to_non_nullable
-          : schemas as Map<String, Schema>,
-      extensions: extensions == const $CopyWithPlaceholder()
-          ? _value.extensions
-          // ignore: cast_nullable_to_non_nullable
-          : extensions as Map<String, dynamic>?,
-    );
-  }
-}
-
-extension $SchemasMapCopyWith on SchemasMap {
-  /// Returns a callable class that can be used as follows: `instanceOfSchemasMap.copyWith(...)` or like so:`instanceOfSchemasMap.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$SchemasMapCWProxy get copyWith => _$SchemasMapCWProxyImpl(this);
-}
-
-abstract class _$SchemasListCWProxy {
-  SchemasList schemas(List<Schema> schemas);
-
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SchemasList(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// SchemasList(...).copyWith(id: 12, name: "My name")
-  /// ````
-  SchemasList call({List<Schema> schemas});
-}
-
-/// Proxy class for `copyWith` functionality. This is a callable class and can be used as follows: `instanceOfSchemasList.copyWith(...)`. Additionally contains functions for specific fields e.g. `instanceOfSchemasList.copyWith.fieldName(...)`
-class _$SchemasListCWProxyImpl implements _$SchemasListCWProxy {
-  const _$SchemasListCWProxyImpl(this._value);
-
-  final SchemasList _value;
-
-  @override
-  SchemasList schemas(List<Schema> schemas) => this(schemas: schemas);
-
-  @override
-  /// This function **does support** nullification of nullable fields. All `null` values passed to `non-nullable` fields will be ignored. You can also use `SchemasList(...).copyWith.fieldName(...)` to override fields one at a time with nullification support.
-  ///
-  /// Usage
-  /// ```dart
-  /// SchemasList(...).copyWith(id: 12, name: "My name")
-  /// ````
-  SchemasList call({Object? schemas = const $CopyWithPlaceholder()}) {
-    return SchemasList(
-      schemas == const $CopyWithPlaceholder()
-          ? _value.schemas
-          // ignore: cast_nullable_to_non_nullable
-          : schemas as List<Schema>,
-    );
-  }
-}
-
-extension $SchemasListCopyWith on SchemasList {
-  /// Returns a callable class that can be used as follows: `instanceOfSchemasList.copyWith(...)` or like so:`instanceOfSchemasList.copyWith.fieldName(...)`.
-  // ignore: library_private_types_in_public_api
-  _$SchemasListCWProxy get copyWith => _$SchemasListCWProxyImpl(this);
 }
 
 // **************************************************************************

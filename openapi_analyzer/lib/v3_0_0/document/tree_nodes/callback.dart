@@ -17,9 +17,16 @@ class Callback extends TreeNode {
     final callback = _$CallbackFromJson(_jsonWithoutExtensions(json));
     return callback.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$CallbackToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
-@CopyWith()
 @JsonSerializable(createFactory: false, createToJson: false)
 class CallbacksMap extends MapTreeNode<Callback> {
   @JsonKey(includeFromJson: false, includeToJson: false)

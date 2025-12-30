@@ -27,5 +27,13 @@ class Info extends TreeNode {
     final info = _$InfoFromJson(_jsonWithoutExtensions(json));
     return info.copyWith(extensions: extensions);
   }
+
+  Map<String, dynamic> toJson() {
+    final json = _$InfoToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
