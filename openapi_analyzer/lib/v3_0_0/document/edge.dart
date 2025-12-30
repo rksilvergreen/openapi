@@ -1,8 +1,8 @@
 part of 'document.dart';
 
 class Edge {
-  TreeNode parent;
-  TreeNode child;
+  String parent;
+  String child;
   String via;
 
   Edge(this.parent, this.child, this.via);

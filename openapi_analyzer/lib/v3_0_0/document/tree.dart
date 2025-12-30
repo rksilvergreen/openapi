@@ -2,18 +2,24 @@ part of 'document.dart';
 
 class Tree {
   late String id;
-  Document? document;
-  TreeNode? root;
+  Document? _document;
+  TreeNode? _root;
+  Map<String, TreeNode> _nodes = {};
+  Map<String, Map<String, String>> _children = {};
+  Map<String, String> _parents = {};
 
-  Tree({String? id, this.root}) {
+  Tree({String? id, Object? root}) {
     setId(id);
     if (root != null) {
-      addNode(node: root!);
+      setRoot(root);
     }
   }
 
-  Map<String, TreeNode> nodes = {};
-  List<Edge> edges = [];
+  Document? get document => _document;
+  TreeNode? get root => _root;
+  UnmodifiableMapView<String, TreeNode> get nodes => UnmodifiableMapView(_nodes);
+  UnmodifiableMapView<String, Map<String, String>> get children => UnmodifiableMapView(_children);
+  UnmodifiableMapView<String, String> get parents => UnmodifiableMapView(_parents);
 
   void setId([String? id]) {
     id ??= Uuid().v4();
@@ -22,61 +28,75 @@ class Tree {
 
   TreeNode? getNode(String jsonPointer) => nodes[jsonPointer];
 
-  bool verifyNode(TreeNode node) {
-    if (node._$id != null && node._$id!.document == id) {
-      final existingNode = getNode(node._$id!.jsonPointer);
-      if (existingNode != null) {
-        return true;
-      }
+  bool verifyNode(TreeNode node) => node._$id.document == _document && !_nodes.containsKey(node._$id.jsonPointer);
+
+  void setRoot(Object object) {
+    if (_root != null) {
+      throw Exception('Tree already has a root');
     }
-    return false;
+
+    _addNode(parent: null, object: object, via: null);
   }
 
-  void addNode({TreeNode? parent, required TreeNode node, String? via}) {
+  void _addNode({TreeNode? parent, required Object object, String? via}) {
     if ((parent == null) != (via == null)) {
       throw Exception(
         'addNode: parent and via must be both null or both not null. parent: ${parent != null}, via: ${via != null}',
       );
     }
+    late final String jsonPointer;
+    late final TreeNode node;
     if (parent == null && via == null) {
-      _setRoot(node);
+      jsonPointer = '/';
+      node = _createNode(object, jsonPointer);
+      _attachRoot(node);
     } else {
-      _addNode(parent: parent!, node: node, via: via!);
+      jsonPointer = buildPointer([parent!._$id.jsonPointer, via!]);
+      node = _createNode(object, jsonPointer);
+      _attachNode(parent: parent, node: node, via: via);
     }
-    if (node is Encoding) {
-      addNode(parent: node, node: node.headers, via: 'headers');
-    }
-    if (node is HeadersMap) {
-      for (final entry in node.entries) {
-        addNode(parent: node, node: entry.value, via: entry.key);
-      }
+    if (object is Encoding) {
+      // How do we do this as simple as possible? Should we delegate this to EncodingNode? or codegen?
+      _addNode(parent: node, object: object.headers, via: 'headers');
     }
   }
 
-  void _setRoot(TreeNode root) {
-    final jsonPointer = '/';
-    root.setId(this, jsonPointer);
-    nodes[jsonPointer] = root;
+  void _attachRoot(TreeNode node) {
+    final jsonPointer = node._$id.jsonPointer;
+    nodes[jsonPointer] = node;
+    _root = node;
   }
 
-  void _addNode({required TreeNode parent, required TreeNode node, required String via}) {
+  TreeNode _attachNode({required TreeNode parent, required TreeNode node, required String via}) {
     if (!verifyNode(parent)) {
       throw Exception(
-        'Can\'t add node [${node.runtimeType}] [${node._$id?.jsonPointer}] because parent [${parent.runtimeType}] [${parent._$id?.jsonPointer}] is not found in tree [_$id]',
+        'Can\'t add object [${object.runtimeType}] because parent [${parent.runtimeType}] is not found in tree [_$id]',
       );
     }
-    if (verifyNode(node)) {
+    if (verifyNode(object)) {
       throw Exception(
-        'Can\'t add node [${node.runtimeType}] [${node._$id?.jsonPointer}] because it already exists in tree [${node._$id?.tree.id}]',
+        'Can\'t add node [${object.runtimeType}] [${object._$id?.jsonPointer}] because it already exists in tree [${object._$id?.tree.id}]',
       );
     }
-    final jsonPointer = buildPointer([parent._$id!.jsonPointer, via]);
-    node.setId(this, jsonPointer);
+
+    final jsonPointer = node._$id.jsonPointer;
+    final parentPointer = parent._$id.jsonPointer;
     nodes[jsonPointer] = node;
-    final edge = Edge(parent, node, via);
-    edges.add(edge);
-    parent.$children.add(edge);
-    node.$parent = edge;
+    children[parentPointer]![via] = jsonPointer;
+    parents[jsonPointer] = parentPointer;
+  }
+
+  TreeNode _createNode(Object object, String jsonPointer) {
+    final id = TreeNodeId(this, jsonPointer);
+    if (object is Encoding) {
+      return EncodingNode(
+        $id: id,
+        contentType: object.contentType,
+        style: object.style,
+        explode: object.explode,
+        allowReserved: object.allowReserved,
+      );
+    }
   }
 
   // TreeNode removeNode({required TreeNode node}) {

@@ -1,18 +1,17 @@
 part of 'document.dart';
 
 abstract class TreeNode {
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  TreeNodeId? _$id;
-  TreeNode([this._$children = const {}]);
+  TreeNodeId _$id;
+  TreeNode(this._$id);
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  Edge? $parent;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final List<Edge> $children = [];
+  // Edge? $parent;
+  // final List<Edge> $children = [];
 
-  final Map<String, Edge?> _$children;
+  // Map<String, TreeNode?> get _$children => _$id.tree.children;
+  TreeNode? _$parent() => _$id.tree.nodes[_$id.tree.parents[_$id.jsonPointer]!];
+  TreeNode? _$child(String key) => _$id.tree.nodes[_$id.tree.children[_$id.jsonPointer]![key]!];
 
-  void setId(Tree tree, String jsonPointer) => _$id = TreeNodeId(tree, jsonPointer);
+  void _setId(Tree tree, String jsonPointer) => _$id = TreeNodeId(tree, jsonPointer);
 }
 
 class TreeNodeId {

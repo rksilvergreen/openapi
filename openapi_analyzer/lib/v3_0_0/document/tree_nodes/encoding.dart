@@ -1,5 +1,7 @@
 part of '../document.dart';
 
+@CopyWith(skipFields: true)
+@JsonSerializable()
 class Encoding {
   final String? contentType;
   final HeadersMap? headers;
@@ -16,36 +18,8 @@ class Encoding {
     required this.allowReserved,
     this.extensions,
   });
-}
 
-@CopyWith(skipFields: true)
-@JsonSerializable()
-class EncodingNode extends TreeNode {
-  final String? contentType;
-  // final HeadersMap? headers;
-  HeadersMap? get headers => _$children['headers']?.child as HeadersMap?;
-  final ParameterStyle? style;
-  final bool? explode;
-  final bool allowReserved;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
-
-  EncodingNode({
-    required this.contentType,
-    HeadersMap? headers,
-    required this.style,
-    required this.explode,
-    required this.allowReserved,
-    this.extensions,
-  }) {
-    _$children['headers'] = headers == null ? null : Edge(this, headers, 'headers');
-  }
-
-  factory EncodingNode.from(Encoding encoding) {
-    
-  }
-
-  factory EncodingNode.fromJson(Map<String, dynamic> json) {
+   factory Encoding.fromJson(Map<String, dynamic> json) {
     final extensions = _extractExtensions(json);
     final encoding = _$EncodingFromJson(_jsonWithoutExtensions(json));
     return encoding.copyWith(extensions: extensions);
@@ -58,6 +32,25 @@ class EncodingNode extends TreeNode {
     }
     return json;
   }
+}
+
+class EncodingNode extends TreeNode {
+  String? contentType;
+  HeadersMap? get headers => _$child('headers') as HeadersMap?;
+  ParameterStyle? style;
+  bool? explode;
+  bool allowReserved;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic>? extensions;
+
+  EncodingNode({
+    required TreeNodeId $id,
+    required this.contentType,
+    required this.style,
+    required this.explode,
+    required this.allowReserved,
+    this.extensions,
+  }) : super($id);
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
