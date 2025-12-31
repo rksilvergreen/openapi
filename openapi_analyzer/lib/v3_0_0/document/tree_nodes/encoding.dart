@@ -36,7 +36,7 @@ class Encoding {
 
 class EncodingNode extends TreeNode {
   String? contentType;
-  HeadersMap? get headers => _$child('headers') as HeadersMap?;
+  HeadersMap? get headers => $children?['headers'] as HeadersMap?;
   ParameterStyle? style;
   bool? explode;
   bool allowReserved;
@@ -44,13 +44,12 @@ class EncodingNode extends TreeNode {
   Map<String, dynamic>? extensions;
 
   EncodingNode({
-    required TreeNodeId $id,
     required this.contentType,
     required this.style,
     required this.explode,
     required this.allowReserved,
     this.extensions,
-  }) : super($id);
+  });
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
