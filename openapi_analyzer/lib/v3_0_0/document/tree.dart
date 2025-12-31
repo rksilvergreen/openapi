@@ -1,5 +1,15 @@
 part of 'document.dart';
 
+class Edge {
+  final Type type;
+  final String key;
+
+  const Edge(this.type, this.key);
+
+  int get hashCode => Object.hash(type, key);
+  bool operator ==(Object other) => identical(this, other) || other is Edge && type == other.type && key == other.key;
+}
+
 class TreeNodeRecord {
   final TreeNode node;
   String pointer;
@@ -65,53 +75,48 @@ class Tree {
     return nodes[node.$id]!;
   }
 
-  Map<String, TreeNodeRecord> _getNodes(TreeNode node, {Map<String, TreeNodeRecord>? nodes}) {
-    nodes ??= {};
-    final record = this.nodes[node.$id];
-    if (record == null) {
-      throw Exception('Node [${node.runtimeType}][${node.$id}] not found in tree [$id]');
-    }
-    nodes[node.$id] = record;
-    final children = record.children;
-    for (final child in children.entries) {
-      _getNodes(nodes[child.value]!.node, nodes: nodes);
-    }
-    return nodes;
-  }
+  Map<String, TreeNodeRecord> _snatchNodes(
+    TreeNode node,
+    String newPointer, {
+    Map<String, TreeNodeRecord>? collectedNodes,
+  }) {
+    collectedNodes ??= {};
 
-  void _removeNodes(TreeNode node) {
-    final record = this.nodes[node.$id];
-    if (record == null) {
-      throw Exception('Node [${node.runtimeType}][${node.$id}] not found in tree [$id]');
-    }
-    final parent = record.parent;
-    if (parent != null) {
-      nodes[parent]!.children.removeWhere((key, value) => value == node.$id);
-    }
-    final children = record.children;
-    for (final child in children.entries) {
-      _removeNodes(nodes[child.value]!.node);
-    }
-    nodes.remove(node.$id);
-  }
-
-  void _setPointer(TreeNode node, String pointer) {
+    // Get the record
     final record = nodes[node.$id];
     if (record == null) {
       throw Exception('Node [${node.runtimeType}][${node.$id}] not found in tree [$id]');
     }
-    record.pointer = pointer;
+
+    // Collect the node
+    collectedNodes[node.$id] = record;
+
+    // Set the new pointer for this node
+    record.pointer = newPointer;
+
+    // Process children recursively (get, set pointer, remove)
     final children = record.children;
     for (final child in children.entries) {
-      _setPointer(nodes[child.value]!.node, buildPointer([pointer, child.key]));
+      final childPointer = buildPointer([newPointer, child.key]);
+      _snatchNodes(nodes[child.value]!.node, childPointer, collectedNodes: collectedNodes);
     }
+
+    // Remove from parent's children map
+    final parent = record.parent;
+    if (parent != null) {
+      nodes[parent]!.children.removeWhere((key, value) => value == node.$id);
+    }
+
+    // Remove from nodes map
+    nodes.remove(node.$id);
+
+    return collectedNodes;
   }
 
   Tree removeSubTree({required TreeNode node}) {
-    final nodes = _getNodes(node);
-    _setPointer(node, '/');
-    _removeNodes(node);
-    return Tree._(nodes: nodes);
+    final subTreeRoot = node;
+    final pointer = '/';
+    return Tree._(nodes: _snatchNodes(subTreeRoot, pointer));
   }
 
   Tree? replaceTree({required Tree subTree}) {
@@ -119,11 +124,9 @@ class Tree {
     if (root != null) {
       oldTree = removeSubTree(node: root!);
     }
-    final pointer = '/';
     final subTreeRoot = subTree.root!;
-    final subTreeNodes = subTree._getNodes(subTreeRoot);
-    subTree._setPointer(subTreeRoot, pointer);
-    subTree._removeNodes(subTreeRoot);
+    final pointer = '/';
+    final subTreeNodes = subTree._snatchNodes(subTreeRoot, pointer);
     for (final node in subTreeNodes.entries) {
       node.value.node._$tree = this;
     }
@@ -143,11 +146,9 @@ class Tree {
     if (child != null) {
       oldTree = removeSubTree(node: child);
     }
-    final pointer = buildPointer([parentRecord.pointer, via]);
     final subTreeRoot = subTree.root!;
-    final subTreeNodes = subTree._getNodes(subTreeRoot);
-    subTree._setPointer(subTreeRoot, pointer);
-    subTree._removeNodes(subTreeRoot);
+    final pointer = buildPointer([parentRecord.pointer, via]);
+    final subTreeNodes = subTree._snatchNodes(subTreeRoot, pointer);
     for (final node in subTreeNodes.entries) {
       node.value.node._$tree = this;
     }
