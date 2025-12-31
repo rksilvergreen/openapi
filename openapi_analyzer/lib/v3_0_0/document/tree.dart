@@ -14,7 +14,7 @@ class TreeNodeRecord {
   final TreeNode node;
   String pointer;
   String? parent;
-  Map<String, String> children = {};
+  Map<Edge, String> children = {};
 
   TreeNodeRecord({required this.node, required this.pointer});
 }
@@ -38,7 +38,7 @@ class Tree {
   }
 
   Document? get document => _document;
-  TreeNode? get root => _nodes['/'];
+  TreeNode? get root => _nodes.values.firstWhereOrNull((record) => record.pointer == '/')?.node;
   UnmodifiableMapView<String, TreeNodeRecord?> get nodes => UnmodifiableMapView(_nodes);
 
   void setId([String? id]) {
@@ -46,14 +46,12 @@ class Tree {
     this.id = id;
   }
 
-  TreeNode? getNode(String pointer) => nodes[pointer];
-
   TreeNodeRecord _createNode({required String pointer, required Object? object}) {
     late final TreeNode node;
-    final Map<String, TreeNodeRecord> children = {};
+    final Map<Edge, TreeNodeRecord> children = {};
 
-    void createChild(String key, Object? object) {
-      children[key] = _createNode(pointer: buildPointer([pointer, key]), object: object);
+    void createChild(Edge edge, Object? object) {
+      children[edge] = _createNode(pointer: buildPointer([pointer, edge.key]), object: object);
     }
 
     if (object is Encoding) {
@@ -63,7 +61,7 @@ class Tree {
         explode: object.explode,
         allowReserved: object.allowReserved,
       );
-      createChild('headers', object.headers!);
+      createChild(const Edge(HeadersMap, 'headers'), object.headers!);
     }
 
     node._$tree = this;
@@ -97,7 +95,7 @@ class Tree {
     // Process children recursively (get, set pointer, remove)
     final children = record.children;
     for (final child in children.entries) {
-      final childPointer = buildPointer([newPointer, child.key]);
+      final childPointer = buildPointer([newPointer, child.key.key]);
       _snatchNodes(nodes[child.value]!.node, childPointer, collectedNodes: collectedNodes);
     }
 
@@ -121,8 +119,9 @@ class Tree {
 
   Tree? replaceTree({required Tree subTree}) {
     Tree? oldTree;
+    final root = this.root;
     if (root != null) {
-      oldTree = removeSubTree(node: root!);
+      oldTree = removeSubTree(node: root);
     }
     final subTreeRoot = subTree.root!;
     final pointer = '/';
@@ -141,22 +140,71 @@ class Tree {
         'Can\'t add subtree because parent [${parent.runtimeType}][${parent.$id}] is not found in tree [$id]',
       );
     }
+    final subTreeRoot = subTree.root;
+    if (subTreeRoot == null) {
+      throw Exception('Can\'t add subtree because subTree has no root in tree [$id]');
+    }
+    final edge = parentRecord.children.keys.firstWhereOrNull((edge) => edge.key == via);
+    if (edge == null) {
+      throw Exception(
+        'Can\'t add subtree because edge [$via] can\'t be found between parent [${parent.runtimeType}][${parent.$id}] and child [${subTreeRoot.runtimeType}][${subTreeRoot.$id}] in tree [$id]',
+      );
+    }
+    if (edge.type != subTreeRoot.runtimeType) {
+      throw Exception(
+        'Can\'t add subtree because edge [$via] has type [${edge.type}] but child [${subTreeRoot.runtimeType}][${subTreeRoot.$id}] has type ${subTreeRoot.runtimeType} in tree [$id]',
+      );
+    }
+
     Tree? oldTree;
-    final child = nodes[parentRecord.children[via]]?.node;
+    final child = nodes[parentRecord.children[edge]]?.node;
     if (child != null) {
       oldTree = removeSubTree(node: child);
     }
-    final subTreeRoot = subTree.root!;
+
     final pointer = buildPointer([parentRecord.pointer, via]);
     final subTreeNodes = subTree._snatchNodes(subTreeRoot, pointer);
     for (final node in subTreeNodes.entries) {
       node.value.node._$tree = this;
     }
     nodes.addAll(subTreeNodes);
-
     subTreeNodes[subTreeRoot.$id]!.parent = parent.$id;
-    nodes[parent.$id]!.children[via] = subTreeRoot.$id;
+    parentRecord.children[edge] = subTreeRoot.$id;
 
+    return oldTree;
+  }
+
+  Tree? replaceSubTree({required TreeNode node, required Tree subTree}) {
+    final nodeRecord = nodes[node.$id];
+    if (nodeRecord == null) {
+      throw Exception(
+        'Can\'t replace subtree because node [${node.runtimeType}][${node.$id}] is not found in tree [$id]',
+      );
+    }
+    final subTreeRoot = subTree.root;
+    if (subTreeRoot == null) {
+      throw Exception('Can\'t replace subtree because subTree has no root in tree [$id]');
+    }
+    if (node.runtimeType != subTreeRoot.runtimeType) {
+      throw Exception(
+        'Can\'t replace subtree because node [${node.runtimeType}][${node.$id}] has type [${node.runtimeType}] but subTree root has type [${subTreeRoot.runtimeType}] in tree [$id]',
+      );
+    }
+    final oldTree = removeSubTree(node: node);
+
+    final pointer = nodeRecord.pointer;
+    final subTreeNodes = subTree._snatchNodes(subTreeRoot, pointer);
+    for (final node in subTreeNodes.entries) {
+      node.value.node._$tree = this;
+    }
+    nodes.addAll(subTreeNodes);
+
+    subTreeNodes[subTreeRoot.$id]!.parent = nodeRecord.parent;
+    final parentRecord = nodes[nodeRecord.parent];
+    if (parentRecord != null) {
+      final edge = parentRecord.children.entries.firstWhere((entry) => entry.value == node.$id).key;
+      parentRecord.children[edge] = subTreeRoot.$id;
+    }
     return oldTree;
   }
 
