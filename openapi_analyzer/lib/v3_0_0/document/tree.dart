@@ -19,7 +19,7 @@ class TreeNodeRecord {
   TreeNodeRecord({required this.node, required this.pointer});
 }
 
-class Tree {
+abstract class Tree {
   late String id;
   Document? _document;
   Map<String, TreeNodeRecord> _nodes = {};
@@ -46,23 +46,47 @@ class Tree {
     this.id = id;
   }
 
-  TreeNodeRecord _createNode({required String pointer, required Object? object}) {
-    late final TreeNode node;
+  @visibleForOverriding
+  (TreeNode, List<(Edge, Object)>)? goodMethod(Object object) {
+    if (object is Encoding) {
+
+return 
+
+      return (
+        EncodingNode(
+          contentType: object.contentType,
+          style: object.style,
+          explode: object.explode,
+          allowReserved: object.allowReserved,
+        ),
+        [(const Edge(HeadersMap, 'headers'), object.headers!)],
+      );
+    }
+    return null;
+  }
+
+  TreeNodeRecord _createNode({required String pointer, required Object object}) {
+    // late final TreeNode node;
     final Map<Edge, TreeNodeRecord> children = {};
 
-    void createChild(Edge edge, Object? object) {
+    void createChild(Edge edge, Object object) {
       children[edge] = _createNode(pointer: buildPointer([pointer, edge.key]), object: object);
     }
 
-    if (object is Encoding) {
-      node = EncodingNode(
-        contentType: object.contentType,
-        style: object.style,
-        explode: object.explode,
-        allowReserved: object.allowReserved,
-      );
-      createChild(const Edge(HeadersMap, 'headers'), object.headers!);
+    final (node, edges) = goodMethod(object)!;
+    for (final (edge, obj) in edges) {
+      createChild(edge, obj);
     }
+
+    // if (object is Encoding) {
+    //   node = EncodingNode(
+    //     contentType: object.contentType,
+    //     style: object.style,
+    //     explode: object.explode,
+    //     allowReserved: object.allowReserved,
+    //   );
+    //   createChild(const Edge(HeadersMap, 'headers'), object.headers!);
+    // }
 
     node._$tree = this;
     _nodes[node.$id] = TreeNodeRecord(node: node, pointer: pointer);
@@ -185,21 +209,26 @@ class Tree {
         'Can\'t replace subtree because node [${node.runtimeType}][${node.$id}] has type [${node.runtimeType}] but subTree root has type [${subTreeRoot.runtimeType}] in tree [$id]',
       );
     }
-    final oldTree = removeSubTree(node: node);
 
     final pointer = nodeRecord.pointer;
+    final parentId = nodeRecord.parent;
+    final parentRecord = parentId != null ? nodes[parentId] : null;
+    final edge = parentRecord?.children.entries.firstWhereOrNull((entry) => entry.value == node.$id)?.key;
+
+    final oldTree = removeSubTree(node: node);
+
     final subTreeNodes = subTree._snatchNodes(subTreeRoot, pointer);
     for (final node in subTreeNodes.entries) {
       node.value.node._$tree = this;
     }
     _nodes.addAll(subTreeNodes);
 
-    subTreeNodes[subTreeRoot.$id]!.parent = nodeRecord.parent;
-    final parentRecord = nodes[nodeRecord.parent];
-    if (parentRecord != null) {
-      final edge = parentRecord.children.entries.firstWhere((entry) => entry.value == node.$id).key;
+    // Reconnect to parent if it exists
+    subTreeNodes[subTreeRoot.$id]!.parent = parentId;
+    if (parentRecord != null && edge != null) {
       parentRecord.children[edge] = subTreeRoot.$id;
     }
+
     return oldTree;
   }
 
