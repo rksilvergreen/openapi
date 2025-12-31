@@ -31,10 +31,10 @@ class Tree {
     if (root != null) {
       throw Exception('Tree [${this.id}] already has a root');
     }
-    _addNode(parent: null, object: object, via: null);
+    _addNode(parent: null, via: null, object: object);
   }
 
-  void _addNode({TreeNode? parent, required Object? object, String? via}) {
+  void _addNode({TreeNode? parent, String? via, required Object? object}) {
     late final String pointer;
 
     if (parent == null && via == null) {
@@ -59,7 +59,7 @@ class Tree {
         explode: object.explode,
         allowReserved: object.allowReserved,
       );
-      _addNode(parent: node, object: object.headers!, via: 'headers');
+      _addNode(parent: node, via: 'headers', object: object.headers!);
     }
 
     nodes[pointer] = node;
@@ -74,27 +74,29 @@ class Tree {
       parents.remove(pointer);
     }
     if (children.containsKey(pointer)) {
-      for (final childPointer in children[pointer]!.keys) {
-        children[parentPointer]!.remove(childPointer);
+      for (final childPointer in children[pointer]!) {
+        children[pointer]!.remove(childPointer);
         parents.remove(childPointer);
       }
       children.remove(pointer);
     }
   }
 
-  void addSubTree({required Tree subtree, required TreeNode parent, required String via}) {
-    if (!_verifyNode(parent)) {
-      throw Exception('Can\'t add subtree because parent [${parent._$id?.pointer}] is not found in tree [_$id]');
+  void addSubTree({required TreeNode parent, required String via, required Tree subtree}) {
+    if (parent._$id.tree != this) {
+      throw Exception(
+        'Can\'t add subtree because parent [${parent.runtimeType}][${parent._$id.pointer}] is not found in tree [_$id]',
+      );
     }
     if (subtree.root == null) {
-      throw Exception('Can\'t add subtree because it has no root');
+      throw Exception('Can\'t add subtree [${subtree.id}] because it has no root');
     }
 
     final subtreeRoot = subtree.root!;
-    final rootJsonPointer = buildPointer([parent._$id!.pointer, via]);
+    final newRootPointer = buildPointer([parent._$id.pointer, via]);
 
     // Update all node IDs in the subtree to point to this tree and update pointers
-    _updateNodeIds(subtreeRoot, this, rootJsonPointer);
+    _updateNodeIds(subtreeRoot, this, newRootPointer);
 
     // Add all edges from the subtree to this tree
     edges.addAll(subtree.edges);
@@ -154,8 +156,9 @@ class Tree {
     return newTree;
   }
 
-  void _updateNodeIds(TreeNode node, Tree targetTree, String pointer) {
-    node.setId(targetTree, pointer);
+  void _updateNodeIds(TreeNode node, String pointer) {
+    Tree tree = node._$id.tree;
+    node._setId(tree, pointer);
     targetTree.nodes[pointer] = node;
     for (final edge in node.$children) {
       final childPointer = buildPointer([pointer, edge.via]);
