@@ -65,12 +65,12 @@ class Tree {
     }
 
     node._$tree = this;
-    nodes[node.$id] = TreeNodeRecord(node: node, pointer: pointer);
+    _nodes[node.$id] = TreeNodeRecord(node: node, pointer: pointer);
     for (final child in children.entries) {
-      nodes[node.$id]!.children[child.key] = child.value.node.$id;
+      _nodes[node.$id]!.children[child.key] = child.value.node.$id;
       child.value.parent = node.$id;
     }
-    return nodes[node.$id]!;
+    return _nodes[node.$id]!;
   }
 
   Map<String, TreeNodeRecord> _snatchNodes(
@@ -102,11 +102,11 @@ class Tree {
     // Remove from parent's children map
     final parent = record.parent;
     if (parent != null) {
-      nodes[parent]!.children.removeWhere((key, value) => value == node.$id);
+      _nodes[parent]!.children.removeWhere((key, value) => value == node.$id);
     }
 
     // Remove from nodes map
-    nodes.remove(node.$id);
+    _nodes.remove(node.$id);
 
     return collectedNodes;
   }
@@ -129,7 +129,7 @@ class Tree {
     for (final node in subTreeNodes.entries) {
       node.value.node._$tree = this;
     }
-    nodes.addAll(subTreeNodes);
+    _nodes.addAll(subTreeNodes);
     return oldTree;
   }
 
@@ -144,15 +144,10 @@ class Tree {
     if (subTreeRoot == null) {
       throw Exception('Can\'t add subtree because subTree has no root in tree [$id]');
     }
-    final edge = parentRecord.children.keys.firstWhereOrNull((edge) => edge.key == via);
-    if (edge == null) {
+    final edge = Edge(subTreeRoot.runtimeType, via);
+    if (!parentRecord.children.containsKey(edge)) {
       throw Exception(
-        'Can\'t add subtree because edge [$via] can\'t be found between parent [${parent.runtimeType}][${parent.$id}] and child [${subTreeRoot.runtimeType}][${subTreeRoot.$id}] in tree [$id]',
-      );
-    }
-    if (edge.type != subTreeRoot.runtimeType) {
-      throw Exception(
-        'Can\'t add subtree because edge [$via] has type [${edge.type}] but child [${subTreeRoot.runtimeType}][${subTreeRoot.$id}] has type ${subTreeRoot.runtimeType} in tree [$id]',
+        'Can\'t add subtree because edge [$via] with type [${subTreeRoot.runtimeType}] not found for parent [${parent.runtimeType}][${parent.$id}] in tree [$id]',
       );
     }
 
@@ -167,7 +162,7 @@ class Tree {
     for (final node in subTreeNodes.entries) {
       node.value.node._$tree = this;
     }
-    nodes.addAll(subTreeNodes);
+    _nodes.addAll(subTreeNodes);
     subTreeNodes[subTreeRoot.$id]!.parent = parent.$id;
     parentRecord.children[edge] = subTreeRoot.$id;
 
@@ -197,7 +192,7 @@ class Tree {
     for (final node in subTreeNodes.entries) {
       node.value.node._$tree = this;
     }
-    nodes.addAll(subTreeNodes);
+    _nodes.addAll(subTreeNodes);
 
     subTreeNodes[subTreeRoot.$id]!.parent = nodeRecord.parent;
     final parentRecord = nodes[nodeRecord.parent];
