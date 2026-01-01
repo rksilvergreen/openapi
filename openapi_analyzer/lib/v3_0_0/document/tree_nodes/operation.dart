@@ -1,17 +1,18 @@
 part of '../document.dart';
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
-class Operation extends TreeNode {
+class Operation {
   final ExternalDocumentation? externalDocs;
-  final ParametersList? parameters;
+  final List<Parameter>? parameters;
   final RequestBody? requestBody;
-  final ResponsesMap responses;
-  final CallbacksMap? callbacks;
-  final SecurityRequirementsList? security;
-  final ServerList? servers;
+  @JsonKey(required: true, disallowNullValue: true)
+  final Map<String, Response> responses;
+  final Map<String, Callback>? callbacks;
+  final List<SecurityRequirement>? security;
+  final List<Server>? servers;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
   Operation({
     this.externalDocs,
@@ -21,7 +22,7 @@ class Operation extends TreeNode {
     this.callbacks,
     this.security,
     this.servers,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory Operation.fromJson(Map<String, dynamic> json) {
@@ -32,9 +33,31 @@ class Operation extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$OperationToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
+    return json;
+  }
+}
+
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class OperationNode extends TreeNode {
+  ExternalDocumentationNode? get externalDocs => $children?['externalDocs'] as ExternalDocumentationNode?;
+  ParametersListNode? get parameters => $children?['parameters'] as ParametersListNode?;
+  RequestBodyNode? get requestBody => $children?['requestBody'] as RequestBodyNode?;
+  ResponsesMapNode? get responses => $children?['responses'] as ResponsesMapNode?;
+  CallbacksMapNode? get callbacks => $children?['callbacks'] as CallbacksMapNode?;
+  SecurityRequirementsList? get security => $children?['security'] as SecurityRequirementsList?;
+  ServerList? get servers => $children?['servers'] as ServerList?;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic> extensions;
+
+  OperationNode({
+    this.extensions = const {},
+  });
+
+  Map<String, dynamic> toJson() {
+    final json = _$OperationNodeToJson(this);
+    json.addAll(extensions);
     return json;
   }
 }

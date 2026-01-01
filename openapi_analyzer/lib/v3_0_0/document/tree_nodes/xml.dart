@@ -1,15 +1,17 @@
 part of '../document.dart';
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
-class XML extends TreeNode {
+class XML {
   final String? name;
   final String? namespace;
   final String? prefix;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool attribute;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool wrapped;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
   XML({
     this.name,
@@ -17,7 +19,7 @@ class XML extends TreeNode {
     this.prefix,
     required this.attribute,
     required this.wrapped,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory XML.fromJson(Map<String, dynamic> json) {
@@ -28,9 +30,34 @@ class XML extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$XMLToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
+    return json;
+  }
+}
+
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class XMLNode extends TreeNode {
+  String? name;
+  String? namespace;
+  String? prefix;
+  bool attribute;
+  bool wrapped;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic> extensions;
+
+  XMLNode({
+    this.name,
+    this.namespace,
+    this.prefix,
+    required this.attribute,
+    required this.wrapped,
+    this.extensions = const {},
+  });
+
+  Map<String, dynamic> toJson() {
+    final json = _$XMLNodeToJson(this);
+    json.addAll(extensions);
     return json;
   }
 }

@@ -1,18 +1,21 @@
 part of '../document.dart';
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
-class OpenApiDocument extends TreeNode {
+class OpenApiDocument {
+  @JsonKey(required: true, disallowNullValue: true)
   final String openapi;
+  @JsonKey(required: true, disallowNullValue: true)
   final Info info;
-  final ServerList? servers;
-  final PathsMap paths;
+  final List<Server>? servers;
+  @JsonKey(required: true, disallowNullValue: true)
+  final Map<String, PathItem> paths;
   final Components? components;
-  final SecurityRequirementsList? security;
-  final TagsList? tags;
+  final List<SecurityRequirement>? security;
+  final List<Tag>? tags;
   final ExternalDocumentation? externalDocs;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
   OpenApiDocument({
     required this.openapi,
@@ -23,7 +26,7 @@ class OpenApiDocument extends TreeNode {
     this.security,
     this.tags,
     this.externalDocs,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory OpenApiDocument.fromJson(Map<String, dynamic> json) {
@@ -34,9 +37,33 @@ class OpenApiDocument extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$OpenApiDocumentToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
+    return json;
+  }
+}
+
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class OpenApiDocumentNode extends TreeNode {
+  String openapi;
+  InfoNode? get info => $children?['info'] as InfoNode?;
+  ServerList? get servers => $children?['servers'] as ServerList?;
+  PathsMapNode? get paths => $children?['paths'] as PathsMapNode?;
+  ComponentsNode? get components => $children?['components'] as ComponentsNode?;
+  SecurityRequirementsList? get security => $children?['security'] as SecurityRequirementsList?;
+  TagsList? get tags => $children?['tags'] as TagsList?;
+  ExternalDocumentationNode? get externalDocs => $children?['externalDocs'] as ExternalDocumentationNode?;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic> extensions;
+
+  OpenApiDocumentNode({
+    required this.openapi,
+    this.extensions = const {},
+  });
+
+  Map<String, dynamic> toJson() {
+    final json = _$OpenApiDocumentNodeToJson(this);
+    json.addAll(extensions);
     return json;
   }
 }

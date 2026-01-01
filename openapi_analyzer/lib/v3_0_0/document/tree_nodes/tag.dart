@@ -1,19 +1,20 @@
 part of '../document.dart';
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
-class Tag extends TreeNode {
+class Tag {
+  @JsonKey(required: true, disallowNullValue: true)
   final String name;
   final String? description;
   final ExternalDocumentation? externalDocs;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
   Tag({
     required this.name,
     this.description,
     this.externalDocs,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory Tag.fromJson(Map<String, dynamic> json) {
@@ -24,23 +25,37 @@ class Tag extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$TagToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
+    return json;
+  }
+}
+
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class TagNode extends TreeNode {
+  String name;
+  String? description;
+  ExternalDocumentationNode? get externalDocs => $children?['externalDocs'] as ExternalDocumentationNode?;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic> extensions;
+
+  TagNode({
+    required this.name,
+    this.description,
+    this.extensions = const {},
+  });
+
+  Map<String, dynamic> toJson() {
+    final json = _$TagNodeToJson(this);
+    json.addAll(extensions);
     return json;
   }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class TagsList extends ListTreeNode<Tag> {
-  TagsList(List<Tag> tags) : super(tags);
-
-  factory TagsList.fromJson(List<dynamic> json) {
-    return TagsList(json.map((i) => Tag.fromJson(i)).toList());
-  }
-
+class TagsList extends ListTreeNode<TagNode> {
   List<dynamic> toJson() {
-    return map((item) => _$TagToJson(item)).toList();
+    return map((item) => _$TagNodeToJson(item)).toList();
   }
 }
 

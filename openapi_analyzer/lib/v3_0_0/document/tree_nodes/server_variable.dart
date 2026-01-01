@@ -2,30 +2,30 @@ part of '../document.dart';
 
 @CopyWith(skipFields: true)
 @JsonSerializable()
-class Example {
-  final String? summary;
+class ServerVariable {
+  @JsonKey(name: 'enum')
+  final List<String>? enum_;
+  @JsonKey(name: 'default', required: true, disallowNullValue: true)
+  final String default_;
   final String? description;
-  final dynamic value;
-  final String? externalValue;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic> extensions;
 
-  Example({
-    this.summary,
+  ServerVariable({
+    this.enum_,
+    required this.default_,
     this.description,
-    this.value,
-    this.externalValue,
     this.extensions = const {},
   });
 
-  factory Example.fromJson(Map<String, dynamic> json) {
+  factory ServerVariable.fromJson(Map<String, dynamic> json) {
     final extensions = _extractExtensions(json);
-    final example = _$ExampleFromJson(_jsonWithoutExtensions(json));
-    return example.copyWith(extensions: extensions);
+    final serverVariable = _$ServerVariableFromJson(_jsonWithoutExtensions(json));
+    return serverVariable.copyWith(extensions: extensions);
   }
 
   Map<String, dynamic> toJson() {
-    final json = _$ExampleToJson(this);
+    final json = _$ServerVariableToJson(this);
     json.addAll(extensions);
     return json;
   }
@@ -33,37 +33,36 @@ class Example {
 
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
-class ExampleNode extends TreeNode {
-  String? summary;
+class ServerVariableNode extends TreeNode {
+  @JsonKey(name: 'enum')
+  List<String>? enum_;
+  @JsonKey(name: 'default')
+  String default_;
   String? description;
-  dynamic value;
-  String? externalValue;
   @JsonKey(includeFromJson: false, includeToJson: false)
   Map<String, dynamic> extensions;
 
-  ExampleNode({
-    this.summary,
+  ServerVariableNode({
+    this.enum_,
+    required this.default_,
     this.description,
-    this.value,
-    this.externalValue,
     this.extensions = const {},
   });
 
   Map<String, dynamic> toJson() {
-    final json = _$ExampleNodeToJson(this);
+    final json = _$ServerVariableNodeToJson(this);
     json.addAll(extensions);
     return json;
   }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class ExamplesMapNode extends MapTreeNode<ExampleNode> {
+class ServerVariablesMapNode extends MapTreeNode<ServerVariableNode> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$ExampleNodeToJson(entry.value);
+      json[entry.key] = _$ServerVariableNodeToJson(entry.value);
     }
     return json;
   }
 }
-

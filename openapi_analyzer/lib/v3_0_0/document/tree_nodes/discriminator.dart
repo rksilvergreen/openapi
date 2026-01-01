@@ -1,17 +1,18 @@
 part of '../document.dart';
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
-class Discriminator extends TreeNode {
+class Discriminator {
+  @JsonKey(required: true, disallowNullValue: true)
   final String propertyName;
   final Map<String, String>? mapping;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
   Discriminator({
     required this.propertyName,
     this.mapping,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory Discriminator.fromJson(Map<String, dynamic> json) {
@@ -22,9 +23,28 @@ class Discriminator extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$DiscriminatorToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
+    return json;
+  }
+}
+
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class DiscriminatorNode extends TreeNode {
+  String propertyName;
+  Map<String, String>? mapping;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic> extensions;
+
+  DiscriminatorNode({
+    required this.propertyName,
+    this.mapping,
+    this.extensions = const {},
+  });
+
+  Map<String, dynamic> toJson() {
+    final json = _$DiscriminatorNodeToJson(this);
+    json.addAll(extensions);
     return json;
   }
 }

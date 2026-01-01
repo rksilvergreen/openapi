@@ -16,11 +16,12 @@ enum SchemaType {
   final String value;
 }
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
-class Schema extends TreeNode {
+class Schema {
   final String? title;
   final String? description;
+  @JsonKey(name: 'default')
   final dynamic default_;
   final SchemaType? type;
   final String? format;
@@ -34,28 +35,35 @@ class Schema extends TreeNode {
   final String? pattern;
   final int? maxItems;
   final int? minItems;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool uniqueItems;
   final Schema? items;
   final int? maxProperties;
   final int? minProperties;
+  @JsonKey(name: 'required')
   final List<String>? required_;
-  final SchemasMap? properties;
+  final Map<String, Schema>? properties;
   final bool? additionalPropertiesAllowed;
   final Schema? additionalProperties;
-  final SchemasList? allOf;
-  final SchemasList? oneOf;
-  final SchemasList? anyOf;
+  final List<Schema>? allOf;
+  final List<Schema>? oneOf;
+  final List<Schema>? anyOf;
+  @JsonKey(name: 'enum')
   final List<dynamic>? enum_;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool nullable;
   final Discriminator? discriminator;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool readOnly;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool writeOnly;
   final XML? xml;
   final ExternalDocumentation? externalDocs;
   final dynamic example;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool deprecated;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
   Schema({
     this.title,
@@ -93,7 +101,7 @@ class Schema extends TreeNode {
     this.externalDocs,
     this.example,
     required this.deprecated,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory Schema.fromJson(Map<String, dynamic> json) {
@@ -104,47 +112,105 @@ class Schema extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$SchemaToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
+    return json;
+  }
+}
+
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class SchemaNode extends TreeNode {
+  String? title;
+  String? description;
+  @JsonKey(name: 'default')
+  dynamic default_;
+  SchemaType? type;
+  String? format;
+  num? multipleOf;
+  num? maximum;
+  num? exclusiveMaximum;
+  num? minimum;
+  num? exclusiveMinimum;
+  int? maxLength;
+  int? minLength;
+  String? pattern;
+  int? maxItems;
+  int? minItems;
+  bool uniqueItems;
+  SchemaNode? get items => $children?['items'] as SchemaNode?;
+  int? maxProperties;
+  int? minProperties;
+  @JsonKey(name: 'required')
+  List<String>? required_;
+  SchemasMap? get properties => $children?['properties'] as SchemasMap?;
+  bool? additionalPropertiesAllowed;
+  SchemaNode? get additionalProperties => $children?['additionalProperties'] as SchemaNode?;
+  SchemasList? get allOf => $children?['allOf'] as SchemasList?;
+  SchemasList? get oneOf => $children?['oneOf'] as SchemasList?;
+  SchemasList? get anyOf => $children?['anyOf'] as SchemasList?;
+  @JsonKey(name: 'enum')
+  List<dynamic>? enum_;
+  bool nullable;
+  DiscriminatorNode? get discriminator => $children?['discriminator'] as DiscriminatorNode?;
+  bool readOnly;
+  bool writeOnly;
+  XMLNode? get xml => $children?['xml'] as XMLNode?;
+  ExternalDocumentationNode? get externalDocs => $children?['externalDocs'] as ExternalDocumentationNode?;
+  dynamic example;
+  bool deprecated;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic> extensions;
+
+  SchemaNode({
+    this.title,
+    this.description,
+    this.default_,
+    this.type,
+    this.format,
+    this.multipleOf,
+    this.maximum,
+    this.exclusiveMaximum,
+    this.minimum,
+    this.exclusiveMinimum,
+    this.maxLength,
+    this.minLength,
+    this.pattern,
+    this.maxItems,
+    this.minItems,
+    required this.uniqueItems,
+    this.maxProperties,
+    this.minProperties,
+    this.required_,
+    this.additionalPropertiesAllowed,
+    required this.nullable,
+    required this.readOnly,
+    required this.writeOnly,
+    this.example,
+    required this.deprecated,
+    this.extensions = const {},
+  });
+
+  Map<String, dynamic> toJson() {
+    final json = _$SchemaNodeToJson(this);
+    json.addAll(extensions);
     return json;
   }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class SchemasMap extends MapTreeNode<Schema> {
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
-
-  SchemasMap(Map<String, Schema> schemas, {this.extensions}) : super(schemas);
-
-  factory SchemasMap.fromJson(Map<String, dynamic> json) {
-    final extensions = _extractExtensions(json);
-    final map = _jsonWithoutExtensions(json);
-    return SchemasMap(map.map((key, value) => MapEntry(key, Schema.fromJson(value))), extensions: extensions);
-  }
-
+class SchemasMap extends MapTreeNode<SchemaNode> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$SchemaToJson(entry.value);
-    }
-    if (extensions != null) {
-      json.addAll(extensions!);
+      json[entry.key] = _$SchemaNodeToJson(entry.value);
     }
     return json;
   }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class SchemasList extends ListTreeNode<Schema> {
-  SchemasList(List<Schema> schemas) : super(schemas);
-
-  factory SchemasList.fromJson(List<dynamic> json) {
-    return SchemasList(json.map((i) => Schema.fromJson(i)).toList());
-  }
-
+class SchemasList extends ListTreeNode<SchemaNode> {
   List<dynamic> toJson() {
-    return map((item) => _$SchemaToJson(item)).toList();
+    return map((item) => _$SchemaNodeToJson(item)).toList();
   }
 }

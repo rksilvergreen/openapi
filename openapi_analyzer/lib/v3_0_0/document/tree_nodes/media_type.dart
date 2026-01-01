@@ -1,16 +1,22 @@
 part of '../document.dart';
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
-class MediaType extends TreeNode {
-  final SchemasMap? schema;
+class MediaType {
+  final Map<String, Schema>? schema;
   final dynamic example;
-  final ExamplesMap? examples;
-  final EncodingsMap? encoding;
+  final Map<String, Example>? examples;
+  final Map<String, Encoding>? encoding;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
-  MediaType({this.schema, this.example, this.examples, this.encoding, this.extensions});
+  MediaType({
+    this.schema,
+    this.example,
+    this.examples,
+    this.encoding,
+    this.extensions = const {},
+  });
 
   factory MediaType.fromJson(Map<String, dynamic> json) {
     final extensions = _extractExtensions(json);
@@ -20,33 +26,39 @@ class MediaType extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$MediaTypeToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
+    return json;
+  }
+}
+
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class MediaTypeNode extends TreeNode {
+  SchemasMap? get schema => $children?['schema'] as SchemasMap?;
+  dynamic example;
+  ExamplesMapNode? get examples => $children?['examples'] as ExamplesMapNode?;
+  EncodingsMapNode? get encoding => $children?['encoding'] as EncodingsMapNode?;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic> extensions;
+
+  MediaTypeNode({
+    this.example,
+    this.extensions = const {},
+  });
+
+  Map<String, dynamic> toJson() {
+    final json = _$MediaTypeNodeToJson(this);
+    json.addAll(extensions);
     return json;
   }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class MediaTypesMap extends MapTreeNode<MediaType> {
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
-
-  MediaTypesMap(Map<String, MediaType> mediaTypes, {this.extensions}) : super(mediaTypes);
-
-  factory MediaTypesMap.fromJson(Map<String, dynamic> json) {
-    final extensions = _extractExtensions(json);
-    final map = _jsonWithoutExtensions(json);
-    return MediaTypesMap(map.map((key, value) => MapEntry(key, MediaType.fromJson(value))), extensions: extensions);
-  }
-
+class MediaTypesMapNode extends MapTreeNode<MediaTypeNode> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$MediaTypeToJson(entry.value);
-    }
-    if (extensions != null) {
-      json.addAll(extensions!);
+      json[entry.key] = _$MediaTypeNodeToJson(entry.value);
     }
     return json;
   }

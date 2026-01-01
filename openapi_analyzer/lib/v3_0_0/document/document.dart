@@ -32,6 +32,7 @@ part 'tree_nodes/response.dart';
 part 'tree_nodes/security_requirement.dart';
 part 'tree_nodes/security_scheme.dart';
 part 'tree_nodes/server.dart';
+part 'tree_nodes/server_variable.dart';
 part 'tree_nodes/tag.dart';
 part 'tree_nodes/xml.dart';
 part 'tree_nodes/openapi_document.dart';

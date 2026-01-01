@@ -2,13 +2,17 @@ part of '../document.dart';
 
 @CopyWith(skipFields: true)
 @JsonSerializable()
-class Header extends TreeNode {
+class Header {
   final String? description;
+  @JsonKey(name: 'required', required: true, disallowNullValue: true)
   final bool required_;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool deprecated;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool allowEmptyValue;
   final ParameterStyle? style;
   final bool? explode;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool allowReserved;
   final Map<String, Schema>? schema;
   final dynamic example;
@@ -49,15 +53,17 @@ class Header extends TreeNode {
 @JsonSerializable(createFactory: false)
 class HeaderNode extends TreeNode {
   String? description;
+  @JsonKey(name: 'required')
   bool required_;
   bool deprecated;
   bool allowEmptyValue;
   ParameterStyle? style;
   bool? explode;
   bool allowReserved;
-  SchemasMapNode? get schema => $children?['schema'] as SchemasMapNode?;
+  SchemasMap? get schema => $children?['schema'] as SchemasMap?;
   ExamplesMapNode? get examples => $children?['examples'] as ExamplesMapNode?;
   MediaTypesMapNode? get content => $children?['content'] as MediaTypesMapNode?;
+  @JsonKey(includeFromJson: false, includeToJson: false)
   Map<String, dynamic> extensions;
 
   HeaderNode({
@@ -70,6 +76,12 @@ class HeaderNode extends TreeNode {
     required this.allowReserved,
     this.extensions = const {},
   });
+
+  Map<String, dynamic> toJson() {
+    final json = _$HeaderNodeToJson(this);
+    json.addAll(extensions);
+    return json;
+  }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)

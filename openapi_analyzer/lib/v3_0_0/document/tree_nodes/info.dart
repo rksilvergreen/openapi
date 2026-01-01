@@ -1,16 +1,18 @@
 part of '../document.dart';
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
-class Info extends TreeNode {
+class Info {
+  @JsonKey(required: true, disallowNullValue: true)
   final String title;
   final String? description;
   final String? termsOfService;
   final Contact? contact;
   final License? license;
+  @JsonKey(required: true, disallowNullValue: true)
   final String version;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
   Info({
     required this.title,
@@ -19,7 +21,7 @@ class Info extends TreeNode {
     this.contact,
     this.license,
     required this.version,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory Info.fromJson(Map<String, dynamic> json) {
@@ -30,9 +32,34 @@ class Info extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$InfoToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
+    return json;
+  }
+}
+
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class InfoNode extends TreeNode {
+  String title;
+  String? description;
+  String? termsOfService;
+  ContactNode? get contact => $children?['contact'] as ContactNode?;
+  LicenseNode? get license => $children?['license'] as LicenseNode?;
+  String version;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic> extensions;
+
+  InfoNode({
+    required this.title,
+    this.description,
+    this.termsOfService,
+    required this.version,
+    this.extensions = const {},
+  });
+
+  Map<String, dynamic> toJson() {
+    final json = _$InfoNodeToJson(this);
+    json.addAll(extensions);
     return json;
   }
 }

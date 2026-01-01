@@ -3,10 +3,15 @@ part of '../document.dart';
 @CopyWith(skipFields: true)
 @JsonSerializable()
 class Encoding {
+  @JsonKey(required: true, disallowNullValue: true)
   final String? contentType;
+  @JsonKey(required: true, disallowNullValue: true)
   final Map<String, Header>? headers;
+  @JsonKey(required: true, disallowNullValue: true)
   final ParameterStyle? style;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool? explode;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool allowReserved;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic> extensions;
@@ -41,6 +46,7 @@ class EncodingNode extends TreeNode {
   ParameterStyle? style;
   bool? explode;
   bool allowReserved;
+  @JsonKey(includeFromJson: false, includeToJson: false)
   Map<String, dynamic> extensions;
 
   EncodingNode({
@@ -50,6 +56,12 @@ class EncodingNode extends TreeNode {
     required this.allowReserved,
     this.extensions = const {},
   });
+
+  Map<String, dynamic> toJson() {
+    final json = _$EncodingNodeToJson(this);
+    json.addAll(extensions);
+    return json;
+  }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)

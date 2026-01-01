@@ -1,8 +1,9 @@
 part of '../document.dart';
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
-class PathItem extends TreeNode {
+class PathItem {
+  @JsonKey(name: 'get')
   final Operation? get_;
   final Operation? put;
   final Operation? post;
@@ -11,10 +12,10 @@ class PathItem extends TreeNode {
   final Operation? head;
   final Operation? patch;
   final Operation? trace;
-  final ServerList? servers;
-  final ParametersList? parameters;
+  final List<Server>? servers;
+  final List<Parameter>? parameters;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
   PathItem({
     this.get_,
@@ -27,7 +28,7 @@ class PathItem extends TreeNode {
     this.trace,
     this.servers,
     this.parameters,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory PathItem.fromJson(Map<String, dynamic> json) {
@@ -38,35 +39,51 @@ class PathItem extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$PathItemToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
+    return json;
+  }
+}
+
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class PathItemNode extends TreeNode {
+  @JsonKey(name: 'get')
+  OperationNode? get get_ => $children?['get'] as OperationNode?;
+  OperationNode? get put => $children?['put'] as OperationNode?;
+  OperationNode? get post => $children?['post'] as OperationNode?;
+  OperationNode? get delete => $children?['delete'] as OperationNode?;
+  OperationNode? get options => $children?['options'] as OperationNode?;
+  OperationNode? get head => $children?['head'] as OperationNode?;
+  OperationNode? get patch => $children?['patch'] as OperationNode?;
+  OperationNode? get trace => $children?['trace'] as OperationNode?;
+  ServerList? get servers => $children?['servers'] as ServerList?;
+  ParametersListNode? get parameters => $children?['parameters'] as ParametersListNode?;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic> extensions;
+
+  PathItemNode({
+    this.extensions = const {},
+  });
+
+  Map<String, dynamic> toJson() {
+    final json = _$PathItemNodeToJson(this);
+    json.addAll(extensions);
     return json;
   }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class PathsMap extends MapTreeNode<PathItem> {
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+class PathsMapNode extends MapTreeNode<PathItemNode> {
+  final Map<String, dynamic> extensions;
 
-  PathsMap(Map<String, PathItem> paths, {this.extensions}) : super(paths);
-
-  factory PathsMap.fromJson(Map<String, dynamic> json) {
-    final extensions = _extractExtensions(json);
-    final map = _jsonWithoutExtensions(json);
-    return PathsMap(map.map((key, value) => MapEntry(key, PathItem.fromJson(value))), extensions: extensions);
-  }
+  PathsMapNode({this.extensions = const {}});
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$PathItemToJson(entry.value);
+      json[entry.key] = _$PathItemNodeToJson(entry.value);
     }
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
     return json;
   }
 }
-

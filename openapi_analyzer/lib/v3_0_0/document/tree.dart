@@ -61,8 +61,20 @@ abstract class Tree {
     }
     if (object is Map<String, Encoding>) {
       return (
-        EncodingsMapNode(extensions: _extractExtensions(object)),
+        EncodingsMapNode(),
         object.entries.map((entry) => (Edge(HeaderNode, entry.key), entry.value)).toList(),
+      );
+    }
+    if (object is Map<String, Response>) {
+      return (
+        ResponsesMapNode(extensions: _extractExtensions(object)),
+        object.entries.map((entry) => (Edge(ResponseNode, entry.key), entry.value)).toList(),
+      );
+    }
+    if (object is List<Parameter>) {
+      return (
+        ParametersListNode(),
+        object.mapIndexed((index, entry) => (Edge(ParameterNode, '$index'), entry)).toList(),
       );
     }
     return null;

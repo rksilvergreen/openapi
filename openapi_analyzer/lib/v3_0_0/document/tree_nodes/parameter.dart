@@ -26,15 +26,21 @@ enum ParameterStyle {
 
 @CopyWith(skipFields: true)
 @JsonSerializable()
-class Parameter extends TreeNode {
+class Parameter {
+  @JsonKey(required: true, disallowNullValue: true)
   final String name;
+  @JsonKey(name: 'in', required: true, disallowNullValue: true)
   final ParameterLocation in_;
   final String? description;
+  @JsonKey(name: 'required', required: true, disallowNullValue: true)
   final bool required_;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool deprecated;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool allowEmptyValue;
   final ParameterStyle? style;
   final bool? explode;
+  @JsonKey(required: true, disallowNullValue: true)
   final bool allowReserved;
   final Schema? schema;
   final dynamic example;
@@ -76,18 +82,21 @@ class Parameter extends TreeNode {
 @JsonSerializable(createFactory: false)
 class ParameterNode extends TreeNode {
   String name;
+  @JsonKey(name: 'in')
   ParameterLocation in_;
   String? description;
+  @JsonKey(name: 'required')
   bool required_;
   bool deprecated;
   bool allowEmptyValue;
   ParameterStyle? style;
   bool? explode;
   bool allowReserved;
-  SchemasMapNode? get schema => $children?['schema'] as SchemasMapNode?;
+  SchemasMap? get schema => $children?['schema'] as SchemasMap?;
   dynamic example;
   ExamplesMapNode? get examples => $children?['examples'] as ExamplesMapNode?;
   MediaTypesMapNode? get content => $children?['content'] as MediaTypesMapNode?;
+  @JsonKey(includeFromJson: false, includeToJson: false)
   Map<String, dynamic> extensions;
 
   ParameterNode({
@@ -102,11 +111,16 @@ class ParameterNode extends TreeNode {
     required this.allowReserved,
     this.extensions = const {},
   });
+
+  Map<String, dynamic> toJson() {
+    final json = _$ParameterNodeToJson(this);
+    json.addAll(extensions);
+    return json;
+  }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
 class ParametersListNode extends ListTreeNode<ParameterNode> {
-
   List<dynamic> toJson() {
     return map((item) => _$ParameterNodeToJson(item)).toList();
   }

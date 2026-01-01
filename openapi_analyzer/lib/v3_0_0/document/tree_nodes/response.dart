@@ -2,7 +2,7 @@ part of '../document.dart';
 
 @CopyWith(skipFields: true)
 @JsonSerializable()
-class Response extends TreeNode {
+class Response {
   final String? description;
   final Map<String, Header>? headers;
   final Map<String, MediaType>? content;
@@ -38,12 +38,21 @@ class ResponseNode extends TreeNode {
   HeadersMapNode? get headers => $children?['headers'] as HeadersMapNode?;
   MediaTypesMapNode? get content => $children?['content'] as MediaTypesMapNode?;
   LinksMapNode? get links => $children?['links'] as LinksMapNode?;
+  @JsonKey(includeFromJson: false, includeToJson: false)
   Map<String, dynamic>? extensions;
 
   ResponseNode({
     this.description,
     this.extensions,
   });
+
+  Map<String, dynamic> toJson() {
+    final json = _$ResponseNodeToJson(this);
+    if (extensions != null) {
+      json.addAll(extensions!);
+    }
+    return json;
+  }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)

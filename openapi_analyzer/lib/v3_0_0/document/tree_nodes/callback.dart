@@ -1,15 +1,16 @@
 part of '../document.dart';
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
-class Callback extends TreeNode {
-  final PathsMap expressions;
+class Callback {
+  @JsonKey(required: true, disallowNullValue: true)
+  final Map<String, PathItem> expressions;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
   Callback({
     required this.expressions,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory Callback.fromJson(Map<String, dynamic> json) {
@@ -20,35 +21,41 @@ class Callback extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$CallbackToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
+    return json;
+  }
+}
+
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class CallbackNode extends TreeNode {
+  PathsMapNode? get expressions => $children?['expressions'] as PathsMapNode?;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic> extensions;
+
+  CallbackNode({
+    this.extensions = const {},
+  });
+
+  Map<String, dynamic> toJson() {
+    final json = _$CallbackNodeToJson(this);
+    json.addAll(extensions);
     return json;
   }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class CallbacksMap extends MapTreeNode<Callback> {
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+class CallbacksMapNode extends MapTreeNode<CallbackNode> {
+  final Map<String, dynamic> extensions;
 
-  CallbacksMap(Map<String, Callback> callbacks, {this.extensions}) : super(callbacks);
-
-  factory CallbacksMap.fromJson(Map<String, dynamic> json) {
-    final extensions = _extractExtensions(json);
-    final map = _jsonWithoutExtensions(json);
-    return CallbacksMap(map.map((key, value) => MapEntry(key, Callback.fromJson(value))), extensions: extensions);
-  }
+  CallbacksMapNode({this.extensions = const {}});
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$CallbackToJson(entry.value);
+      json[entry.key] = _$CallbackNodeToJson(entry.value);
     }
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
     return json;
   }
 }
-

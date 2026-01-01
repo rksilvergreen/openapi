@@ -1,8 +1,8 @@
 part of '../document.dart';
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
-class Link extends TreeNode {
+class Link {
   final String? operationRef;
   final String? operationId;
   final Map<String, dynamic>? parameters;
@@ -10,7 +10,7 @@ class Link extends TreeNode {
   final String? description;
   final Server? server;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
   Link({
     this.operationRef,
@@ -19,7 +19,7 @@ class Link extends TreeNode {
     this.requestBody,
     this.description,
     this.server,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory Link.fromJson(Map<String, dynamic> json) {
@@ -30,33 +30,45 @@ class Link extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$LinkToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
+    return json;
+  }
+}
+
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class LinkNode extends TreeNode {
+  String? operationRef;
+  String? operationId;
+  Map<String, dynamic>? parameters;
+  dynamic requestBody;
+  String? description;
+  ServerNode? get server => $children?['server'] as ServerNode?;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic> extensions;
+
+  LinkNode({
+    this.operationRef,
+    this.operationId,
+    this.parameters,
+    this.requestBody,
+    this.description,
+    this.extensions = const {},
+  });
+
+  Map<String, dynamic> toJson() {
+    final json = _$LinkNodeToJson(this);
+    json.addAll(extensions);
     return json;
   }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class LinksMap extends MapTreeNode<Link> {
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
-
-  LinksMap(Map<String, Link> links, {this.extensions}) : super(links);
-
-  factory LinksMap.fromJson(Map<String, dynamic> json) {
-    final extensions = _extractExtensions(json);
-    final map = _jsonWithoutExtensions(json);
-    return LinksMap(map.map((key, value) => MapEntry(key, Link.fromJson(value))), extensions: extensions);
-  }
-
+class LinksMapNode extends MapTreeNode<LinkNode> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$LinkToJson(entry.value);
-    }
-    if (extensions != null) {
-      json.addAll(extensions!);
+      json[entry.key] = _$LinkNodeToJson(entry.value);
     }
     return json;
   }

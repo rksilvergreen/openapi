@@ -1,8 +1,9 @@
 part of '../document.dart';
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
-class SecurityRequirement extends TreeNode {
+class SecurityRequirement {
+  @JsonKey(required: true, disallowNullValue: true)
   final Map<String, List<String>> requirements;
 
   SecurityRequirement({required this.requirements});
@@ -16,16 +17,24 @@ class SecurityRequirement extends TreeNode {
   }
 }
 
-@JsonSerializable(createFactory: false, createToJson: false)
-class SecurityRequirementsList extends ListTreeNode<SecurityRequirement> {
-  SecurityRequirementsList(List<SecurityRequirement> requirements) : super(requirements);
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class SecurityRequirementNode extends TreeNode {
+  Map<String, List<String>> requirements;
 
-  factory SecurityRequirementsList.fromJson(List<dynamic> json) {
-    return SecurityRequirementsList(json.map((i) => SecurityRequirement.fromJson(i)).toList());
+  SecurityRequirementNode({
+    required this.requirements,
+  });
+
+  Map<String, dynamic> toJson() {
+    return _$SecurityRequirementNodeToJson(this);
   }
+}
 
+@JsonSerializable(createFactory: false, createToJson: false)
+class SecurityRequirementsList extends ListTreeNode<SecurityRequirementNode> {
   List<dynamic> toJson() {
-    return map((item) => _$SecurityRequirementToJson(item)).toList();
+    return map((item) => _$SecurityRequirementNodeToJson(item)).toList();
   }
 }
 

@@ -19,19 +19,21 @@ enum SecuritySchemeIn {
   final String value;
 }
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
-class SecurityScheme extends TreeNode {
+class SecurityScheme {
+  @JsonKey(required: true, disallowNullValue: true)
   final SecuritySchemeType type;
   final String? description;
   final String? name;
+  @JsonKey(name: 'in')
   final SecuritySchemeIn? in_;
   final String? scheme;
   final String? bearerFormat;
   final OAuthFlows? flows;
   final String? openIdConnectUrl;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
   SecurityScheme({
     required this.type,
@@ -42,7 +44,7 @@ class SecurityScheme extends TreeNode {
     this.bearerFormat,
     this.flows,
     this.openIdConnectUrl,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory SecurityScheme.fromJson(Map<String, dynamic> json) {
@@ -53,36 +55,50 @@ class SecurityScheme extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$SecuritySchemeToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
+    return json;
+  }
+}
+
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class SecuritySchemeNode extends TreeNode {
+  SecuritySchemeType type;
+  String? description;
+  String? name;
+  @JsonKey(name: 'in')
+  SecuritySchemeIn? in_;
+  String? scheme;
+  String? bearerFormat;
+  OAuthFlowsNode? get flows => $children?['flows'] as OAuthFlowsNode?;
+  String? openIdConnectUrl;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic> extensions;
+
+  SecuritySchemeNode({
+    required this.type,
+    this.description,
+    this.name,
+    this.in_,
+    this.scheme,
+    this.bearerFormat,
+    this.openIdConnectUrl,
+    this.extensions = const {},
+  });
+
+  Map<String, dynamic> toJson() {
+    final json = _$SecuritySchemeNodeToJson(this);
+    json.addAll(extensions);
     return json;
   }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class SecuritySchemesMap extends MapTreeNode<SecurityScheme> {
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
-
-  SecuritySchemesMap(Map<String, SecurityScheme> securitySchemes, {this.extensions}) : super(securitySchemes);
-
-  factory SecuritySchemesMap.fromJson(Map<String, dynamic> json) {
-    final extensions = _extractExtensions(json);
-    final map = _jsonWithoutExtensions(json);
-    return SecuritySchemesMap(
-      map.map((key, value) => MapEntry(key, SecurityScheme.fromJson(value))),
-      extensions: extensions,
-    );
-  }
-
+class SecuritySchemesMapNode extends MapTreeNode<SecuritySchemeNode> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$SecuritySchemeToJson(entry.value);
-    }
-    if (extensions != null) {
-      json.addAll(extensions!);
+      json[entry.key] = _$SecuritySchemeNodeToJson(entry.value);
     }
     return json;
   }
