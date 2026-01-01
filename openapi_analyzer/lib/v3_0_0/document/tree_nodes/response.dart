@@ -54,8 +54,7 @@ class ResponsesMapNode extends MapTreeNode<ResponseNode> {
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    final children = $children ?? <String, ResponseNode>{};
-    for (final entry in children.entries) {
+    for (final entry in entries) {
       json[entry.key] = _$ResponseNodeToJson(entry.value);
     }
     json.addAll(extensions);

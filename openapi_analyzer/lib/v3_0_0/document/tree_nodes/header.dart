@@ -1,6 +1,6 @@
 part of '../document.dart';
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
 class Header extends TreeNode {
   final String? description;
@@ -76,8 +76,7 @@ class HeaderNode extends TreeNode {
 class HeadersMapNode extends MapTreeNode<HeaderNode> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    final children = $children ?? <String, HeaderNode>{};
-    for (final entry in children.entries) {
+    for (final entry in entries) {
       json[entry.key] = _$HeaderNodeToJson(entry.value);
     }
     return json;

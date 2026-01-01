@@ -24,7 +24,7 @@ enum ParameterStyle {
   final String value;
 }
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
 class Parameter extends TreeNode {
   final String name;
@@ -38,9 +38,9 @@ class Parameter extends TreeNode {
   final bool allowReserved;
   final Schema? schema;
   final dynamic example;
-  final ExamplesMap? examples;
-  final MediaTypesMap? content;
-  final Map<String, dynamic>? extensions;
+  final Map<String, Example>? examples;
+  final Map<String, MediaType>? content;
+  final Map<String, dynamic> extensions;
 
   Parameter({
     required this.name,
@@ -56,7 +56,7 @@ class Parameter extends TreeNode {
     this.example,
     this.examples,
     this.content,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory Parameter.fromJson(Map<String, dynamic> json) {
@@ -67,46 +67,57 @@ class Parameter extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$ParameterToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
     return json;
   }
 }
 
-@JsonSerializable(createFactory: false, createToJson: false)
-class ParametersList extends ListTreeNode<Parameter> {
-  ParametersList(List<Parameter> parameters) : super(parameters);
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class ParameterNode extends TreeNode {
+  String name;
+  ParameterLocation in_;
+  String? description;
+  bool required_;
+  bool deprecated;
+  bool allowEmptyValue;
+  ParameterStyle? style;
+  bool? explode;
+  bool allowReserved;
+  SchemasMapNode? get schema => $children?['schema'] as SchemasMapNode?;
+  dynamic example;
+  ExamplesMapNode? get examples => $children?['examples'] as ExamplesMapNode?;
+  MediaTypesMapNode? get content => $children?['content'] as MediaTypesMapNode?;
+  Map<String, dynamic> extensions;
 
-  factory ParametersList.fromJson(List<dynamic> json) {
-    return ParametersList(json.map((i) => Parameter.fromJson(i)).toList());
-  }
+  ParameterNode({
+    required this.name,
+    required this.in_,
+    this.description,
+    required this.required_,
+    required this.deprecated,
+    required this.allowEmptyValue,
+    this.style,
+    this.explode,
+    required this.allowReserved,
+    this.extensions = const {},
+  });
+}
+
+@JsonSerializable(createFactory: false, createToJson: false)
+class ParametersListNode extends ListTreeNode<ParameterNode> {
 
   List<dynamic> toJson() {
-    return map((item) => _$ParameterToJson(item)).toList();
+    return map((item) => _$ParameterNodeToJson(item)).toList();
   }
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class ParametersMap extends MapTreeNode<Parameter> {
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
-
-  ParametersMap(Map<String, Parameter> parameters, {this.extensions}) : super(parameters);
-
-  factory ParametersMap.fromJson(Map<String, dynamic> json) {
-    final extensions = _extractExtensions(json);
-    final map = _jsonWithoutExtensions(json);
-    return ParametersMap(map.map((key, value) => MapEntry(key, Parameter.fromJson(value))), extensions: extensions);
-  }
-
+class ParametersMapNode extends MapTreeNode<ParameterNode> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$ParameterToJson(entry.value);
-    }
-    if (extensions != null) {
-      json.addAll(extensions!);
+      json[entry.key] = _$ParameterNodeToJson(entry.value);
     }
     return json;
   }

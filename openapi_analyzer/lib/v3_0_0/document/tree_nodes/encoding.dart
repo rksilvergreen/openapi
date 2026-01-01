@@ -56,8 +56,7 @@ class EncodingNode extends TreeNode {
 class EncodingsMapNode extends MapTreeNode<EncodingNode> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    final children = $children ?? <String, EncodingNode>{};
-    for (final entry in children.entries) {
+    for (final entry in entries) {
       json[entry.key] = _$EncodingNodeToJson(entry.value);
     }
     return json;
