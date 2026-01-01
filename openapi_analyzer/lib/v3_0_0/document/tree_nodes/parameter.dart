@@ -42,10 +42,10 @@ class Parameter {
   final bool? explode;
   @JsonKey(required: true, disallowNullValue: true)
   final bool allowReserved;
-  final Schema? schema;
+  final Ref<Schema>? schema;
   final dynamic example;
-  final Map<String, Example>? examples;
-  final Map<String, MediaType>? content;
+  final Map<String, Ref<Example>>? examples;
+  final Map<String, Ref<MediaType>>? content;
   final Map<String, dynamic> extensions;
 
   Parameter({
@@ -92,7 +92,7 @@ class ParameterNode extends TreeNode {
   ParameterStyle? style;
   bool? explode;
   bool allowReserved;
-  SchemasMap? get schema => $children?['schema'] as SchemasMap?;
+  RefNode<SchemaNode>? get schema => $children?['schema'] as RefNode<SchemaNode>?;
   dynamic example;
   ExamplesMapNode? get examples => $children?['examples'] as ExamplesMapNode?;
   MediaTypesMapNode? get content => $children?['content'] as MediaTypesMapNode?;

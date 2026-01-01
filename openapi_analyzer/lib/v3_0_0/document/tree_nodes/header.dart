@@ -60,7 +60,7 @@ class HeaderNode extends TreeNode {
   ParameterStyle? style;
   bool? explode;
   bool allowReserved;
-  SchemasMap? get schema => $children?['schema'] as SchemasMap?;
+  SchemasMapNode? get schema => $children?['schema'] as SchemasMapNode?;
   ExamplesMapNode? get examples => $children?['examples'] as ExamplesMapNode?;
   MediaTypesMapNode? get content => $children?['content'] as MediaTypesMapNode?;
   @JsonKey(includeFromJson: false, includeToJson: false)

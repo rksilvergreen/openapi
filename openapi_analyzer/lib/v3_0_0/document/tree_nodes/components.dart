@@ -44,7 +44,7 @@ class Components {
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
 class ComponentsNode extends TreeNode {
-  SchemasMap? get schemas => $children?['schemas'] as SchemasMap?;
+  SchemasMapNode? get schemas => $children?['schemas'] as SchemasMapNode?;
   ResponsesMapNode? get responses => $children?['responses'] as ResponsesMapNode?;
   ParametersMapNode? get parameters => $children?['parameters'] as ParametersMapNode?;
   ExamplesMapNode? get examples => $children?['examples'] as ExamplesMapNode?;
@@ -66,4 +66,3 @@ class ComponentsNode extends TreeNode {
     return json;
   }
 }
-

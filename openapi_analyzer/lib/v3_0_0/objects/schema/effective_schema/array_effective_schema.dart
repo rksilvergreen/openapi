@@ -6,4 +6,3 @@ abstract class ArrayEffectiveSchema {
   int? get minItems;
   bool? get uniqueItems;
 }
-

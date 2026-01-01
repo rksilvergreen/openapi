@@ -34,7 +34,7 @@ class MediaType {
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
 class MediaTypeNode extends TreeNode {
-  SchemasMap? get schema => $children?['schema'] as SchemasMap?;
+  SchemasMapNode? get schema => $children?['schema'] as SchemasMapNode?;
   dynamic example;
   ExamplesMapNode? get examples => $children?['examples'] as ExamplesMapNode?;
   EncodingsMapNode? get encoding => $children?['encoding'] as EncodingsMapNode?;

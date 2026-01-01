@@ -19,7 +19,7 @@ class TreeNodeRecord {
   TreeNodeRecord({required this.node, required this.pointer});
 }
 
-abstract class Tree {
+class Tree {
   late String id;
   Document? _document;
   Map<String, TreeNodeRecord> _nodes = {};
@@ -46,62 +46,13 @@ abstract class Tree {
     this.id = id;
   }
 
-  @visibleForOverriding
-  (TreeNode, List<(Edge, Object)>)? goodMethod(Object object) {
-    if (object is Encoding) {
-      return (
-        EncodingNode(
-          contentType: object.contentType,
-          style: object.style,
-          explode: object.explode,
-          allowReserved: object.allowReserved,
-        ),
-        [(const Edge(HeadersMapNode, 'headers'), object.headers!)],
-      );
-    }
-    if (object is Map<String, Encoding>) {
-      return (
-        EncodingsMapNode(),
-        object.entries.map((entry) => (Edge(HeaderNode, entry.key), entry.value)).toList(),
-      );
-    }
-    if (object is Map<String, Response>) {
-      return (
-        ResponsesMapNode(extensions: _extractExtensions(object)),
-        object.entries.map((entry) => (Edge(ResponseNode, entry.key), entry.value)).toList(),
-      );
-    }
-    if (object is List<Parameter>) {
-      return (
-        ParametersListNode(),
-        object.mapIndexed((index, entry) => (Edge(ParameterNode, '$index'), entry)).toList(),
-      );
-    }
-    return null;
-  }
-
   TreeNodeRecord _createNode({required String pointer, required Object object}) {
-    // late final TreeNode node;
     final Map<Edge, TreeNodeRecord> children = {};
 
-    void createChild(Edge edge, Object object) {
-      children[edge] = _createNode(pointer: buildPointer([pointer, edge.key]), object: object);
-    }
-
-    final (node, edges) = goodMethod(object)!;
+    final (node, edges) = _objectToNode(object)!;
     for (final (edge, obj) in edges) {
-      createChild(edge, obj);
+      children[edge] = _createNode(pointer: buildPointer([pointer, edge.key]), object: obj);
     }
-
-    // if (object is Encoding) {
-    //   node = EncodingNode(
-    //     contentType: object.contentType,
-    //     style: object.style,
-    //     explode: object.explode,
-    //     allowReserved: object.allowReserved,
-    //   );
-    //   createChild(const Edge(HeadersMap, 'headers'), object.headers!);
-    // }
 
     node._$tree = this;
     _nodes[node.$id] = TreeNodeRecord(node: node, pointer: pointer);

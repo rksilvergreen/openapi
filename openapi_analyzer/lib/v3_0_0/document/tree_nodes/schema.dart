@@ -142,12 +142,12 @@ class SchemaNode extends TreeNode {
   int? minProperties;
   @JsonKey(name: 'required')
   List<String>? required_;
-  SchemasMap? get properties => $children?['properties'] as SchemasMap?;
+  SchemasMapNode? get properties => $children?['properties'] as SchemasMapNode?;
   bool? additionalPropertiesAllowed;
   SchemaNode? get additionalProperties => $children?['additionalProperties'] as SchemaNode?;
-  SchemasList? get allOf => $children?['allOf'] as SchemasList?;
-  SchemasList? get oneOf => $children?['oneOf'] as SchemasList?;
-  SchemasList? get anyOf => $children?['anyOf'] as SchemasList?;
+  SchemasListNode? get allOf => $children?['allOf'] as SchemasListNode?;
+  SchemasListNode? get oneOf => $children?['oneOf'] as SchemasListNode?;
+  SchemasListNode? get anyOf => $children?['anyOf'] as SchemasListNode?;
   @JsonKey(name: 'enum')
   List<dynamic>? enum_;
   bool nullable;
@@ -198,7 +198,7 @@ class SchemaNode extends TreeNode {
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class SchemasMap extends MapTreeNode<SchemaNode> {
+class SchemasMapNode extends MapTreeNode<SchemaNode> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
@@ -209,7 +209,7 @@ class SchemasMap extends MapTreeNode<SchemaNode> {
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class SchemasList extends ListTreeNode<SchemaNode> {
+class SchemasListNode extends ListTreeNode<SchemaNode> {
   List<dynamic> toJson() {
     return map((item) => _$SchemaNodeToJson(item)).toList();
   }
