@@ -286,7 +286,7 @@ extension ObjectToNode on Tree {
       final parameter = object.asValue()!;
       final edges = <(Edge, Object)>[];
       if (parameter.schema != null) {
-        edges.add((const Edge(SchemasMapNode, 'schema'), parameter.schema!));
+        edges.add((const Edge(RefNode<SchemaNode>, 'schema'), parameter.schema!));
       }
       if (parameter.examples != null) {
         edges.add((const Edge(ExamplesMapNode, 'examples'), parameter.examples!));
@@ -550,10 +550,10 @@ extension ObjectToNode on Tree {
         object.entries.map((entry) => (Edge(MediaTypeNode, entry.key), entry.value)).toList(),
       );
     }
-    if (object is Map<String, Parameter>) {
+    if (object is Map<String, Ref<Parameter>>) {
       return (
         ParametersMapNode(),
-        object.entries.map((entry) => (Edge(ParameterNode, entry.key), entry.value)).toList(),
+        object.entries.map((entry) => (Edge(RefNode<ParameterNode>, entry.key), entry.value)).toList(),
       );
     }
     if (object is Map<String, PathItem>) {
