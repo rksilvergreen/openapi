@@ -1,16 +1,22 @@
 part of '../document.dart';
 
-@CopyWith()
+@CopyWith(skipFields: true)
 @JsonSerializable()
 class Response extends TreeNode {
   final String? description;
-  final HeadersMap? headers;
-  final MediaTypesMap? content;
-  final LinksMap? links;
+  final Map<String, Header>? headers;
+  final Map<String, MediaType>? content;
+  final Map<String, Link>? links;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
-  Response({this.description, this.headers, this.content, this.links, this.extensions});
+  Response({
+    this.description,
+    this.headers,
+    this.content,
+    this.links,
+    this.extensions = const {},
+  });
 
   factory Response.fromJson(Map<String, dynamic> json) {
     final extensions = _extractExtensions(json);
@@ -20,34 +26,39 @@ class Response extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$ResponseToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
     return json;
   }
 }
 
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class ResponseNode extends TreeNode {
+  String? description;
+  HeadersMapNode? get headers => $children?['headers'] as HeadersMapNode?;
+  MediaTypesMapNode? get content => $children?['content'] as MediaTypesMapNode?;
+  LinksMapNode? get links => $children?['links'] as LinksMapNode?;
+  Map<String, dynamic>? extensions;
+
+  ResponseNode({
+    this.description,
+    this.extensions,
+  });
+}
+
 @JsonSerializable(createFactory: false, createToJson: false)
-class ResponsesMap extends MapTreeNode<Response> {
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+class ResponsesMapNode extends MapTreeNode<ResponseNode> {
+  final Map<String, dynamic> extensions;
 
-  ResponsesMap(Map<String, Response> responses, {this.extensions}) : super(responses);
-
-  factory ResponsesMap.fromJson(Map<String, dynamic> json) {
-    final extensions = _extractExtensions(json);
-    final map = _jsonWithoutExtensions(json);
-    return ResponsesMap(map.map((key, value) => MapEntry(key, Response.fromJson(value))), extensions: extensions);
-  }
+  ResponsesMapNode({this.extensions = const {}});
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    for (final entry in entries) {
-      json[entry.key] = _$ResponseToJson(entry.value);
+    final children = $children ?? <String, ResponseNode>{};
+    for (final entry in children.entries) {
+      json[entry.key] = _$ResponseNodeToJson(entry.value);
     }
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
     return json;
   }
 }

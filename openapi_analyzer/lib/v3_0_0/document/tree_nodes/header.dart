@@ -10,12 +10,12 @@ class Header extends TreeNode {
   final ParameterStyle? style;
   final bool? explode;
   final bool allowReserved;
-  final SchemasMap? schema;
+  final Map<String, Schema>? schema;
   final dynamic example;
-  final ExamplesMap? examples;
-  final MediaTypesMap? content;
+  final Map<String, Example>? examples;
+  final Map<String, MediaType>? content;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
   Header({
     this.description,
@@ -29,7 +29,7 @@ class Header extends TreeNode {
     this.example,
     this.examples,
     this.content,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory Header.fromJson(Map<String, dynamic> json) {
@@ -40,33 +40,45 @@ class Header extends TreeNode {
 
   Map<String, dynamic> toJson() {
     final json = _$HeaderToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
     return json;
   }
 }
 
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
+class HeaderNode extends TreeNode {
+  String? description;
+  bool required_;
+  bool deprecated;
+  bool allowEmptyValue;
+  ParameterStyle? style;
+  bool? explode;
+  bool allowReserved;
+  SchemasMapNode? get schema => $children?['schema'] as SchemasMapNode?;
+  ExamplesMapNode? get examples => $children?['examples'] as ExamplesMapNode?;
+  MediaTypesMapNode? get content => $children?['content'] as MediaTypesMapNode?;
+  Map<String, dynamic> extensions;
+
+  HeaderNode({
+    this.description,
+    required this.required_,
+    required this.deprecated,
+    required this.allowEmptyValue,
+    this.style,
+    this.explode,
+    required this.allowReserved,
+    this.extensions = const {},
+  });
+}
+
 @JsonSerializable(createFactory: false, createToJson: false)
-class HeadersMap extends MapTreeNode<Header> {
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
-
-  HeadersMap(Map<String, Header> headers, {this.extensions}) : super(headers);
-
-  factory HeadersMap.fromJson(Map<String, dynamic> json) {
-    final extensions = _extractExtensions(json);
-    final map = _jsonWithoutExtensions(json);
-    return HeadersMap(map.map((key, value) => MapEntry(key, Header.fromJson(value))), extensions: extensions);
-  }
-
+class HeadersMapNode extends MapTreeNode<HeaderNode> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    for (final entry in entries) {
-      json[entry.key] = _$HeaderToJson(entry.value);
-    }
-    if (extensions != null) {
-      json.addAll(extensions!);
+    final children = $children ?? <String, HeaderNode>{};
+    for (final entry in children.entries) {
+      json[entry.key] = _$HeaderNodeToJson(entry.value);
     }
     return json;
   }

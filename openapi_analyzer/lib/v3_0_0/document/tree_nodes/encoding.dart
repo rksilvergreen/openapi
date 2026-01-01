@@ -9,7 +9,7 @@ class Encoding {
   final bool? explode;
   final bool allowReserved;
   @JsonKey(includeFromJson: false, includeToJson: false)
-  final Map<String, dynamic>? extensions;
+  final Map<String, dynamic> extensions;
 
   Encoding({
     required this.contentType,
@@ -17,7 +17,7 @@ class Encoding {
     required this.style,
     required this.explode,
     required this.allowReserved,
-    this.extensions,
+    this.extensions = const {},
   });
 
   factory Encoding.fromJson(Map<String, dynamic> json) {
@@ -28,48 +28,37 @@ class Encoding {
 
   Map<String, dynamic> toJson() {
     final json = _$EncodingToJson(this);
-    if (extensions != null) {
-      json.addAll(extensions!);
-    }
+    json.addAll(extensions);
     return json;
   }
 }
 
+@CopyWith(skipFields: true)
+@JsonSerializable(createFactory: false)
 class EncodingNode extends TreeNode {
   String? contentType;
-  HeadersMap? get headers => $children?['headers'] as HeadersMap?;
+  HeadersMapNode? get headers => $children?['headers'] as HeadersMapNode?;
   ParameterStyle? style;
   bool? explode;
   bool allowReserved;
-  Map<String, dynamic>? extensions;
+  Map<String, dynamic> extensions;
 
   EncodingNode({
     required this.contentType,
     required this.style,
     required this.explode,
     required this.allowReserved,
-    this.extensions,
+    this.extensions = const {},
   });
 }
 
+@JsonSerializable(createFactory: false, createToJson: false)
 class EncodingsMapNode extends MapTreeNode<EncodingNode> {
-  final Map<String, dynamic>? extensions;
-
-  EncodingsMapNode(Map<String, EncodingNode> encodings, {this.extensions}) : super(encodings);
-
-  // factory EncodingsMap.fromJson(Map<String, dynamic> json) {
-  //   final extensions = _extractExtensions(json);
-  //   final map = _jsonWithoutExtensions(json);
-  //   return EncodingsMap(map.map((key, value) => MapEntry(key, Encoding.fromJson(value))), extensions: extensions);
-  // }
-
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    for (final entry in entries) {
-      json[entry.key] = _$EncodingToJson(entry.value);
-    }
-    if (extensions != null) {
-      json.addAll(extensions!);
+    final children = $children ?? <String, EncodingNode>{};
+    for (final entry in children.entries) {
+      json[entry.key] = _$EncodingNodeToJson(entry.value);
     }
     return json;
   }

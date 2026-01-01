@@ -1,32 +1,27 @@
 part of 'document.dart';
 
 abstract class MapTreeNode<CHILD_NODE extends TreeNode> extends TreeNode with MapMixin<String, CHILD_NODE> {
-  late final Map<String, CHILD_NODE> _nodes;
-
-  MapTreeNode(this._nodes);
+  Map<String, CHILD_NODE> get _map => $children?.cast<String, CHILD_NODE>() ?? {};
 
   @override
   CHILD_NODE? operator [](Object? key) {
     if (key is! String) return null;
-    return _nodes[key];
+    return _map[key];
   }
 
   @override
-  void operator []=(String key, CHILD_NODE value) {
-    _nodes[key] = value;
-  }
+  void operator []=(String key, CHILD_NODE value) => throw UnsupportedError('Unmodifiable map');
 
   @override
-  void clear() {
-    _nodes.clear();
-  }
+  void clear() => throw UnsupportedError('Unmodifiable map');
 
   @override
-  CHILD_NODE? remove(Object? key) {
-    if (key is! String) return null;
-    return _nodes.remove(key);
-  }
+  CHILD_NODE? remove(Object? key) => throw UnsupportedError('Unmodifiable map');
 
   @override
-  Iterable<String> get keys => _nodes.keys;
+  Iterable<String> get keys => _map.keys;
+
+  @override
+  Map<String, CHILD_NODE>? get $children =>
+      $tree?.nodes[$id]?.children.map((k, v) => MapEntry(k.key, $tree!.nodes[v]!.node as CHILD_NODE));
 }

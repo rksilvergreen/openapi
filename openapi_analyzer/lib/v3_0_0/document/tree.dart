@@ -49,9 +49,6 @@ abstract class Tree {
   @visibleForOverriding
   (TreeNode, List<(Edge, Object)>)? goodMethod(Object object) {
     if (object is Encoding) {
-
-return 
-
       return (
         EncodingNode(
           contentType: object.contentType,
@@ -59,7 +56,13 @@ return
           explode: object.explode,
           allowReserved: object.allowReserved,
         ),
-        [(const Edge(HeadersMap, 'headers'), object.headers!)],
+        [(const Edge(HeadersMapNode, 'headers'), object.headers!)],
+      );
+    }
+    if (object is Map<String, Encoding>) {
+      return (
+        EncodingsMapNode(extensions: _extractExtensions(object)),
+        object.entries.map((entry) => (Edge(HeaderNode, entry.key), entry.value)).toList(),
       );
     }
     return null;
