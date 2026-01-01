@@ -54,11 +54,11 @@ class RequestBodyNode extends TreeNode {
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class RequestBodiesMapNode extends MapTreeNode<RequestBodyNode> {
+class RequestBodiesMapNode extends MapTreeNode<RefNode<RequestBodyNode>> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$RequestBodyNodeToJson(entry.value);
+      json[entry.key] = entry.value.toJson();
     }
     return json;
   }

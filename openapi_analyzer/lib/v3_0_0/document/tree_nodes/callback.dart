@@ -4,7 +4,7 @@ part of '../document.dart';
 @JsonSerializable()
 class Callback {
   @JsonKey(required: true, disallowNullValue: true)
-  final Map<String, PathItem> expressions;
+  final Map<String, Ref<PathItem>> expressions;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic> extensions;
 
@@ -45,7 +45,7 @@ class CallbackNode extends TreeNode {
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class CallbacksMapNode extends MapTreeNode<CallbackNode> {
+class CallbacksMapNode extends MapTreeNode<RefNode<CallbackNode>> {
   final Map<String, dynamic> extensions;
 
   CallbacksMapNode({this.extensions = const {}});
@@ -53,7 +53,7 @@ class CallbacksMapNode extends MapTreeNode<CallbackNode> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$CallbackNodeToJson(entry.value);
+      json[entry.key] = entry.value.toJson();
     }
     json.addAll(extensions);
     return json;

@@ -105,7 +105,7 @@ extension ObjectToNode on Tree {
     if (object is Header) {
       final edges = <(Edge, Object)>[];
       if (object.schema != null) {
-        edges.add((const Edge(SchemasMapNode, 'schema'), object.schema!));
+        edges.add((const Edge(RefNode<SchemaNode>, 'schema'), object.schema!));
       }
       if (object.examples != null) {
         edges.add((const Edge(ExamplesMapNode, 'examples'), object.examples!));
@@ -176,7 +176,7 @@ extension ObjectToNode on Tree {
     if (object is MediaType) {
       final edges = <(Edge, Object)>[];
       if (object.schema != null) {
-        edges.add((const Edge(SchemasMapNode, 'schema'), object.schema!));
+        edges.add((const Edge(RefNode<SchemaNode>, 'schema'), object.schema!));
       }
       if (object.examples != null) {
         edges.add((const Edge(ExamplesMapNode, 'examples'), object.examples!));
@@ -259,7 +259,7 @@ extension ObjectToNode on Tree {
         edges.add((const Edge(ParametersListNode, 'parameters'), object.parameters!));
       }
       if (object.requestBody != null) {
-        edges.add((const Edge(RequestBodyNode, 'requestBody'), object.requestBody!));
+        edges.add((const Edge(RefNode<RequestBodyNode>, 'requestBody'), object.requestBody!));
       }
       edges.add((const Edge(ResponsesMapNode, 'responses'), object.responses));
       if (object.callbacks != null) {
@@ -307,7 +307,7 @@ extension ObjectToNode on Tree {
         extensions: parameter.extensions,
       );
       paramNode.example = parameter.example;
-      return (paramNode, edges);
+      return (RefNode<ParameterNode>.value(paramNode), edges);
     }
     if (object is PathItem) {
       final edges = <(Edge, Object)>[];
@@ -346,6 +346,48 @@ extension ObjectToNode on Tree {
         edges,
       );
     }
+    if (object is Ref<PathItem>) {
+      if (object.isReference()) {
+        return (
+          RefNode<PathItemNode>.reference(object.asReference()!),
+          [],
+        );
+      }
+      final pathItem = object.asValue()!;
+      final edges = <(Edge, Object)>[];
+      if (pathItem.get_ != null) {
+        edges.add((const Edge(OperationNode, 'get'), pathItem.get_!));
+      }
+      if (pathItem.put != null) {
+        edges.add((const Edge(OperationNode, 'put'), pathItem.put!));
+      }
+      if (pathItem.post != null) {
+        edges.add((const Edge(OperationNode, 'post'), pathItem.post!));
+      }
+      if (pathItem.delete != null) {
+        edges.add((const Edge(OperationNode, 'delete'), pathItem.delete!));
+      }
+      if (pathItem.options != null) {
+        edges.add((const Edge(OperationNode, 'options'), pathItem.options!));
+      }
+      if (pathItem.head != null) {
+        edges.add((const Edge(OperationNode, 'head'), pathItem.head!));
+      }
+      if (pathItem.patch != null) {
+        edges.add((const Edge(OperationNode, 'patch'), pathItem.patch!));
+      }
+      if (pathItem.trace != null) {
+        edges.add((const Edge(OperationNode, 'trace'), pathItem.trace!));
+      }
+      if (pathItem.servers != null) {
+        edges.add((const Edge(ServerList, 'servers'), pathItem.servers!));
+      }
+      if (pathItem.parameters != null) {
+        edges.add((const Edge(ParametersListNode, 'parameters'), pathItem.parameters!));
+      }
+      final pathItemNode = PathItemNode(extensions: pathItem.extensions);
+      return (RefNode<PathItemNode>.value(pathItemNode), edges);
+    }
     if (object is RequestBody) {
       return (
         RequestBodyNode(
@@ -378,13 +420,13 @@ extension ObjectToNode on Tree {
     if (object is Schema) {
       final edges = <(Edge, Object)>[];
       if (object.items != null) {
-        edges.add((const Edge(SchemaNode, 'items'), object.items!));
+        edges.add((const Edge(RefNode<SchemaNode>, 'items'), object.items!));
       }
       if (object.properties != null) {
         edges.add((const Edge(SchemasMapNode, 'properties'), object.properties!));
       }
       if (object.additionalProperties != null) {
-        edges.add((const Edge(SchemaNode, 'additionalProperties'), object.additionalProperties!));
+        edges.add((const Edge(RefNode<SchemaNode>, 'additionalProperties'), object.additionalProperties!));
       }
       if (object.allOf != null) {
         edges.add((const Edge(SchemasListNode, 'allOf'), object.allOf!));
@@ -513,11 +555,216 @@ extension ObjectToNode on Tree {
       );
     }
 
+    // Ref types for referenceable classes
+    if (object is Ref<Callback>) {
+      if (object.isReference()) {
+        return (
+          RefNode<CallbackNode>.reference(object.asReference()!),
+          [],
+        );
+      }
+      final callback = object.asValue()!;
+      final callbackNode = CallbackNode(extensions: callback.extensions);
+      return (
+        RefNode<CallbackNode>.value(callbackNode),
+        [(const Edge(PathsMapNode, 'expressions'), callback.expressions)],
+      );
+    }
+    if (object is Ref<Example>) {
+      if (object.isReference()) {
+        return (
+          RefNode<ExampleNode>.reference(object.asReference()!),
+          [],
+        );
+      }
+      final example = object.asValue()!;
+      final exampleNode = ExampleNode(
+        summary: example.summary,
+        description: example.description,
+        value: example.value,
+        externalValue: example.externalValue,
+        extensions: example.extensions,
+      );
+      return (RefNode<ExampleNode>.value(exampleNode), []);
+    }
+    if (object is Ref<Header>) {
+      if (object.isReference()) {
+        return (
+          RefNode<HeaderNode>.reference(object.asReference()!),
+          [],
+        );
+      }
+      final header = object.asValue()!;
+      final edges = <(Edge, Object)>[];
+      if (header.schema != null) {
+        edges.add((const Edge(RefNode<SchemaNode>, 'schema'), header.schema!));
+      }
+      if (header.examples != null) {
+        edges.add((const Edge(ExamplesMapNode, 'examples'), header.examples!));
+      }
+      if (header.content != null) {
+        edges.add((const Edge(MediaTypesMapNode, 'content'), header.content!));
+      }
+      final headerNode = HeaderNode(
+        description: header.description,
+        required_: header.required_,
+        deprecated: header.deprecated,
+        allowEmptyValue: header.allowEmptyValue,
+        style: header.style,
+        explode: header.explode,
+        allowReserved: header.allowReserved,
+        extensions: header.extensions,
+      );
+      return (RefNode<HeaderNode>.value(headerNode), edges);
+    }
+    if (object is Ref<Link>) {
+      if (object.isReference()) {
+        return (
+          RefNode<LinkNode>.reference(object.asReference()!),
+          [],
+        );
+      }
+      final link = object.asValue()!;
+      final edges = <(Edge, Object)>[];
+      if (link.server != null) {
+        edges.add((const Edge(ServerNode, 'server'), link.server!));
+      }
+      final linkNode = LinkNode(
+        operationRef: link.operationRef,
+        operationId: link.operationId,
+        parameters: link.parameters,
+        requestBody: link.requestBody,
+        description: link.description,
+        extensions: link.extensions,
+      );
+      return (RefNode<LinkNode>.value(linkNode), edges);
+    }
+    if (object is Ref<RequestBody>) {
+      if (object.isReference()) {
+        return (
+          RefNode<RequestBodyNode>.reference(object.asReference()!),
+          [],
+        );
+      }
+      final requestBody = object.asValue()!;
+      final requestBodyNode = RequestBodyNode(
+        description: requestBody.description,
+        required: requestBody.required,
+        extensions: requestBody.extensions,
+      );
+      return (
+        RefNode<RequestBodyNode>.value(requestBodyNode),
+        [(const Edge(MediaTypesMapNode, 'content'), requestBody.content)],
+      );
+    }
+    if (object is Ref<Response>) {
+      if (object.isReference()) {
+        return (
+          RefNode<ResponseNode>.reference(object.asReference()!),
+          [],
+        );
+      }
+      final response = object.asValue()!;
+      final edges = <(Edge, Object)>[];
+      if (response.headers != null) {
+        edges.add((const Edge(HeadersMapNode, 'headers'), response.headers!));
+      }
+      if (response.content != null) {
+        edges.add((const Edge(MediaTypesMapNode, 'content'), response.content!));
+      }
+      if (response.links != null) {
+        edges.add((const Edge(LinksMapNode, 'links'), response.links!));
+      }
+      final responseNode = ResponseNode(
+        description: response.description,
+        extensions: response.extensions,
+      );
+      return (RefNode<ResponseNode>.value(responseNode), edges);
+    }
+    if (object is Ref<Schema>) {
+      if (object.isReference()) {
+        return (
+          RefNode<SchemaNode>.reference(object.asReference()!),
+          [],
+        );
+      }
+      final schema = object.asValue()!;
+      final edges = <(Edge, Object)>[];
+      if (schema.items != null) {
+        edges.add((const Edge(RefNode<SchemaNode>, 'items'), schema.items!));
+      }
+      if (schema.properties != null) {
+        edges.add((const Edge(SchemasMapNode, 'properties'), schema.properties!));
+      }
+      if (schema.additionalProperties != null) {
+        edges.add((const Edge(RefNode<SchemaNode>, 'additionalProperties'), schema.additionalProperties!));
+      }
+      if (schema.allOf != null) {
+        edges.add((const Edge(SchemasListNode, 'allOf'), schema.allOf!));
+      }
+      if (schema.oneOf != null) {
+        edges.add((const Edge(SchemasListNode, 'oneOf'), schema.oneOf!));
+      }
+      if (schema.anyOf != null) {
+        edges.add((const Edge(SchemasListNode, 'anyOf'), schema.anyOf!));
+      }
+      if (schema.discriminator != null) {
+        edges.add((const Edge(DiscriminatorNode, 'discriminator'), schema.discriminator!));
+      }
+      if (schema.xml != null) {
+        edges.add((const Edge(XMLNode, 'xml'), schema.xml!));
+      }
+      if (schema.externalDocs != null) {
+        edges.add((const Edge(ExternalDocumentationNode, 'externalDocs'), schema.externalDocs!));
+      }
+      final schemaNode = SchemaNode(
+        title: schema.title,
+        description: schema.description,
+        default_: schema.default_,
+        type: schema.type,
+        format: schema.format,
+        multipleOf: schema.multipleOf,
+        maximum: schema.maximum,
+        exclusiveMaximum: schema.exclusiveMaximum,
+        minimum: schema.minimum,
+        exclusiveMinimum: schema.exclusiveMinimum,
+        maxLength: schema.maxLength,
+        minLength: schema.minLength,
+        pattern: schema.pattern,
+        maxItems: schema.maxItems,
+        minItems: schema.minItems,
+        uniqueItems: schema.uniqueItems,
+        maxProperties: schema.maxProperties,
+        minProperties: schema.minProperties,
+        required_: schema.required_,
+        additionalPropertiesAllowed: schema.additionalPropertiesAllowed,
+        nullable: schema.nullable,
+        readOnly: schema.readOnly,
+        writeOnly: schema.writeOnly,
+        example: schema.example,
+        deprecated: schema.deprecated,
+        extensions: schema.extensions,
+      );
+      schemaNode.enum_ = schema.enum_;
+      return (RefNode<SchemaNode>.value(schemaNode), edges);
+    }
+    if (object is Ref<SecurityRequirement>) {
+      if (object.isReference()) {
+        return (
+          RefNode<SecurityRequirementNode>.reference(object.asReference()!),
+          [],
+        );
+      }
+      final securityRequirement = object.asValue()!;
+      final securityRequirementNode = SecurityRequirementNode(requirements: securityRequirement.requirements);
+      return (RefNode<SecurityRequirementNode>.value(securityRequirementNode), []);
+    }
+
     // Map types
-    if (object is Map<String, Callback>) {
+    if (object is Map<String, Ref<Callback>>) {
       return (
         CallbacksMapNode(extensions: _extractExtensions(object)),
-        object.entries.map((entry) => (Edge(CallbackNode, entry.key), entry.value)).toList(),
+        object.entries.map((entry) => (Edge(RefNode<CallbackNode>, entry.key), entry.value)).toList(),
       );
     }
     if (object is Map<String, Encoding>) {
@@ -526,22 +773,22 @@ extension ObjectToNode on Tree {
         object.entries.map((entry) => (Edge(EncodingNode, entry.key), entry.value)).toList(),
       );
     }
-    if (object is Map<String, Example>) {
+    if (object is Map<String, Ref<Example>>) {
       return (
         ExamplesMapNode(),
-        object.entries.map((entry) => (Edge(ExampleNode, entry.key), entry.value)).toList(),
+        object.entries.map((entry) => (Edge(RefNode<ExampleNode>, entry.key), entry.value)).toList(),
       );
     }
-    if (object is Map<String, Header>) {
+    if (object is Map<String, Ref<Header>>) {
       return (
         HeadersMapNode(),
-        object.entries.map((entry) => (Edge(HeaderNode, entry.key), entry.value)).toList(),
+        object.entries.map((entry) => (Edge(RefNode<HeaderNode>, entry.key), entry.value)).toList(),
       );
     }
-    if (object is Map<String, Link>) {
+    if (object is Map<String, Ref<Link>>) {
       return (
         LinksMapNode(),
-        object.entries.map((entry) => (Edge(LinkNode, entry.key), entry.value)).toList(),
+        object.entries.map((entry) => (Edge(RefNode<LinkNode>, entry.key), entry.value)).toList(),
       );
     }
     if (object is Map<String, MediaType>) {
@@ -556,28 +803,28 @@ extension ObjectToNode on Tree {
         object.entries.map((entry) => (Edge(RefNode<ParameterNode>, entry.key), entry.value)).toList(),
       );
     }
-    if (object is Map<String, PathItem>) {
+    if (object is Map<String, Ref<PathItem>>) {
       return (
         PathsMapNode(extensions: _extractExtensions(object)),
-        object.entries.map((entry) => (Edge(PathItemNode, entry.key), entry.value)).toList(),
+        object.entries.map((entry) => (Edge(RefNode<PathItemNode>, entry.key), entry.value)).toList(),
       );
     }
-    if (object is Map<String, RequestBody>) {
+    if (object is Map<String, Ref<RequestBody>>) {
       return (
         RequestBodiesMapNode(),
-        object.entries.map((entry) => (Edge(RequestBodyNode, entry.key), entry.value)).toList(),
+        object.entries.map((entry) => (Edge(RefNode<RequestBodyNode>, entry.key), entry.value)).toList(),
       );
     }
-    if (object is Map<String, Response>) {
+    if (object is Map<String, Ref<Response>>) {
       return (
         ResponsesMapNode(extensions: _extractExtensions(object)),
-        object.entries.map((entry) => (Edge(ResponseNode, entry.key), entry.value)).toList(),
+        object.entries.map((entry) => (Edge(RefNode<ResponseNode>, entry.key), entry.value)).toList(),
       );
     }
-    if (object is Map<String, Schema>) {
+    if (object is Map<String, Ref<Schema>>) {
       return (
         SchemasMapNode(),
-        object.entries.map((entry) => (Edge(SchemaNode, entry.key), entry.value)).toList(),
+        object.entries.map((entry) => (Edge(RefNode<SchemaNode>, entry.key), entry.value)).toList(),
       );
     }
     if (object is Map<String, SecurityScheme>) {
@@ -594,22 +841,22 @@ extension ObjectToNode on Tree {
     }
 
     // List types
-    if (object is List<Parameter>) {
+    if (object is List<Ref<Parameter>>) {
       return (
         ParametersListNode(),
-        object.mapIndexed((index, entry) => (Edge(ParameterNode, '$index'), entry)).toList(),
+        object.mapIndexed((index, entry) => (Edge(RefNode<ParameterNode>, '$index'), entry)).toList(),
       );
     }
-    if (object is List<Schema>) {
+    if (object is List<Ref<Schema>>) {
       return (
         SchemasListNode(),
-        object.mapIndexed((index, entry) => (Edge(SchemaNode, '$index'), entry)).toList(),
+        object.mapIndexed((index, entry) => (Edge(RefNode<SchemaNode>, '$index'), entry)).toList(),
       );
     }
-    if (object is List<SecurityRequirement>) {
+    if (object is List<Ref<SecurityRequirement>>) {
       return (
         SecurityRequirementsList(),
-        object.mapIndexed((index, entry) => (Edge(SecurityRequirementNode, '$index'), entry)).toList(),
+        object.mapIndexed((index, entry) => (Edge(RefNode<SecurityRequirementNode>, '$index'), entry)).toList(),
       );
     }
     if (object is List<Server>) {

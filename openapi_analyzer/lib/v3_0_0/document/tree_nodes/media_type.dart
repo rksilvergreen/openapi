@@ -3,9 +3,9 @@ part of '../document.dart';
 @CopyWith(skipFields: true)
 @JsonSerializable()
 class MediaType {
-  final Map<String, Schema>? schema;
+  final Ref<Schema>? schema;
   final dynamic example;
-  final Map<String, Example>? examples;
+  final Map<String, Ref<Example>>? examples;
   final Map<String, Encoding>? encoding;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic> extensions;
@@ -34,7 +34,7 @@ class MediaType {
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
 class MediaTypeNode extends TreeNode {
-  SchemasMapNode? get schema => $children?['schema'] as SchemasMapNode?;
+  RefNode<SchemaNode>? get schema => $children?['schema'] as RefNode<SchemaNode>?;
   dynamic example;
   ExamplesMapNode? get examples => $children?['examples'] as ExamplesMapNode?;
   EncodingsMapNode? get encoding => $children?['encoding'] as EncodingsMapNode?;

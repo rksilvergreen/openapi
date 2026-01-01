@@ -32,9 +32,9 @@ class SecurityRequirementNode extends TreeNode {
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class SecurityRequirementsList extends ListTreeNode<SecurityRequirementNode> {
+class SecurityRequirementsList extends ListTreeNode<RefNode<SecurityRequirementNode>> {
   List<dynamic> toJson() {
-    return map((item) => _$SecurityRequirementNodeToJson(item)).toList();
+    return map((item) => item.toJson()).toList();
   }
 }
 

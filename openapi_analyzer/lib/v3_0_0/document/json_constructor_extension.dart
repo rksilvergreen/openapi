@@ -31,5 +31,8 @@ JsonConstructor<T> _jsonConstructor<T>() {
   if (T == Callback) {
     fun = Callback.fromJson;
   }
+  if (T == PathItem) {
+    fun = PathItem.fromJson;
+  }
   return fun as JsonConstructor<T>;
 }

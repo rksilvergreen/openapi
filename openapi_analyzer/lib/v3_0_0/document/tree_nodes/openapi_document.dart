@@ -9,9 +9,9 @@ class OpenApiDocument {
   final Info info;
   final List<Server>? servers;
   @JsonKey(required: true, disallowNullValue: true)
-  final Map<String, PathItem> paths;
+  final Map<String, Ref<PathItem>> paths;
   final Components? components;
-  final List<SecurityRequirement>? security;
+  final List<Ref<SecurityRequirement>>? security;
   final List<Tag>? tags;
   final ExternalDocumentation? externalDocs;
   @JsonKey(includeFromJson: false, includeToJson: false)

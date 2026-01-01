@@ -13,7 +13,7 @@ class PathItem {
   final Operation? patch;
   final Operation? trace;
   final List<Server>? servers;
-  final List<Parameter>? parameters;
+  final List<Ref<Parameter>>? parameters;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic> extensions;
 
@@ -73,7 +73,7 @@ class PathItemNode extends TreeNode {
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class PathsMapNode extends MapTreeNode<PathItemNode> {
+class PathsMapNode extends MapTreeNode<RefNode<PathItemNode>> {
   final Map<String, dynamic> extensions;
 
   PathsMapNode({this.extensions = const {}});
@@ -81,7 +81,7 @@ class PathsMapNode extends MapTreeNode<PathItemNode> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$PathItemNodeToJson(entry.value);
+      json[entry.key] = entry.value.toJson();
     }
     json.addAll(extensions);
     return json;

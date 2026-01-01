@@ -122,7 +122,7 @@ class ParameterNode extends TreeNode {
 @JsonSerializable(createFactory: false, createToJson: false)
 class ParametersListNode extends ListTreeNode<RefNode<ParameterNode>> {
   List<dynamic> toJson() {
-    return map((item) => _$ParameterNodeToJson(item)).toList();
+    return map((item) => item.toJson()).toList();
   }
 }
 
@@ -131,7 +131,7 @@ class ParametersMapNode extends MapTreeNode<RefNode<ParameterNode>> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$ParameterNodeToJson(entry.value);
+      json[entry.key] = entry.value.toJson();
     }
     return json;
   }

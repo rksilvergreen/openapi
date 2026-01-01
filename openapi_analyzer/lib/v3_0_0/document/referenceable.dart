@@ -37,6 +37,13 @@ class Ref<T> {
     }
     throw ArgumentError('Expected String or Map for Ref, got ${json.runtimeType}');
   }
+
+  Map<String, dynamic> toJson() {
+    if (isReference()) {
+      return {r'$ref': _ref};
+    }
+    return (_value as dynamic).toJson();
+  }
 }
 
 class RefNode<T extends TreeNode> extends TreeNode {
@@ -49,4 +56,11 @@ class RefNode<T extends TreeNode> extends TreeNode {
   bool isReference() => _ref != null;
   String? asReference() => _ref;
   T? asValue() => _value;
+
+  Map<String, dynamic> toJson() {
+    if (isReference()) {
+      return {r'$ref': _ref};
+    }
+    return (_value as dynamic).toJson();
+  }
 }

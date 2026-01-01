@@ -14,9 +14,9 @@ class Header {
   final bool? explode;
   @JsonKey(required: true, disallowNullValue: true)
   final bool allowReserved;
-  final Map<String, Schema>? schema;
+  final Ref<Schema>? schema;
   final dynamic example;
-  final Map<String, Example>? examples;
+  final Map<String, Ref<Example>>? examples;
   final Map<String, MediaType>? content;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic> extensions;
@@ -60,7 +60,7 @@ class HeaderNode extends TreeNode {
   ParameterStyle? style;
   bool? explode;
   bool allowReserved;
-  SchemasMapNode? get schema => $children?['schema'] as SchemasMapNode?;
+  RefNode<SchemaNode>? get schema => $children?['schema'] as RefNode<SchemaNode>?;
   ExamplesMapNode? get examples => $children?['examples'] as ExamplesMapNode?;
   MediaTypesMapNode? get content => $children?['content'] as MediaTypesMapNode?;
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -85,11 +85,11 @@ class HeaderNode extends TreeNode {
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class HeadersMapNode extends MapTreeNode<HeaderNode> {
+class HeadersMapNode extends MapTreeNode<RefNode<HeaderNode>> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$HeaderNodeToJson(entry.value);
+      json[entry.key] = entry.value.toJson();
     }
     return json;
   }

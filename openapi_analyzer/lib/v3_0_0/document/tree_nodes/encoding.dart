@@ -6,7 +6,7 @@ class Encoding {
   @JsonKey(required: true, disallowNullValue: true)
   final String? contentType;
   @JsonKey(required: true, disallowNullValue: true)
-  final Map<String, Header>? headers;
+  final Map<String, Ref<Header>>? headers;
   @JsonKey(required: true, disallowNullValue: true)
   final ParameterStyle? style;
   @JsonKey(required: true, disallowNullValue: true)

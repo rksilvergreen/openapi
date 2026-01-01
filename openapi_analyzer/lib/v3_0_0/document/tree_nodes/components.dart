@@ -3,15 +3,15 @@ part of '../document.dart';
 @CopyWith(skipFields: true)
 @JsonSerializable()
 class Components {
-  final Map<String, Schema>? schemas;
-  final Map<String, Response>? responses;
-  final Map<String, Parameter>? parameters;
-  final Map<String, Example>? examples;
-  final Map<String, RequestBody>? requestBodies;
-  final Map<String, Header>? headers;
+  final Map<String, Ref<Schema>>? schemas;
+  final Map<String, Ref<Response>>? responses;
+  final Map<String, Ref<Parameter>>? parameters;
+  final Map<String, Ref<Example>>? examples;
+  final Map<String, Ref<RequestBody>>? requestBodies;
+  final Map<String, Ref<Header>>? headers;
   final Map<String, SecurityScheme>? securitySchemes;
-  final Map<String, Link>? links;
-  final Map<String, Callback>? callbacks;
+  final Map<String, Ref<Link>>? links;
+  final Map<String, Ref<Callback>>? callbacks;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic> extensions;
 

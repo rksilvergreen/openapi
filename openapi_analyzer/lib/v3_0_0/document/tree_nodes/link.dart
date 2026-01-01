@@ -64,11 +64,11 @@ class LinkNode extends TreeNode {
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class LinksMapNode extends MapTreeNode<LinkNode> {
+class LinksMapNode extends MapTreeNode<RefNode<LinkNode>> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$LinkNodeToJson(entry.value);
+      json[entry.key] = entry.value.toJson();
     }
     return json;
   }

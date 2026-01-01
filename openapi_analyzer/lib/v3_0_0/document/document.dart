@@ -53,7 +53,7 @@ class Document {
 
   void setTree(Tree tree) {
     this.tree = tree;
-    tree.document = this;
+    tree._document = this;
     tree.id = id;
   }
 
@@ -63,7 +63,7 @@ class Document {
     }
     final tree = this.tree!;
     this.tree = null;
-    tree.document = null;
+    tree._document = null;
     tree.setId(newId);
     return tree;
   }

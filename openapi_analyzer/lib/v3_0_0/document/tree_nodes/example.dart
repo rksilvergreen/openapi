@@ -57,11 +57,11 @@ class ExampleNode extends TreeNode {
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class ExamplesMapNode extends MapTreeNode<ExampleNode> {
+class ExamplesMapNode extends MapTreeNode<RefNode<ExampleNode>> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$ExampleNodeToJson(entry.value);
+      json[entry.key] = entry.value.toJson();
     }
     return json;
   }

@@ -4,12 +4,12 @@ part of '../document.dart';
 @JsonSerializable()
 class Operation {
   final ExternalDocumentation? externalDocs;
-  final List<Parameter>? parameters;
-  final RequestBody? requestBody;
+  final List<Ref<Parameter>>? parameters;
+  final Ref<RequestBody>? requestBody;
   @JsonKey(required: true, disallowNullValue: true)
-  final Map<String, Response> responses;
-  final Map<String, Callback>? callbacks;
-  final List<SecurityRequirement>? security;
+  final Map<String, Ref<Response>> responses;
+  final Map<String, Ref<Callback>>? callbacks;
+  final List<Ref<SecurityRequirement>>? security;
   final List<Server>? servers;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic> extensions;
@@ -43,7 +43,7 @@ class Operation {
 class OperationNode extends TreeNode {
   ExternalDocumentationNode? get externalDocs => $children?['externalDocs'] as ExternalDocumentationNode?;
   ParametersListNode? get parameters => $children?['parameters'] as ParametersListNode?;
-  RequestBodyNode? get requestBody => $children?['requestBody'] as RequestBodyNode?;
+  RefNode<RequestBodyNode>? get requestBody => $children?['requestBody'] as RefNode<RequestBodyNode>?;
   ResponsesMapNode? get responses => $children?['responses'] as ResponsesMapNode?;
   CallbacksMapNode? get callbacks => $children?['callbacks'] as CallbacksMapNode?;
   SecurityRequirementsList? get security => $children?['security'] as SecurityRequirementsList?;

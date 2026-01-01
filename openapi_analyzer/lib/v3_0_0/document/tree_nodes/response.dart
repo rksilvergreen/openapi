@@ -4,9 +4,9 @@ part of '../document.dart';
 @JsonSerializable()
 class Response {
   final String? description;
-  final Map<String, Header>? headers;
+  final Map<String, Ref<Header>>? headers;
   final Map<String, MediaType>? content;
-  final Map<String, Link>? links;
+  final Map<String, Ref<Link>>? links;
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic> extensions;
 
@@ -56,7 +56,7 @@ class ResponseNode extends TreeNode {
 }
 
 @JsonSerializable(createFactory: false, createToJson: false)
-class ResponsesMapNode extends MapTreeNode<ResponseNode> {
+class ResponsesMapNode extends MapTreeNode<RefNode<ResponseNode>> {
   final Map<String, dynamic> extensions;
 
   ResponsesMapNode({this.extensions = const {}});
@@ -64,7 +64,7 @@ class ResponsesMapNode extends MapTreeNode<ResponseNode> {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     for (final entry in entries) {
-      json[entry.key] = _$ResponseNodeToJson(entry.value);
+      json[entry.key] = entry.value.toJson();
     }
     json.addAll(extensions);
     return json;
