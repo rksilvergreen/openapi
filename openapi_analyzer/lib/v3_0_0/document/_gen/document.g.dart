@@ -15,7 +15,7 @@ abstract class _$EncodingCWProxy {
   /// ````
   Encoding call({
     String? contentType,
-    Map<String, Header>? headers,
+    Map<String, Ref<Header>>? headers,
     ParameterStyle? style,
     bool? explode,
     bool allowReserved,
@@ -52,7 +52,7 @@ class _$EncodingCWProxyImpl implements _$EncodingCWProxy {
       headers: headers == const $CopyWithPlaceholder()
           ? _value.headers
           // ignore: cast_nullable_to_non_nullable
-          : headers as Map<String, Header>?,
+          : headers as Map<String, Ref<Header>>?,
       style: style == const $CopyWithPlaceholder()
           ? _value.style
           // ignore: cast_nullable_to_non_nullable
@@ -161,9 +161,9 @@ abstract class _$HeaderCWProxy {
     ParameterStyle? style,
     bool? explode,
     bool allowReserved,
-    Map<String, Schema>? schema,
+    Ref<Schema>? schema,
     dynamic example,
-    Map<String, Example>? examples,
+    Map<String, Ref<Example>>? examples,
     Map<String, MediaType>? content,
     Map<String, dynamic> extensions,
   });
@@ -228,7 +228,7 @@ class _$HeaderCWProxyImpl implements _$HeaderCWProxy {
       schema: schema == const $CopyWithPlaceholder()
           ? _value.schema
           // ignore: cast_nullable_to_non_nullable
-          : schema as Map<String, Schema>?,
+          : schema as Ref<Schema>?,
       example: example == const $CopyWithPlaceholder()
           ? _value.example
           // ignore: cast_nullable_to_non_nullable
@@ -236,7 +236,7 @@ class _$HeaderCWProxyImpl implements _$HeaderCWProxy {
       examples: examples == const $CopyWithPlaceholder()
           ? _value.examples
           // ignore: cast_nullable_to_non_nullable
-          : examples as Map<String, Example>?,
+          : examples as Map<String, Ref<Example>>?,
       content: content == const $CopyWithPlaceholder()
           ? _value.content
           // ignore: cast_nullable_to_non_nullable
@@ -357,10 +357,10 @@ abstract class _$ParameterCWProxy {
     ParameterStyle? style,
     bool? explode,
     bool allowReserved,
-    Schema? schema,
+    Ref<Schema>? schema,
     dynamic example,
-    Map<String, Example>? examples,
-    Map<String, MediaType>? content,
+    Map<String, Ref<Example>>? examples,
+    Map<String, Ref<MediaType>>? content,
     Map<String, dynamic> extensions,
   });
 }
@@ -434,7 +434,7 @@ class _$ParameterCWProxyImpl implements _$ParameterCWProxy {
       schema: schema == const $CopyWithPlaceholder()
           ? _value.schema
           // ignore: cast_nullable_to_non_nullable
-          : schema as Schema?,
+          : schema as Ref<Schema>?,
       example: example == const $CopyWithPlaceholder()
           ? _value.example
           // ignore: cast_nullable_to_non_nullable
@@ -442,11 +442,11 @@ class _$ParameterCWProxyImpl implements _$ParameterCWProxy {
       examples: examples == const $CopyWithPlaceholder()
           ? _value.examples
           // ignore: cast_nullable_to_non_nullable
-          : examples as Map<String, Example>?,
+          : examples as Map<String, Ref<Example>>?,
       content: content == const $CopyWithPlaceholder()
           ? _value.content
           // ignore: cast_nullable_to_non_nullable
-          : content as Map<String, MediaType>?,
+          : content as Map<String, Ref<MediaType>>?,
       extensions: extensions == const $CopyWithPlaceholder()
           ? _value.extensions
           // ignore: cast_nullable_to_non_nullable
@@ -567,11 +567,11 @@ abstract class _$OperationCWProxy {
   /// ````
   Operation call({
     ExternalDocumentation? externalDocs,
-    List<Parameter>? parameters,
-    RequestBody? requestBody,
-    Map<String, Response> responses,
-    Map<String, Callback>? callbacks,
-    List<SecurityRequirement>? security,
+    List<Ref<Parameter>>? parameters,
+    Ref<RequestBody>? requestBody,
+    Map<String, Ref<Response>> responses,
+    Map<String, Ref<Callback>>? callbacks,
+    List<Ref<SecurityRequirement>>? security,
     List<Server>? servers,
     Map<String, dynamic> extensions,
   });
@@ -608,23 +608,23 @@ class _$OperationCWProxyImpl implements _$OperationCWProxy {
       parameters: parameters == const $CopyWithPlaceholder()
           ? _value.parameters
           // ignore: cast_nullable_to_non_nullable
-          : parameters as List<Parameter>?,
+          : parameters as List<Ref<Parameter>>?,
       requestBody: requestBody == const $CopyWithPlaceholder()
           ? _value.requestBody
           // ignore: cast_nullable_to_non_nullable
-          : requestBody as RequestBody?,
+          : requestBody as Ref<RequestBody>?,
       responses: responses == const $CopyWithPlaceholder()
           ? _value.responses
           // ignore: cast_nullable_to_non_nullable
-          : responses as Map<String, Response>,
+          : responses as Map<String, Ref<Response>>,
       callbacks: callbacks == const $CopyWithPlaceholder()
           ? _value.callbacks
           // ignore: cast_nullable_to_non_nullable
-          : callbacks as Map<String, Callback>?,
+          : callbacks as Map<String, Ref<Callback>>?,
       security: security == const $CopyWithPlaceholder()
           ? _value.security
           // ignore: cast_nullable_to_non_nullable
-          : security as List<SecurityRequirement>?,
+          : security as List<Ref<SecurityRequirement>>?,
       servers: servers == const $CopyWithPlaceholder()
           ? _value.servers
           // ignore: cast_nullable_to_non_nullable
@@ -690,7 +690,7 @@ abstract class _$CallbackCWProxy {
   /// Callback(...).copyWith(id: 12, name: "My name")
   /// ````
   Callback call({
-    Map<String, PathItem> expressions,
+    Map<String, Ref<PathItem>> expressions,
     Map<String, dynamic> extensions,
   });
 }
@@ -716,7 +716,7 @@ class _$CallbackCWProxyImpl implements _$CallbackCWProxy {
       expressions: expressions == const $CopyWithPlaceholder()
           ? _value.expressions
           // ignore: cast_nullable_to_non_nullable
-          : expressions as Map<String, PathItem>,
+          : expressions as Map<String, Ref<PathItem>>,
       extensions: extensions == const $CopyWithPlaceholder()
           ? _value.extensions
           // ignore: cast_nullable_to_non_nullable
@@ -778,15 +778,15 @@ abstract class _$ComponentsCWProxy {
   /// Components(...).copyWith(id: 12, name: "My name")
   /// ````
   Components call({
-    Map<String, Schema>? schemas,
-    Map<String, Response>? responses,
-    Map<String, Parameter>? parameters,
-    Map<String, Example>? examples,
-    Map<String, RequestBody>? requestBodies,
-    Map<String, Header>? headers,
+    Map<String, Ref<Schema>>? schemas,
+    Map<String, Ref<Response>>? responses,
+    Map<String, Ref<Parameter>>? parameters,
+    Map<String, Ref<Example>>? examples,
+    Map<String, Ref<RequestBody>>? requestBodies,
+    Map<String, Ref<Header>>? headers,
     Map<String, SecurityScheme>? securitySchemes,
-    Map<String, Link>? links,
-    Map<String, Callback>? callbacks,
+    Map<String, Ref<Link>>? links,
+    Map<String, Ref<Callback>>? callbacks,
     Map<String, dynamic> extensions,
   });
 }
@@ -820,27 +820,27 @@ class _$ComponentsCWProxyImpl implements _$ComponentsCWProxy {
       schemas: schemas == const $CopyWithPlaceholder()
           ? _value.schemas
           // ignore: cast_nullable_to_non_nullable
-          : schemas as Map<String, Schema>?,
+          : schemas as Map<String, Ref<Schema>>?,
       responses: responses == const $CopyWithPlaceholder()
           ? _value.responses
           // ignore: cast_nullable_to_non_nullable
-          : responses as Map<String, Response>?,
+          : responses as Map<String, Ref<Response>>?,
       parameters: parameters == const $CopyWithPlaceholder()
           ? _value.parameters
           // ignore: cast_nullable_to_non_nullable
-          : parameters as Map<String, Parameter>?,
+          : parameters as Map<String, Ref<Parameter>>?,
       examples: examples == const $CopyWithPlaceholder()
           ? _value.examples
           // ignore: cast_nullable_to_non_nullable
-          : examples as Map<String, Example>?,
+          : examples as Map<String, Ref<Example>>?,
       requestBodies: requestBodies == const $CopyWithPlaceholder()
           ? _value.requestBodies
           // ignore: cast_nullable_to_non_nullable
-          : requestBodies as Map<String, RequestBody>?,
+          : requestBodies as Map<String, Ref<RequestBody>>?,
       headers: headers == const $CopyWithPlaceholder()
           ? _value.headers
           // ignore: cast_nullable_to_non_nullable
-          : headers as Map<String, Header>?,
+          : headers as Map<String, Ref<Header>>?,
       securitySchemes: securitySchemes == const $CopyWithPlaceholder()
           ? _value.securitySchemes
           // ignore: cast_nullable_to_non_nullable
@@ -848,11 +848,11 @@ class _$ComponentsCWProxyImpl implements _$ComponentsCWProxy {
       links: links == const $CopyWithPlaceholder()
           ? _value.links
           // ignore: cast_nullable_to_non_nullable
-          : links as Map<String, Link>?,
+          : links as Map<String, Ref<Link>>?,
       callbacks: callbacks == const $CopyWithPlaceholder()
           ? _value.callbacks
           // ignore: cast_nullable_to_non_nullable
-          : callbacks as Map<String, Callback>?,
+          : callbacks as Map<String, Ref<Callback>>?,
       extensions: extensions == const $CopyWithPlaceholder()
           ? _value.extensions
           // ignore: cast_nullable_to_non_nullable
@@ -1795,9 +1795,9 @@ abstract class _$MediaTypeCWProxy {
   /// MediaType(...).copyWith(id: 12, name: "My name")
   /// ````
   MediaType call({
-    Map<String, Schema>? schema,
+    Ref<Schema>? schema,
     dynamic example,
-    Map<String, Example>? examples,
+    Map<String, Ref<Example>>? examples,
     Map<String, Encoding>? encoding,
     Map<String, dynamic> extensions,
   });
@@ -1827,7 +1827,7 @@ class _$MediaTypeCWProxyImpl implements _$MediaTypeCWProxy {
       schema: schema == const $CopyWithPlaceholder()
           ? _value.schema
           // ignore: cast_nullable_to_non_nullable
-          : schema as Map<String, Schema>?,
+          : schema as Ref<Schema>?,
       example: example == const $CopyWithPlaceholder()
           ? _value.example
           // ignore: cast_nullable_to_non_nullable
@@ -1835,7 +1835,7 @@ class _$MediaTypeCWProxyImpl implements _$MediaTypeCWProxy {
       examples: examples == const $CopyWithPlaceholder()
           ? _value.examples
           // ignore: cast_nullable_to_non_nullable
-          : examples as Map<String, Example>?,
+          : examples as Map<String, Ref<Example>>?,
       encoding: encoding == const $CopyWithPlaceholder()
           ? _value.encoding
           // ignore: cast_nullable_to_non_nullable
@@ -2157,7 +2157,7 @@ abstract class _$PathItemCWProxy {
     Operation? patch,
     Operation? trace,
     List<Server>? servers,
-    List<Parameter>? parameters,
+    List<Ref<Parameter>>? parameters,
     Map<String, dynamic> extensions,
   });
 }
@@ -2228,7 +2228,7 @@ class _$PathItemCWProxyImpl implements _$PathItemCWProxy {
       parameters: parameters == const $CopyWithPlaceholder()
           ? _value.parameters
           // ignore: cast_nullable_to_non_nullable
-          : parameters as List<Parameter>?,
+          : parameters as List<Ref<Parameter>>?,
       extensions: extensions == const $CopyWithPlaceholder()
           ? _value.extensions
           // ignore: cast_nullable_to_non_nullable
@@ -2407,9 +2407,9 @@ abstract class _$ResponseCWProxy {
   /// ````
   Response call({
     String? description,
-    Map<String, Header>? headers,
+    Map<String, Ref<Header>>? headers,
     Map<String, MediaType>? content,
-    Map<String, Link>? links,
+    Map<String, Ref<Link>>? links,
     Map<String, dynamic> extensions,
   });
 }
@@ -2442,7 +2442,7 @@ class _$ResponseCWProxyImpl implements _$ResponseCWProxy {
       headers: headers == const $CopyWithPlaceholder()
           ? _value.headers
           // ignore: cast_nullable_to_non_nullable
-          : headers as Map<String, Header>?,
+          : headers as Map<String, Ref<Header>>?,
       content: content == const $CopyWithPlaceholder()
           ? _value.content
           // ignore: cast_nullable_to_non_nullable
@@ -2450,7 +2450,7 @@ class _$ResponseCWProxyImpl implements _$ResponseCWProxy {
       links: links == const $CopyWithPlaceholder()
           ? _value.links
           // ignore: cast_nullable_to_non_nullable
-          : links as Map<String, Link>?,
+          : links as Map<String, Ref<Link>>?,
       extensions: extensions == const $CopyWithPlaceholder()
           ? _value.extensions
           // ignore: cast_nullable_to_non_nullable
@@ -3285,9 +3285,9 @@ abstract class _$OpenApiDocumentCWProxy {
     String openapi,
     Info info,
     List<Server>? servers,
-    Map<String, PathItem> paths,
+    Map<String, Ref<PathItem>> paths,
     Components? components,
-    List<SecurityRequirement>? security,
+    List<Ref<SecurityRequirement>>? security,
     List<Tag>? tags,
     ExternalDocumentation? externalDocs,
     Map<String, dynamic> extensions,
@@ -3334,7 +3334,7 @@ class _$OpenApiDocumentCWProxyImpl implements _$OpenApiDocumentCWProxy {
       paths: paths == const $CopyWithPlaceholder()
           ? _value.paths
           // ignore: cast_nullable_to_non_nullable
-          : paths as Map<String, PathItem>,
+          : paths as Map<String, Ref<PathItem>>,
       components: components == const $CopyWithPlaceholder()
           ? _value.components
           // ignore: cast_nullable_to_non_nullable
@@ -3342,7 +3342,7 @@ class _$OpenApiDocumentCWProxyImpl implements _$OpenApiDocumentCWProxy {
       security: security == const $CopyWithPlaceholder()
           ? _value.security
           // ignore: cast_nullable_to_non_nullable
-          : security as List<SecurityRequirement>?,
+          : security as List<Ref<SecurityRequirement>>?,
       tags: tags == const $CopyWithPlaceholder()
           ? _value.tags
           // ignore: cast_nullable_to_non_nullable
@@ -3436,16 +3436,16 @@ abstract class _$SchemaCWProxy {
     int? maxItems,
     int? minItems,
     bool uniqueItems,
-    Schema? items,
+    Ref<Schema>? items,
     int? maxProperties,
     int? minProperties,
     List<String>? required_,
-    Map<String, Schema>? properties,
+    Map<String, Ref<Schema>>? properties,
     bool? additionalPropertiesAllowed,
-    Schema? additionalProperties,
-    List<Schema>? allOf,
-    List<Schema>? oneOf,
-    List<Schema>? anyOf,
+    Ref<Schema>? additionalProperties,
+    List<Ref<Schema>>? allOf,
+    List<Ref<Schema>>? oneOf,
+    List<Ref<Schema>>? anyOf,
     List<dynamic>? enum_,
     bool nullable,
     Discriminator? discriminator,
@@ -3578,7 +3578,7 @@ class _$SchemaCWProxyImpl implements _$SchemaCWProxy {
       items: items == const $CopyWithPlaceholder()
           ? _value.items
           // ignore: cast_nullable_to_non_nullable
-          : items as Schema?,
+          : items as Ref<Schema>?,
       maxProperties: maxProperties == const $CopyWithPlaceholder()
           ? _value.maxProperties
           // ignore: cast_nullable_to_non_nullable
@@ -3594,7 +3594,7 @@ class _$SchemaCWProxyImpl implements _$SchemaCWProxy {
       properties: properties == const $CopyWithPlaceholder()
           ? _value.properties
           // ignore: cast_nullable_to_non_nullable
-          : properties as Map<String, Schema>?,
+          : properties as Map<String, Ref<Schema>>?,
       additionalPropertiesAllowed:
           additionalPropertiesAllowed == const $CopyWithPlaceholder()
           ? _value.additionalPropertiesAllowed
@@ -3603,19 +3603,19 @@ class _$SchemaCWProxyImpl implements _$SchemaCWProxy {
       additionalProperties: additionalProperties == const $CopyWithPlaceholder()
           ? _value.additionalProperties
           // ignore: cast_nullable_to_non_nullable
-          : additionalProperties as Schema?,
+          : additionalProperties as Ref<Schema>?,
       allOf: allOf == const $CopyWithPlaceholder()
           ? _value.allOf
           // ignore: cast_nullable_to_non_nullable
-          : allOf as List<Schema>?,
+          : allOf as List<Ref<Schema>>?,
       oneOf: oneOf == const $CopyWithPlaceholder()
           ? _value.oneOf
           // ignore: cast_nullable_to_non_nullable
-          : oneOf as List<Schema>?,
+          : oneOf as List<Ref<Schema>>?,
       anyOf: anyOf == const $CopyWithPlaceholder()
           ? _value.anyOf
           // ignore: cast_nullable_to_non_nullable
-          : anyOf as List<Schema>?,
+          : anyOf as List<Ref<Schema>>?,
       enum_: enum_ == const $CopyWithPlaceholder()
           ? _value.enum_
           // ignore: cast_nullable_to_non_nullable
@@ -3895,7 +3895,7 @@ Encoding _$EncodingFromJson(Map<String, dynamic> json) =>
         headers: $checkedConvert(
           'headers',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Header.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<Header>.fromJson(e)),
           ),
         ),
         style: $checkedConvert(
@@ -3978,15 +3978,13 @@ Header _$HeaderFromJson(Map<String, dynamic> json) =>
         allowReserved: $checkedConvert('allowReserved', (v) => v as bool),
         schema: $checkedConvert(
           'schema',
-          (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Schema.fromJson(e as Map<String, dynamic>)),
-          ),
+          (v) => v == null ? null : Ref<Schema>.fromJson(v),
         ),
         example: $checkedConvert('example', (v) => v),
         examples: $checkedConvert(
           'examples',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Example.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<Example>.fromJson(e)),
           ),
         ),
         content: $checkedConvert(
@@ -4008,7 +4006,7 @@ Map<String, dynamic> _$HeaderToJson(Header instance) => <String, dynamic>{
   'style': ?_$ParameterStyleEnumMap[instance.style],
   'explode': ?instance.explode,
   'allowReserved': instance.allowReserved,
-  'schema': ?instance.schema?.map((k, e) => MapEntry(k, e.toJson())),
+  'schema': ?instance.schema?.toJson(),
   'example': ?instance.example,
   'examples': ?instance.examples?.map((k, e) => MapEntry(k, e.toJson())),
   'content': ?instance.content?.map((k, e) => MapEntry(k, e.toJson())),
@@ -4083,20 +4081,19 @@ Parameter _$ParameterFromJson(Map<String, dynamic> json) =>
         allowReserved: $checkedConvert('allowReserved', (v) => v as bool),
         schema: $checkedConvert(
           'schema',
-          (v) => v == null ? null : Schema.fromJson(v as Map<String, dynamic>),
+          (v) => v == null ? null : Ref<Schema>.fromJson(v),
         ),
         example: $checkedConvert('example', (v) => v),
         examples: $checkedConvert(
           'examples',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Example.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<Example>.fromJson(e)),
           ),
         ),
         content: $checkedConvert(
           'content',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) =>
-                MapEntry(k, MediaType.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<MediaType>.fromJson(e)),
           ),
         ),
         extensions: $checkedConvert(
@@ -4148,67 +4145,64 @@ Map<String, dynamic> _$ParameterNodeToJson(ParameterNode instance) =>
       'content': ?instance.content?.toJson(),
     };
 
-Operation _$OperationFromJson(
-  Map<String, dynamic> json,
-) => $checkedCreate('Operation', json, ($checkedConvert) {
-  $checkKeys(
-    json,
-    allowedKeys: const [
-      'externalDocs',
-      'parameters',
-      'requestBody',
-      'responses',
-      'callbacks',
-      'security',
-      'servers',
-    ],
-    requiredKeys: const ['responses'],
-    disallowNullValues: const ['responses'],
-  );
-  final val = Operation(
-    externalDocs: $checkedConvert(
-      'externalDocs',
-      (v) => v == null
-          ? null
-          : ExternalDocumentation.fromJson(v as Map<String, dynamic>),
-    ),
-    parameters: $checkedConvert(
-      'parameters',
-      (v) => (v as List<dynamic>?)
-          ?.map((e) => Parameter.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    ),
-    requestBody: $checkedConvert(
-      'requestBody',
-      (v) => v == null ? null : RequestBody.fromJson(v as Map<String, dynamic>),
-    ),
-    responses: $checkedConvert(
-      'responses',
-      (v) => (v as Map<String, dynamic>).map(
-        (k, e) => MapEntry(k, Response.fromJson(e as Map<String, dynamic>)),
-      ),
-    ),
-    callbacks: $checkedConvert(
-      'callbacks',
-      (v) => (v as Map<String, dynamic>?)?.map(
-        (k, e) => MapEntry(k, Callback.fromJson(e as Map<String, dynamic>)),
-      ),
-    ),
-    security: $checkedConvert(
-      'security',
-      (v) => (v as List<dynamic>?)
-          ?.map((e) => SecurityRequirement.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    ),
-    servers: $checkedConvert(
-      'servers',
-      (v) => (v as List<dynamic>?)
-          ?.map((e) => Server.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    ),
-  );
-  return val;
-});
+Operation _$OperationFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Operation', json, ($checkedConvert) {
+      $checkKeys(
+        json,
+        allowedKeys: const [
+          'externalDocs',
+          'parameters',
+          'requestBody',
+          'responses',
+          'callbacks',
+          'security',
+          'servers',
+        ],
+        requiredKeys: const ['responses'],
+        disallowNullValues: const ['responses'],
+      );
+      final val = Operation(
+        externalDocs: $checkedConvert(
+          'externalDocs',
+          (v) => v == null
+              ? null
+              : ExternalDocumentation.fromJson(v as Map<String, dynamic>),
+        ),
+        parameters: $checkedConvert(
+          'parameters',
+          (v) => (v as List<dynamic>?)?.map(Ref<Parameter>.fromJson).toList(),
+        ),
+        requestBody: $checkedConvert(
+          'requestBody',
+          (v) => v == null ? null : Ref<RequestBody>.fromJson(v),
+        ),
+        responses: $checkedConvert(
+          'responses',
+          (v) => (v as Map<String, dynamic>).map(
+            (k, e) => MapEntry(k, Ref<Response>.fromJson(e)),
+          ),
+        ),
+        callbacks: $checkedConvert(
+          'callbacks',
+          (v) => (v as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, Ref<Callback>.fromJson(e)),
+          ),
+        ),
+        security: $checkedConvert(
+          'security',
+          (v) => (v as List<dynamic>?)
+              ?.map(Ref<SecurityRequirement>.fromJson)
+              .toList(),
+        ),
+        servers: $checkedConvert(
+          'servers',
+          (v) => (v as List<dynamic>?)
+              ?.map((e) => Server.fromJson(e as Map<String, dynamic>))
+              .toList(),
+        ),
+      );
+      return val;
+    });
 
 Map<String, dynamic> _$OperationToJson(Operation instance) => <String, dynamic>{
   'externalDocs': ?instance.externalDocs?.toJson(),
@@ -4243,7 +4237,7 @@ Callback _$CallbackFromJson(Map<String, dynamic> json) =>
         expressions: $checkedConvert(
           'expressions',
           (v) => (v as Map<String, dynamic>).map(
-            (k, e) => MapEntry(k, PathItem.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<PathItem>.fromJson(e)),
           ),
         ),
       );
@@ -4277,39 +4271,37 @@ Components _$ComponentsFromJson(Map<String, dynamic> json) =>
         schemas: $checkedConvert(
           'schemas',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Schema.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<Schema>.fromJson(e)),
           ),
         ),
         responses: $checkedConvert(
           'responses',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Response.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<Response>.fromJson(e)),
           ),
         ),
         parameters: $checkedConvert(
           'parameters',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) =>
-                MapEntry(k, Parameter.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<Parameter>.fromJson(e)),
           ),
         ),
         examples: $checkedConvert(
           'examples',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Example.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<Example>.fromJson(e)),
           ),
         ),
         requestBodies: $checkedConvert(
           'requestBodies',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) =>
-                MapEntry(k, RequestBody.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<RequestBody>.fromJson(e)),
           ),
         ),
         headers: $checkedConvert(
           'headers',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Header.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<Header>.fromJson(e)),
           ),
         ),
         securitySchemes: $checkedConvert(
@@ -4322,13 +4314,13 @@ Components _$ComponentsFromJson(Map<String, dynamic> json) =>
         links: $checkedConvert(
           'links',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Link.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<Link>.fromJson(e)),
           ),
         ),
         callbacks: $checkedConvert(
           'callbacks',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Callback.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<Callback>.fromJson(e)),
           ),
         ),
       );
@@ -4612,15 +4604,13 @@ MediaType _$MediaTypeFromJson(Map<String, dynamic> json) =>
       final val = MediaType(
         schema: $checkedConvert(
           'schema',
-          (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Schema.fromJson(e as Map<String, dynamic>)),
-          ),
+          (v) => v == null ? null : Ref<Schema>.fromJson(v),
         ),
         example: $checkedConvert('example', (v) => v),
         examples: $checkedConvert(
           'examples',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Example.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<Example>.fromJson(e)),
           ),
         ),
         encoding: $checkedConvert(
@@ -4634,7 +4624,7 @@ MediaType _$MediaTypeFromJson(Map<String, dynamic> json) =>
     });
 
 Map<String, dynamic> _$MediaTypeToJson(MediaType instance) => <String, dynamic>{
-  'schema': ?instance.schema?.map((k, e) => MapEntry(k, e.toJson())),
+  'schema': ?instance.schema?.toJson(),
   'example': ?instance.example,
   'examples': ?instance.examples?.map((k, e) => MapEntry(k, e.toJson())),
   'encoding': ?instance.encoding?.map((k, e) => MapEntry(k, e.toJson())),
@@ -4802,9 +4792,7 @@ PathItem _$PathItemFromJson(Map<String, dynamic> json) =>
         ),
         parameters: $checkedConvert(
           'parameters',
-          (v) => (v as List<dynamic>?)
-              ?.map((e) => Parameter.fromJson(e as Map<String, dynamic>))
-              .toList(),
+          (v) => (v as List<dynamic>?)?.map(Ref<Parameter>.fromJson).toList(),
         ),
       );
       return val;
@@ -4884,7 +4872,7 @@ Response _$ResponseFromJson(Map<String, dynamic> json) =>
         headers: $checkedConvert(
           'headers',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Header.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<Header>.fromJson(e)),
           ),
         ),
         content: $checkedConvert(
@@ -4897,7 +4885,7 @@ Response _$ResponseFromJson(Map<String, dynamic> json) =>
         links: $checkedConvert(
           'links',
           (v) => (v as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, Link.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<Link>.fromJson(e)),
           ),
         ),
       );
@@ -5197,7 +5185,7 @@ OpenApiDocument _$OpenApiDocumentFromJson(Map<String, dynamic> json) =>
         paths: $checkedConvert(
           'paths',
           (v) => (v as Map<String, dynamic>).map(
-            (k, e) => MapEntry(k, PathItem.fromJson(e as Map<String, dynamic>)),
+            (k, e) => MapEntry(k, Ref<PathItem>.fromJson(e)),
           ),
         ),
         components: $checkedConvert(
@@ -5208,9 +5196,7 @@ OpenApiDocument _$OpenApiDocumentFromJson(Map<String, dynamic> json) =>
         security: $checkedConvert(
           'security',
           (v) => (v as List<dynamic>?)
-              ?.map(
-                (e) => SecurityRequirement.fromJson(e as Map<String, dynamic>),
-              )
+              ?.map(Ref<SecurityRequirement>.fromJson)
               .toList(),
         ),
         tags: $checkedConvert(
@@ -5334,7 +5320,7 @@ Schema _$SchemaFromJson(Map<String, dynamic> json) => $checkedCreate(
       uniqueItems: $checkedConvert('uniqueItems', (v) => v as bool),
       items: $checkedConvert(
         'items',
-        (v) => v == null ? null : Schema.fromJson(v as Map<String, dynamic>),
+        (v) => v == null ? null : Ref<Schema>.fromJson(v),
       ),
       maxProperties: $checkedConvert(
         'maxProperties',
@@ -5351,7 +5337,7 @@ Schema _$SchemaFromJson(Map<String, dynamic> json) => $checkedCreate(
       properties: $checkedConvert(
         'properties',
         (v) => (v as Map<String, dynamic>?)?.map(
-          (k, e) => MapEntry(k, Schema.fromJson(e as Map<String, dynamic>)),
+          (k, e) => MapEntry(k, Ref<Schema>.fromJson(e)),
         ),
       ),
       additionalPropertiesAllowed: $checkedConvert(
@@ -5360,25 +5346,19 @@ Schema _$SchemaFromJson(Map<String, dynamic> json) => $checkedCreate(
       ),
       additionalProperties: $checkedConvert(
         'additionalProperties',
-        (v) => v == null ? null : Schema.fromJson(v as Map<String, dynamic>),
+        (v) => v == null ? null : Ref<Schema>.fromJson(v),
       ),
       allOf: $checkedConvert(
         'allOf',
-        (v) => (v as List<dynamic>?)
-            ?.map((e) => Schema.fromJson(e as Map<String, dynamic>))
-            .toList(),
+        (v) => (v as List<dynamic>?)?.map(Ref<Schema>.fromJson).toList(),
       ),
       oneOf: $checkedConvert(
         'oneOf',
-        (v) => (v as List<dynamic>?)
-            ?.map((e) => Schema.fromJson(e as Map<String, dynamic>))
-            .toList(),
+        (v) => (v as List<dynamic>?)?.map(Ref<Schema>.fromJson).toList(),
       ),
       anyOf: $checkedConvert(
         'anyOf',
-        (v) => (v as List<dynamic>?)
-            ?.map((e) => Schema.fromJson(e as Map<String, dynamic>))
-            .toList(),
+        (v) => (v as List<dynamic>?)?.map(Ref<Schema>.fromJson).toList(),
       ),
       enum_: $checkedConvert('enum', (v) => v as List<dynamic>?),
       nullable: $checkedConvert('nullable', (v) => v as bool),

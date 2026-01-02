@@ -56,6 +56,7 @@ class OperationNode extends TreeNode {
   });
 
   Map<String, dynamic> toJson() {
+    print('OperationNode toJson');
     final json = _$OperationNodeToJson(this);
     json.addAll(extensions);
     return json;

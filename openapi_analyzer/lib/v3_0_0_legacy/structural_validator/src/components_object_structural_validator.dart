@@ -1,5 +1,5 @@
 import '../../../validation_exception.dart';
-import '../../../utils/validation_utils.dart';
+import '../../utils/validation_utils.dart';
 import 'schema_object_structural_validator.dart';
 import 'reference_object_structural_validator.dart';
 

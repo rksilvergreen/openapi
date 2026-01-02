@@ -1,4 +1,4 @@
-import '../../../utils/validation_utils.dart';
+import '../../utils/validation_utils.dart';
 
 /// Structural validator for Discriminator Objects (OpenAPI 3.0.0).
 class DiscriminatorObjectStructuralValidator {

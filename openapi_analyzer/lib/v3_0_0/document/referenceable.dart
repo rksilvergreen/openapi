@@ -1,7 +1,7 @@
 part of 'document.dart';
 
 /// A wrapper that can hold either a reference ($ref) or an actual object.
-@JsonSerializable()
+@JsonSerializable(createFactory: false, createToJson: false)
 class Ref<T> {
   final String? _ref;
   final T? _value;

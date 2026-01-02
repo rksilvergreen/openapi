@@ -1,0 +1,10 @@
+name: example
+version: 1.0.0
+environment:
+  sdk: ^3.9.2
+publish_to: none
+
+# Add regular dependencies here.
+dependencies:
+  openapi_analyzer:
+    path: ../

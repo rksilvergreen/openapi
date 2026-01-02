@@ -66,7 +66,10 @@ class PathItemNode extends TreeNode {
   });
 
   Map<String, dynamic> toJson() {
+    print('PathItemNode toJson');
+    print('children: ${$children?.keys}');
     final json = _$PathItemNodeToJson(this);
+    print(json);
     json.addAll(extensions);
     return json;
   }

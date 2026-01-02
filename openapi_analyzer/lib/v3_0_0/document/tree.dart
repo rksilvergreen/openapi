@@ -32,7 +32,7 @@ class Tree {
     _nodes = nodes;
   }
 
-  Tree.fromObject({String? id, required Object root}) {
+  Tree({String? id, required Object root}) {
     setId(id);
     _createNode(pointer: '/', object: root);
   }

@@ -1,5 +1,5 @@
 import '../../../validation_exception.dart';
-import '../../../utils/validation_utils.dart';
+import '../../utils/validation_utils.dart';
 
 /// Structural validator for Reference Objects (OpenAPI 3.0.0).
 class ReferenceObjectStructuralValidator {

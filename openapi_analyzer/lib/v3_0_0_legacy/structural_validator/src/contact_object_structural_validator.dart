@@ -1,5 +1,5 @@
 import '../../../validation_exception.dart';
-import '../../../utils/validation_utils.dart';
+import '../../utils/validation_utils.dart';
 
 /// Structural validator for Contact Objects (OpenAPI 3.0.0).
 /// All fields are optional.

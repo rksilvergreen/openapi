@@ -353,6 +353,7 @@ extension ObjectToNode on Tree {
           [],
         );
       }
+      print('Ref<PathItem> toNode: ${object.asValue()?.toJson()}');
       final pathItem = object.asValue()!;
       final edges = <(Edge, Object)>[];
       if (pathItem.get_ != null) {
@@ -386,6 +387,7 @@ extension ObjectToNode on Tree {
         edges.add((const Edge(ParametersListNode, 'parameters'), pathItem.parameters!));
       }
       final pathItemNode = PathItemNode(extensions: pathItem.extensions);
+      print('edges: ${edges.map((e) => '${e.$1.key}: ${e.$2}').toList()}');
       return (RefNode<PathItemNode>.value(pathItemNode), edges);
     }
     if (object is RequestBody) {

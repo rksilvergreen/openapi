@@ -1,4 +1,4 @@
-import '../validation_exception.dart';
+import '../../validation_exception.dart';
 
 /// Utility class for validation operations.
 class ValidationUtils {

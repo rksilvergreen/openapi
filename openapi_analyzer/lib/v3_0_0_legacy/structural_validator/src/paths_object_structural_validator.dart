@@ -1,5 +1,5 @@
 import '../../../validation_exception.dart';
-import '../../../utils/validation_utils.dart';
+import '../../utils/validation_utils.dart';
 import 'path_item_object_structural_validator.dart';
 
 /// Structural validator for Paths Objects (OpenAPI 3.0.0).

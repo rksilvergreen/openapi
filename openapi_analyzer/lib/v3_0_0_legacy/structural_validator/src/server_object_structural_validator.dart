@@ -1,5 +1,5 @@
 import '../../../validation_exception.dart';
-import '../../../utils/validation_utils.dart';
+import '../../utils/validation_utils.dart';
 import 'server_variable_object_structural_validator.dart';
 
 /// Structural validator for Server Objects (OpenAPI 3.0.0).
