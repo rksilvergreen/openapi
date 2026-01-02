@@ -46,7 +46,7 @@ class PathItem {
 
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
-class PathItemNode extends TreeNode {
+class PathItemNode extends Referenceable {
   @JsonKey(name: 'get')
   OperationNode? get get_ => $children?['get'] as OperationNode?;
   OperationNode? get put => $children?['put'] as OperationNode?;
@@ -66,10 +66,7 @@ class PathItemNode extends TreeNode {
   });
 
   Map<String, dynamic> toJson() {
-    print('PathItemNode toJson');
-    print('children: ${$children?.keys}');
     final json = _$PathItemNodeToJson(this);
-    print(json);
     json.addAll(extensions);
     return json;
   }

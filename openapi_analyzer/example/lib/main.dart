@@ -23,5 +23,8 @@ void main() {
     ),
   );
   const encoder = JsonEncoder.withIndent('  ');
-  print(encoder.convert((document.tree?.root as OpenApiDocumentNode).toJson()));
+  // print(encoder.convert((document.tree?.root as OpenApiDocumentNode).toJson()));
+
+  final x = (document.tree?.root as OpenApiDocumentNode).paths;
+  print(x?.$children?.keys);
 }

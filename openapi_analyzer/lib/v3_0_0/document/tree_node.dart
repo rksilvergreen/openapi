@@ -20,3 +20,5 @@ abstract class TreeNode {
   Map<String, TreeNode>? get $children =>
       $tree?.nodes[$id]?.children.map((k, v) => MapEntry(k.key, $tree!.nodes[v]!.node));
 }
+
+

@@ -46,12 +46,14 @@ class Ref<T> {
   }
 }
 
-class RefNode<T extends TreeNode> extends TreeNode {
+class RefNode<T extends Referenceable> extends TreeNode {
   final String? _ref;
   final T? _value;
 
   RefNode.reference(String ref) : _ref = ref, _value = null;
-  RefNode.value(T value) : _ref = null, _value = value;
+  RefNode.value(T value) : _ref = null, _value = value {
+    _value?._ref = this;
+  }
 
   bool isReference() => _ref != null;
   String? asReference() => _ref;
@@ -63,4 +65,17 @@ class RefNode<T extends TreeNode> extends TreeNode {
     }
     return (_value as dynamic).toJson();
   }
+}
+
+abstract class Referenceable {
+  late final RefNode _ref;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  String get $id => _ref._$id;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Tree? get $tree => _ref._$tree;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  TreeNode? get $parent => $tree?.nodes[$tree?.nodes[$id]?.parent]?.node;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, TreeNode>? get $children =>
+      $tree?.nodes[$id]?.children.map((k, v) => MapEntry(k.key, $tree!.nodes[v]!.node));
 }
