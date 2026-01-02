@@ -37,7 +37,7 @@ class Link {
 
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
-class LinkNode extends TreeNode {
+class LinkNode extends NodeReferencable {
   String? operationRef;
   String? operationId;
   Map<String, dynamic>? parameters;
@@ -73,4 +73,3 @@ class LinksMapNode extends MapTreeNode<RefNode<LinkNode>> {
     return json;
   }
 }
-

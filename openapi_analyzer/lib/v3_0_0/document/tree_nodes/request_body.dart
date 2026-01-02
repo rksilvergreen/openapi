@@ -33,7 +33,7 @@ class RequestBody {
 
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
-class RequestBodyNode extends TreeNode {
+class RequestBodyNode extends NodeReferencable {
   String? description;
   bool required;
   MediaTypesMapNode? get content => $children?['content'] as MediaTypesMapNode?;

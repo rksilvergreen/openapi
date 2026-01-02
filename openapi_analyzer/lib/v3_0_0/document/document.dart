@@ -9,6 +9,7 @@ part 'json_helpers.dart';
 part 'object_to_node_extension.dart';
 part 'referenceable.dart';
 part 'json_constructor_extension.dart';
+part 'parseable.dart';
 part 'tree.dart';
 part 'tree_node.dart';
 part 'map_tree_node.dart';

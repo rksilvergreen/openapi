@@ -80,7 +80,7 @@ class Parameter {
 
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
-class ParameterNode extends TreeNode {
+class ParameterNode extends NodeReferencable {
   String name;
   @JsonKey(name: 'in')
   ParameterLocation in_;

@@ -46,7 +46,11 @@ class Ref<T> {
   }
 }
 
-class RefNode<T extends Referenceable> extends TreeNode {
+abstract class Referenceable {
+  Map<String, dynamic> toJson();
+}
+
+class RefNode<T extends NodeReferencable> extends TreeNode {
   final String? _ref;
   final T? _value;
 
@@ -67,7 +71,7 @@ class RefNode<T extends Referenceable> extends TreeNode {
   }
 }
 
-abstract class Referenceable {
+abstract class NodeReferencable {
   late final RefNode _ref;
   @JsonKey(includeFromJson: false, includeToJson: false)
   String get $id => _ref._$id;

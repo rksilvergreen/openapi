@@ -119,7 +119,7 @@ class Schema {
 
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
-class SchemaNode extends TreeNode {
+class SchemaNode extends NodeReferencable {
   String? title;
   String? description;
   @JsonKey(name: 'default')

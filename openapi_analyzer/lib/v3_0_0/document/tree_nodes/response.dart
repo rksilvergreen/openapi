@@ -33,7 +33,7 @@ class Response {
 
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
-class ResponseNode extends TreeNode {
+class ResponseNode extends NodeReferencable {
   String? description;
   HeadersMapNode? get headers => $children?['headers'] as HeadersMapNode?;
   MediaTypesMapNode? get content => $children?['content'] as MediaTypesMapNode?;

@@ -2,7 +2,7 @@ part of '../document.dart';
 
 @CopyWith(skipFields: true)
 @JsonSerializable()
-class Header {
+class Header extends Referenceable {
   final String? description;
   @JsonKey(name: 'required', required: true, disallowNullValue: true)
   final bool required_;
@@ -51,7 +51,7 @@ class Header {
 
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
-class HeaderNode extends TreeNode {
+class HeaderNode extends NodeReferencable {
   String? description;
   @JsonKey(name: 'required')
   bool required_;

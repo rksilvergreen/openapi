@@ -46,7 +46,7 @@ class PathItem {
 
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
-class PathItemNode extends Referenceable {
+class PathItemNode extends NodeReferencable {
   @JsonKey(name: 'get')
   OperationNode? get get_ => $children?['get'] as OperationNode?;
   OperationNode? get put => $children?['put'] as OperationNode?;

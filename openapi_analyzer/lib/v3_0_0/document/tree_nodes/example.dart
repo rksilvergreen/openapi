@@ -2,7 +2,7 @@ part of '../document.dart';
 
 @CopyWith(skipFields: true)
 @JsonSerializable()
-class Example {
+class Example extends Referenceable {
   final String? summary;
   final String? description;
   final dynamic value;
@@ -33,7 +33,7 @@ class Example {
 
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
-class ExampleNode extends TreeNode {
+class ExampleNode extends NodeReferencable {
   String? summary;
   String? description;
   dynamic value;
@@ -66,4 +66,3 @@ class ExamplesMapNode extends MapTreeNode<RefNode<ExampleNode>> {
     return json;
   }
 }
-

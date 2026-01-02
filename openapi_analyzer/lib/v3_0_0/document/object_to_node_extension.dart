@@ -3,43 +3,51 @@ part of 'document.dart';
 extension ObjectToNode on Tree {
   (TreeNode, List<(Edge, Object)>)? _objectToNode(Object object) {
     // Base classes
-    if (object is Callback) {
+    if (object is Ref<Callback>) {
+      if (object.isReference()) {
+        return (
+          RefNode<CallbackNode>.reference(object.asReference()!),
+          [],
+        );
+      }
+      final callback = object.asValue()!;
       return (
-        CallbackNode(extensions: object.extensions),
-        [(const Edge(PathsMapNode, 'expressions'), object.expressions)],
+        RefNode<CallbackNode>.value(CallbackNode(extensions: callback.extensions)),
+        [(const Edge(PathsMapNode, 'expressions'), callback.expressions)],
       );
     }
     if (object is Components) {
+      final components = object;
       final edges = <(Edge, Object)>[];
-      if (object.schemas != null) {
-        edges.add((const Edge(SchemasMapNode, 'schemas'), object.schemas!));
+      if (components.schemas != null) {
+        edges.add((const Edge(SchemasMapNode, 'schemas'), components.schemas!));
       }
-      if (object.responses != null) {
-        edges.add((const Edge(ResponsesMapNode, 'responses'), object.responses!));
+      if (components.responses != null) {
+        edges.add((const Edge(ResponsesMapNode, 'responses'), components.responses!));
       }
-      if (object.parameters != null) {
-        edges.add((const Edge(ParametersMapNode, 'parameters'), object.parameters!));
+      if (components.parameters != null) {
+        edges.add((const Edge(ParametersMapNode, 'parameters'), components.parameters!));
       }
-      if (object.examples != null) {
-        edges.add((const Edge(ExamplesMapNode, 'examples'), object.examples!));
+      if (components.examples != null) {
+        edges.add((const Edge(ExamplesMapNode, 'examples'), components.examples!));
       }
-      if (object.requestBodies != null) {
-        edges.add((const Edge(RequestBodiesMapNode, 'requestBodies'), object.requestBodies!));
+      if (components.requestBodies != null) {
+        edges.add((const Edge(RequestBodiesMapNode, 'requestBodies'), components.requestBodies!));
       }
-      if (object.headers != null) {
-        edges.add((const Edge(HeadersMapNode, 'headers'), object.headers!));
+      if (components.headers != null) {
+        edges.add((const Edge(HeadersMapNode, 'headers'), components.headers!));
       }
-      if (object.securitySchemes != null) {
-        edges.add((const Edge(SecuritySchemesMapNode, 'securitySchemes'), object.securitySchemes!));
+      if (components.securitySchemes != null) {
+        edges.add((const Edge(SecuritySchemesMapNode, 'securitySchemes'), components.securitySchemes!));
       }
-      if (object.links != null) {
-        edges.add((const Edge(LinksMapNode, 'links'), object.links!));
+      if (components.links != null) {
+        edges.add((const Edge(LinksMapNode, 'links'), components.links!));
       }
-      if (object.callbacks != null) {
-        edges.add((const Edge(CallbacksMapNode, 'callbacks'), object.callbacks!));
+      if (components.callbacks != null) {
+        edges.add((const Edge(CallbacksMapNode, 'callbacks'), components.callbacks!));
       }
       return (
-        ComponentsNode(extensions: object.extensions),
+        ComponentsNode(extensions: components.extensions),
         edges,
       );
     }

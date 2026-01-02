@@ -2,7 +2,7 @@ part of '../document.dart';
 
 @CopyWith(skipFields: true)
 @JsonSerializable()
-class Callback {
+class Callback extends Referenceable {
   @JsonKey(required: true, disallowNullValue: true)
   final Map<String, Ref<PathItem>> expressions;
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,7 +28,7 @@ class Callback {
 
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
-class CallbackNode extends TreeNode {
+class CallbackNode extends NodeReferencable {
   PathsMapNode? get expressions => $children?['expressions'] as PathsMapNode?;
   @JsonKey(includeFromJson: false, includeToJson: false)
   Map<String, dynamic> extensions;

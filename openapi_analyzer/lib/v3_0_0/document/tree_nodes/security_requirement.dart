@@ -19,7 +19,7 @@ class SecurityRequirement {
 
 @CopyWith(skipFields: true)
 @JsonSerializable(createFactory: false)
-class SecurityRequirementNode extends TreeNode {
+class SecurityRequirementNode extends NodeReferencable {
   Map<String, List<String>> requirements;
 
   SecurityRequirementNode({
@@ -37,4 +37,3 @@ class SecurityRequirementsList extends ListTreeNode<RefNode<SecurityRequirementN
     return map((item) => item.toJson()).toList();
   }
 }
-
